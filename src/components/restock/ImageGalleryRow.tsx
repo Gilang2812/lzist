@@ -20,9 +20,6 @@ const ImageGalleryRow: React.FC<ImageGalleryRowProps> = ({ images, altPrefix = '
             <img alt={`${altPrefix} reference`} className="w-full h-full object-cover" src={img} />
           </div>
         ))}
-        <div className="w-24 h-24 rounded-lg bg-surface-container flex items-center justify-center border border-dashed border-outline-variant cursor-pointer hover:bg-surface-container-high transition-colors">
-          <span className="material-symbols-outlined text-outline">add_photo_alternate</span>
-        </div>
       </div>
     </div>
   );
