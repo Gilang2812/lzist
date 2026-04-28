@@ -142,6 +142,33 @@ const AddItemsForm: React.FC<AddItemsFormProps> = ({ onClose, onAddItems }) => {
     onClose();
   };
 
+  const filteredAndSortedData = React.useMemo(() => {
+    let data = INITIAL_DATA;
+    
+    if (searchQuery.trim() !== '') {
+      const searchTerms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+      data = data.map(cat => {
+        const catNameLower = cat.name.toLowerCase();
+        
+        const filteredVariants = cat.variants.filter(v => {
+          const variantNameLower = v.name.toLowerCase();
+          const combinedName = `${catNameLower} ${variantNameLower}`;
+          return searchTerms.every(term => combinedName.includes(term));
+        });
+        
+        if (filteredVariants.length > 0) {
+          return { ...cat, variants: filteredVariants };
+        }
+        return null;
+      }).filter((cat): cat is Category => cat !== null);
+    }
+    
+    return [...data].map(cat => ({
+      ...cat,
+      variants: [...cat.variants].sort((a, b) => a.name.localeCompare(b.name))
+    })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [searchQuery]);
+
   const totalSelected = selectedVariants.size;
 
   return (
@@ -163,17 +190,23 @@ const AddItemsForm: React.FC<AddItemsFormProps> = ({ onClose, onAddItems }) => {
 
         {/* List Content */}
         <div className="flex-1 overflow-y-auto p-md max-h-[512px] bg-surface">
-          {INITIAL_DATA.map(category => (
-            <AccordionCategory 
-              key={category.id}
-              category={category}
-              expanded={expandedCats.has(category.id)}
-              onToggleExpand={() => toggleExpand(category.id)}
-              selectedVariants={selectedVariants}
-              onToggleVariant={toggleVariant}
-              onToggleCategory={() => toggleCategory(category)}
-            />
-          ))}
+          {filteredAndSortedData.length > 0 ? (
+            filteredAndSortedData.map(category => (
+              <AccordionCategory 
+                key={category.id}
+                category={category}
+                expanded={searchQuery.trim() !== '' || expandedCats.has(category.id)}
+                onToggleExpand={() => toggleExpand(category.id)}
+                selectedVariants={selectedVariants}
+                onToggleVariant={toggleVariant}
+                onToggleCategory={() => toggleCategory(category)}
+              />
+            ))
+          ) : (
+            <div className="p-lg text-center text-on-surface-variant font-body-md">
+              Tidak ada barang yang ditemukan.
+            </div>
+          )}
         </div>
 
         {/* Modal Footer */}
