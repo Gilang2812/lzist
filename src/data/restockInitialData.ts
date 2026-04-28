@@ -3,7 +3,7 @@ import type { Category } from '../types';
 export const INITIAL_DATA: Category[] = [
   {
     "id": "47158306682",
-    "name": "Lazoulé - Pashmina TENCEL | Basic Tencel Shawl",
+    "name": "Pashmina TENCEL | Basic Tencel Shawl",
     "variants": [
       {
         "id": "365735307947",
@@ -152,7 +152,7 @@ export const INITIAL_DATA: Category[] = [
   },
   {
     "id": "48308287626",
-    "name": "Lazoulé - Pashmina Modal Viscose | Modal Viscose Shawl",
+    "name": "Pashmina Modal Viscose | Modal Viscose Shawl",
     "variants": [
       {
         "id": "345734031211",
@@ -340,7 +340,7 @@ export const INITIAL_DATA: Category[] = [
   },
   {
     "id": "52008267608",
-    "name": "Lazoulé - Pashmina Kaos Rayon Premium | Turkish Shawl",
+    "name": "Pashmina Kaos Rayon Premium | Turkish Shawl",
     "variants": [
       {
         "id": "425734033768",
@@ -736,7 +736,7 @@ export const INITIAL_DATA: Category[] = [
   },
   {
     "id": "53908272713",
-    "name": "Lazoulé Hijab - Pashmina Voal | Arabian Voal Shawl | Voilee",
+    "name": "Pashmina Voal | Arabian Voal Shawl | Voilee",
     "variants": [
       {
         "id": "410735144010",
@@ -1145,7 +1145,7 @@ export const INITIAL_DATA: Category[] = [
   },
   {
     "id": "44708292808",
-    "name": "Lazoulé- Pashmina Viscose Textured | Viscose Hightlight",
+    "name": "Pashmina Viscose Textured | Viscose Hightlight",
     "variants": [
       {
         "id": "272509239716",
@@ -1450,7 +1450,7 @@ export const INITIAL_DATA: Category[] = [
   },
   {
     "id": "47658293044",
-    "name": "Lazoulé - Hijab Segi Empat Paris Jadul Varisha | Paris Jadul Azara",
+    "name": "Hijab Segi Empat Paris Jadul Varisha | Paris Jadul Azara",
     "variants": [
       {
         "id": "277509275386",
@@ -2743,7 +2743,7 @@ export const INITIAL_DATA: Category[] = [
   },
   {
     "id": "44129795351",
-    "name": "Lazoulé - Inner Basic Turkey | Ciput Tali Kaos Rayon Premium",
+    "name": "Inner Basic Turkey | Ciput Tali Kaos Rayon Premium",
     "variants": [
       {
         "id": "395735213918",
@@ -2931,7 +2931,7 @@ export const INITIAL_DATA: Category[] = [
   },
   {
     "id": "28944521101",
-    "name": "Lazoulé - Paris Square | Hijab Segi Empat Paris Premium",
+    "name": "Paris Square | Hijab Segi Empat Paris Premium",
     "variants": [
       {
         "id": "430735233219",
@@ -3522,7 +3522,7 @@ export const INITIAL_DATA: Category[] = [
   },
   {
     "id": "52908272964",
-    "name": "Lazoulé - Plain Polycotton Square Hijab | Hijab Segiempat Polycotton no",
+    "name": "Plain Polycotton Square Hijab | Hijab Segiempat Polycotton no",
     "variants": [
       {
         "id": "395735243275",
