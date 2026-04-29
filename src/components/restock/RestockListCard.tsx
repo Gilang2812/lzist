@@ -10,6 +10,7 @@ interface RestockListCardProps {
   onToggleVariant: (id: string) => void;
   onImageClick?: (url: string) => void;
   onDelete?: (id: string) => void;
+  onDeleteVariant?: (variantId: string) => void;
   onChangeVariantTargetQuantity?: (variantId: string, quantity: number) => void;
 }
 
@@ -21,6 +22,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
   onToggleVariant,
   onImageClick,
   onDelete,
+  onDeleteVariant,
   onChangeVariantTargetQuantity,
 }) => {
   return (
@@ -56,6 +58,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
               onToggleExpand={() => onToggleVariant(variant.id)}
               onImageClick={onImageClick}
               onChangeTargetQuantity={(q) => onChangeVariantTargetQuantity?.(variant.id, q)}
+              onDelete={onDeleteVariant ? () => onDeleteVariant(variant.id) : undefined}
             />
           ))}
         </div>

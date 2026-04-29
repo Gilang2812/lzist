@@ -77,6 +77,15 @@ const RestockDetailPage: React.FC = () => {
     }));
   };
 
+  const handleDeleteVariant = (categoryId: string, variantId: string) => {
+    setChecklist(prev => prev.map(c => {
+      if (c.id === categoryId) {
+        return { ...c, variants: c.variants.filter(v => v.id !== variantId) };
+      }
+      return c;
+    }));
+  };
+
   const toggleCategory = (id: string) => {
     setExpandedCategories(prev => {
       const next = new Set(prev);
@@ -261,6 +270,7 @@ const RestockDetailPage: React.FC = () => {
                 onToggleVariant={toggleVariant}
                 onImageClick={setSelectedImage}
                 onDelete={(id) => setDeleteModal({ isOpen: true, idToClear: id })}
+                onDeleteVariant={(vId) => handleDeleteVariant(category.id, vId)}
                 onChangeVariantTargetQuantity={(vId, q) => handleChangeTargetQuantity(category.id, vId, q)}
               />
             ))
