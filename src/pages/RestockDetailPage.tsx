@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import type { Category, RestockList } from '../types';
 import RestockListCard from '../components/restock/RestockListCard';
 import AddItemsForm from '../components/restock/AddItemsForm';
@@ -7,7 +7,6 @@ import { db } from '../db/database';
 
 const RestockDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [list, setList] = useState<RestockList | null>(null);
   const [checklist, setChecklist] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
