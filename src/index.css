@@ -171,3 +171,7 @@
     transform: translate(-50%, -50%);
   }
 }
+
+@utility max-w-ms {
+  max-width: 24rem;
+}

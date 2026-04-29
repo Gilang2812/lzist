@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import type { Category } from '../types';
 import RestockListCard from '../components/restock/RestockListCard';
 import AddItemsForm from '../components/restock/AddItemsForm';
+import { db } from '../db/database';
+import type { RestockList } from '../types';
 
 const NewRestockEntryPage: React.FC = () => {
   const [checklist, setChecklist] = useState<Category[]>([]);
@@ -9,16 +11,25 @@ const NewRestockEntryPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedVariants, setExpandedVariants] = useState<Set<string>>(new Set());
+  const [checkedVariants, setCheckedVariants] = useState<Set<string>>(new Set());
 
   const [isPasting, setIsPasting] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, idToClear: string | 'all' | null}>({isOpen: false, idToClear: null});
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveConflictModal, setSaveConflictModal] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, idToClear: string | 'all' | 'bulk' | null}>({isOpen: false, idToClear: null});
 
   const confirmDelete = () => {
     if (deleteModal.idToClear === 'all') {
       setChecklist([]);
+    } else if (deleteModal.idToClear === 'bulk') {
+      setChecklist(prev => prev.map(cat => ({
+        ...cat,
+        variants: cat.variants.filter(v => !checkedVariants.has(v.id))
+      })).filter(cat => cat.variants.length > 0));
+      setCheckedVariants(new Set());
     } else if (deleteModal.idToClear) {
       setChecklist(prev => prev.filter(c => c.id !== deleteModal.idToClear));
     }
@@ -64,6 +75,37 @@ const NewRestockEntryPage: React.FC = () => {
       else next.add(id);
       return next;
     });
+  };
+
+  const toggleVariantCheck = (varId: string) => {
+    setCheckedVariants(prev => {
+      const next = new Set(prev);
+      if (next.has(varId)) next.delete(varId);
+      else next.add(varId);
+      return next;
+    });
+  };
+
+  const toggleCategoryCheck = (category: Category) => {
+    const availableVariants = category.variants;
+    if (availableVariants.length === 0) return;
+
+    setCheckedVariants(prev => {
+      const next = new Set(prev);
+      const isAllChecked = availableVariants.every(variant => prev.has(variant.id));
+      
+      if (isAllChecked) {
+        availableVariants.forEach(variant => next.delete(variant.id));
+      } else {
+        availableVariants.forEach(variant => next.add(variant.id));
+      }
+      return next;
+    });
+  };
+
+  const handleBulkDelete = () => {
+    if (checkedVariants.size === 0) return;
+    setDeleteModal({ isOpen: true, idToClear: 'bulk' });
   };
 
   const handleCopy = () => {
@@ -117,7 +159,14 @@ const NewRestockEntryPage: React.FC = () => {
           const existingVariants = [...existingCat.variants];
           
           newCat.variants.forEach(newVar => {
-            if (!existingVariants.some(v => v.id === newVar.id)) {
+            const existingVarIndex = existingVariants.findIndex(v => v.id === newVar.id);
+            if (existingVarIndex >= 0) {
+              const existingVar = existingVariants[existingVarIndex];
+              existingVariants[existingVarIndex] = {
+                ...existingVar,
+                targetQuantity: (existingVar.targetQuantity || 1) + (newVar.targetQuantity || 1)
+              };
+            } else {
               existingVariants.push(newVar);
             }
           });
@@ -131,6 +180,89 @@ const NewRestockEntryPage: React.FC = () => {
     });
   };
 
+  const getTodayId = () => {
+    const today = new Date();
+    const offset = today.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(today.getTime() - offset)).toISOString().slice(0, 10);
+    return `restock-${localISOTime}`;
+  };
+
+  const triggerSaveSuccess = () => {
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2000);
+  };
+
+  const handleSave = async () => {
+    if (checklist.length === 0) return;
+    
+    const id = getTodayId();
+    const existing = await db.restockLists.get(id);
+    
+    if (existing) {
+      setSaveConflictModal(true);
+    } else {
+      const newList: RestockList = {
+        id,
+        title: `Restock ${id.replace('restock-', '')}`,
+        categories: checklist,
+        status: 'draft',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      await db.restockLists.add(newList);
+      triggerSaveSuccess();
+    }
+  };
+
+  const handleSaveReplace = async () => {
+    const id = getTodayId();
+    const existing = await db.restockLists.get(id);
+    if (existing) {
+      existing.categories = checklist;
+      existing.updatedAt = new Date();
+      await db.restockLists.put(existing);
+    }
+    setSaveConflictModal(false);
+    triggerSaveSuccess();
+  };
+
+  const handleSaveCombine = async () => {
+    const id = getTodayId();
+    const existing = await db.restockLists.get(id);
+    if (existing) {
+      let updated = [...existing.categories];
+      checklist.forEach(newCat => {
+        const existingCatIndex = updated.findIndex(c => c.id === newCat.id);
+        if (existingCatIndex >= 0) {
+          const existingCat = { ...updated[existingCatIndex] };
+          const existingVariants = [...existingCat.variants];
+          
+          newCat.variants.forEach(newVar => {
+            const existingVarIndex = existingVariants.findIndex(v => v.id === newVar.id);
+            if (existingVarIndex >= 0) {
+              const existingVar = existingVariants[existingVarIndex];
+              existingVariants[existingVarIndex] = {
+                ...existingVar,
+                targetQuantity: (existingVar.targetQuantity || 1) + (newVar.targetQuantity || 1)
+              };
+            } else {
+              existingVariants.push(newVar);
+            }
+          });
+          existingCat.variants = existingVariants;
+          updated[existingCatIndex] = existingCat;
+        } else {
+          updated.push(newCat);
+        }
+      });
+      existing.categories = updated;
+      existing.updatedAt = new Date();
+      await db.restockLists.put(existing);
+    }
+    setSaveConflictModal(false);
+    triggerSaveSuccess();
+  };
+
   return (
     <>
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl overflow-x-hidden">
@@ -138,6 +270,15 @@ const NewRestockEntryPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border-y border-surface-variant p-md rounded-lg shadow-sm gap-sm">
           <p className="font-body-md text-body-md text-on-surface-variant flex-1">List entry baru untuk restock barang.</p>
           <div className="flex gap-sm self-end sm:self-auto flex-wrap">
+            {checkedVariants.size > 0 && (
+              <button 
+                onClick={handleBulkDelete}
+                className="flex items-center gap-xs px-sm py-xs rounded-md transition-colors border cursor-pointer text-error hover:bg-error/10 border-transparent hover:border-error/20"
+              >
+                <span className="material-symbols-outlined text-[18px]">delete</span>
+                <span className="font-label-md text-label-md">Hapus ({checkedVariants.size})</span>
+              </button>
+            )}
             <button 
               onClick={() => setDeleteModal({ isOpen: true, idToClear: 'all' })}
               className="flex items-center gap-xs text-error hover:bg-error/10 px-sm py-xs rounded-md transition-colors border border-transparent hover:border-error/20 cursor-pointer"
@@ -166,6 +307,24 @@ const NewRestockEntryPage: React.FC = () => {
             >
               <span className="material-symbols-outlined text-[18px]">content_paste</span>
               <span className="font-label-md text-label-md">Paste</span>
+            </button>
+            <button 
+              onClick={handleSave}
+              disabled={checklist.length === 0}
+              className={`flex items-center gap-xs px-sm py-xs rounded-md transition-colors border ${
+                checklist.length === 0
+                  ? 'text-on-surface-variant/40 cursor-not-allowed border-transparent'
+                  : saveSuccess
+                    ? 'bg-primary-container text-on-primary-container border-primary-container cursor-default'
+                    : 'bg-primary text-on-primary hover:bg-primary/90 border-transparent shadow-sm cursor-pointer'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                {saveSuccess ? 'check_circle' : 'save'}
+              </span>
+              <span className="font-label-md text-label-md">
+                {saveSuccess ? 'Tersimpan' : 'Simpan'}
+              </span>
             </button>
           </div>
         </div>
@@ -234,6 +393,9 @@ const NewRestockEntryPage: React.FC = () => {
                 onDelete={(id) => setDeleteModal({ isOpen: true, idToClear: id })}
                 onDeleteVariant={(vId) => handleDeleteVariant(category.id, vId)}
                 onChangeVariantTargetQuantity={(vId, q) => handleChangeTargetQuantity(category.id, vId, q)}
+                checkedVariants={checkedVariants}
+                onToggleVariantCheck={toggleVariantCheck}
+                onToggleCategoryCheck={() => toggleCategoryCheck(category)}
               />
             ))
           )}
@@ -267,7 +429,9 @@ const NewRestockEntryPage: React.FC = () => {
             <p className="text-body-md text-on-surface-variant font-body-md">
               {deleteModal.idToClear === 'all' 
                 ? "Apakah Anda yakin ingin menghapus semua list restock ini?" 
-                : "Apakah Anda yakin ingin menghapus kategori beserta semua isinya?"}
+                : deleteModal.idToClear === 'bulk'
+                  ? `Apakah Anda yakin ingin menghapus ${checkedVariants.size} varian yang dipilih?`
+                  : "Apakah Anda yakin ingin menghapus kategori beserta semua isinya?"}
             </p>
             <div className="flex gap-sm justify-end mt-sm">
               <button 
@@ -281,6 +445,47 @@ const NewRestockEntryPage: React.FC = () => {
                 className="px-md py-xs rounded-full bg-error text-on-error hover:bg-error/90 transition-colors font-label-md cursor-pointer shadow-sm"
               >
                 Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save Conflict Modal */}
+      {saveConflictModal && (
+        <div 
+          className="fixed inset-0 bg-on-surface/50 z-50 flex items-center justify-center p-md backdrop-blur-sm"
+          onClick={() => setSaveConflictModal(false)}
+        >
+          <div 
+            className="bg-surface p-xl rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200 max-w-ms"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="font-h3 text-h3 text-on-surface flex items-center gap-2">
+              <span className="material-symbols-outlined text-secondary">info</span>
+              List Hari Ini Sudah Ada
+            </h3>
+            <p className="text-body-md text-on-surface-variant font-body-md">
+              Restock list untuk hari ini sudah pernah disimpan. Apakah Anda ingin menimpanya dengan list saat ini, atau menggabungkan datanya?
+            </p>
+            <div className="flex gap-sm justify-end mt-sm flex-wrap">
+              <button 
+                onClick={() => setSaveConflictModal(false)}
+                className="px-md py-xs rounded-full border border-outline text-on-surface hover:bg-surface-variant transition-colors font-label-md cursor-pointer"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={handleSaveReplace}
+                className="px-md py-xs rounded-full bg-error text-on-error hover:bg-error/90 transition-colors font-label-md cursor-pointer shadow-sm"
+              >
+                Timpa
+              </button>
+              <button 
+                onClick={handleSaveCombine}
+                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm"
+              >
+                Gabung
               </button>
             </div>
           </div>

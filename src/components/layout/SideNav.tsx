@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { NAV_ITEMS } from '../../utils/constants';
+import { useInstallPrompt } from '../../hooks/useInstallPrompt';
 
 interface SideNavProps {
   isOpen?: boolean;
@@ -8,6 +9,8 @@ interface SideNavProps {
 }
 
 const SideNav: React.FC<SideNavProps> = ({ isOpen = false, onClose }) => {
+  const { isInstallable, handleInstallClick } = useInstallPrompt();
+
   return (
     <>
       {isOpen && (
@@ -48,6 +51,15 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen = false, onClose }) => {
       </nav>
       
       <div className="mt-auto pt-6 border-t border-gray-100 dark:border-gray-800">
+        {isInstallable && (
+          <button 
+            onClick={handleInstallClick} 
+            className="w-full flex items-center justify-center gap-2 py-2.5 mb-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg transition-colors font-medium text-sm border border-gray-200 dark:border-gray-700"
+          >
+            <span className="material-symbols-outlined text-sm">install_mobile</span>
+            Install App
+          </button>
+        )}
         <NavLink to="/restock/new" onClick={onClose} className="w-full flex items-center justify-center gap-2 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors font-medium text-sm">
           <span className="material-symbols-outlined text-sm">add</span>
           New Entry

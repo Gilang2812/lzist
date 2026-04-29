@@ -12,6 +12,11 @@ interface RestockListCardProps {
   onDelete?: (id: string) => void;
   onDeleteVariant?: (variantId: string) => void;
   onChangeVariantTargetQuantity?: (variantId: string, quantity: number) => void;
+  readOnly?: boolean;
+  showCheckboxes?: boolean;
+  checkedVariants?: Set<string>;
+  onToggleVariantCheck?: (id: string) => void;
+  onToggleCategoryCheck?: () => void;
 }
 
 const RestockListCard: React.FC<RestockListCardProps> = ({
@@ -24,16 +29,36 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
   onDelete,
   onDeleteVariant,
   onChangeVariantTargetQuantity,
+  readOnly = false,
+  showCheckboxes = true,
+  checkedVariants = new Set(),
+  onToggleVariantCheck,
+  onToggleCategoryCheck,
 }) => {
+  const availableVariants = category.variants;
+  const checkedCount = availableVariants.filter(variant => checkedVariants.has(variant.id)).length;
+  
+  const isAllChecked = availableVariants.length > 0 && checkedCount === availableVariants.length;
+  const isIndeterminate = checkedCount > 0 && checkedCount < availableVariants.length;
+
   return (
     <div className="border-b border-surface-variant last:border-b-0">
       {/* Category Header */}
       <div className="flex items-center py-md px-md cursor-pointer hover:bg-surface-container-low transition-colors group" onClick={onToggleExpand}>
         <span className={`material-symbols-outlined text-on-surface-variant mr-sm transition-transform ${isExpanded ? 'rotate-90' : ''}`}>chevron_right</span>
-        <input className="w-5 h-5 rounded border-outline text-primary focus:ring-primary-container mr-md bg-surface-container-lowest cursor-pointer" type="checkbox" onClick={e => e.stopPropagation()} />
+        {showCheckboxes && (
+          <input 
+            className={`w-5 h-5 rounded border-outline text-primary focus:ring-primary-container mr-md bg-surface-container-lowest cursor-pointer ${isIndeterminate ? 'indeterminate' : ''}`} 
+            type="checkbox" 
+            checked={isAllChecked || isIndeterminate}
+            onChange={() => onToggleCategoryCheck && onToggleCategoryCheck()}
+            ref={el => { if (el) el.indeterminate = isIndeterminate; }}
+            onClick={e => e.stopPropagation()} 
+          />
+        )}
         <h2 className="font-h3 text-h3 text-on-surface flex-grow">{category.name}</h2>
         <span className="bg-surface-container px-sm py-xs rounded-full font-label-md text-label-md text-on-surface-variant transition-all">{category.variants.length} Varian</span>
-        {onDelete && (
+        {onDelete && !readOnly && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -59,6 +84,10 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
               onImageClick={onImageClick}
               onChangeTargetQuantity={(q) => onChangeVariantTargetQuantity?.(variant.id, q)}
               onDelete={onDeleteVariant ? () => onDeleteVariant(variant.id) : undefined}
+              readOnly={readOnly}
+              showCheckboxes={showCheckboxes}
+              isChecked={checkedVariants.has(variant.id)}
+              onToggleCheck={() => onToggleVariantCheck && onToggleVariantCheck(variant.id)}
             />
           ))}
         </div>

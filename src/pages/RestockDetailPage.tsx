@@ -1,105 +1,91 @@
-import React, { useState } from 'react';
-import type { Category } from '../types';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import type { Category, RestockList } from '../types';
 import RestockListCard from '../components/restock/RestockListCard';
 import AddItemsForm from '../components/restock/AddItemsForm';
-
-const INITIAL_CHECKLIST: Category[] = [
-  {
-    id: 'c1',
-    name: 'Kain Jilbab',
-    variants: [
-      {
-        id: 's1',
-        name: 'Jilbab Merah',
-        stock: 2,
-        targetQuantity: 10,
-        color: 'bg-tertiary',
-        stores: ['Toko A', 'Toko B'],
-        images: [
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuCJDlQMEanBjIytTPBvqckFnkM3ZQRj4WHJsZhVaNwoZ9uw80jpLHh__Szqjvn2m_lgbKc5_AbAE93YI-1yfBFaBjCjd2L_GQwIien0NefpSpu5F8H7G9fkz8g2FXLUVrTAN97SSVj2gTTYQikP9y5MFCs9PgxMH2HUEPDARAvvmmdxZtyRXc_c_9aU1qoUTwsOM2rxJlLk86473iCPE2JVEuXcmClva0CNdejG6LjZwYDdYIbid7EbrU1E2veO_4QRhkiFAXZy9xRi',
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuC_i1q3ErNcTRnNl1MSjhREGAurcw9kcUaLk46A_Iif66MG1NeO9QxQnmgzIbDy9xAf5qDdu9m0VrMwhtIjDJOnapN2vAs94EcLN68QCAK13nWl75NcqnRIXIglcG1X1lofpx3vEwVJzDrS4nhiHrV9l8DQ3IqMd-kwi0L75RRgte4VCuYtj8EpQ_vNH1Dgyp0CYPz1b42i9yddyIviYjQBXGeXjIJQnh8uFj8aNzUonqYAGwPn_zjgSawQp78sjYBmKRW92VlINgCs'
-        ]
-      },
-      { id: 's2', name: 'Jilbab Biru', stock: 5, targetQuantity: 15, color: 'bg-primary-fixed-dim' },
-      { id: 's3', name: 'Jilbab Hitam', stock: 0, targetQuantity: 20, color: 'bg-error', outOfStock: true }
-    ]
-  },
-  {
-    id: 'c2',
-    name: 'Plastik Wrap',
-    variants: [
-      { id: 's4', name: 'Plastik Wrap Roll', stock: 10, color: 'bg-primary-fixed-dim' }
-    ]
-  },
-  {
-    id: 'c3',
-    name: 'Karton Box',
-    variants: [
-      { id: 's5', name: 'Karton Kecil', stock: 120, color: 'bg-primary-fixed-dim' },
-      { id: 's6', name: 'Karton Besar', stock: 45, color: 'bg-primary-fixed-dim' }
-    ]
-  }
-];
+import { db } from '../db/database';
 
 const RestockDetailPage: React.FC = () => {
-  const [checklist, setChecklist] = useState<Category[]>(INITIAL_CHECKLIST);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [list, setList] = useState<RestockList | null>(null);
+  const [checklist, setChecklist] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['c1']));
-  const [expandedVariants, setExpandedVariants] = useState<Set<string>>(new Set(['s1']));
-
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [expandedVariants, setExpandedVariants] = useState<Set<string>>(new Set());
+  const [checkedVariants, setCheckedVariants] = useState<Set<string>>(new Set());
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPasting, setIsPasting] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
   const [pasteError, setPasteError] = useState<string | null>(null);
-  const [copySuccess, setCopySuccess] = useState(false);
-  const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, idToClear: string | 'all' | null}>({isOpen: false, idToClear: null});
+  const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, idToClear: string | 'bulk' | null}>({isOpen: false, idToClear: null});
 
-  const confirmDelete = () => {
-    if (deleteModal.idToClear === 'all') {
-      setChecklist([]);
-    } else if (deleteModal.idToClear) {
-      setChecklist(prev => prev.filter(c => c.id !== deleteModal.idToClear));
-    }
-    setDeleteModal({ isOpen: false, idToClear: null });
-  };
-
-  const handleChangeTargetQuantity = (categoryId: string, variantId: string, quantity: number) => {
-    setChecklist(prev => prev.map(c => {
-      if (c.id === categoryId) {
-        return {
-          ...c,
-          variants: c.variants.map(v => 
-            v.id === variantId ? { ...v, targetQuantity: quantity } : v
-          )
-        };
+  useEffect(() => {
+    const fetchList = async () => {
+      if (!id) return;
+      try {
+        const data = await db.restockLists.get(id);
+        if (data) {
+          setList(data);
+          setChecklist(data.categories);
+          
+          // By default, keep categories and variants collapsed
+          setExpandedCategories(new Set());
+          setExpandedVariants(new Set());
+        }
+      } catch (error) {
+        console.error("Failed to fetch restock list:", error);
+      } finally {
+        setIsLoading(false);
       }
-      return c;
-    }));
-  };
+    };
+    fetchList();
+  }, [id]);
 
-  const handleDeleteVariant = (categoryId: string, variantId: string) => {
-    setChecklist(prev => prev.map(c => {
-      if (c.id === categoryId) {
-        return { ...c, variants: c.variants.filter(v => v.id !== variantId) };
-      }
-      return c;
-    }));
-  };
-
-  const toggleCategory = (id: string) => {
+  const toggleCategory = (catId: string) => {
     setExpandedCategories(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(catId)) next.delete(catId);
+      else next.add(catId);
       return next;
     });
   };
 
-  const toggleVariant = (id: string) => {
+  const toggleVariant = (varId: string) => {
     setExpandedVariants(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(varId)) next.delete(varId);
+      else next.add(varId);
+      return next;
+    });
+  };
+
+  const toggleVariantCheck = (varId: string) => {
+    setCheckedVariants(prev => {
+      const next = new Set(prev);
+      if (next.has(varId)) next.delete(varId);
+      else next.add(varId);
+      return next;
+    });
+  };
+
+  const toggleCategoryCheck = (category: Category) => {
+    const availableVariants = category.variants;
+    if (availableVariants.length === 0) return;
+
+    setCheckedVariants(prev => {
+      const next = new Set(prev);
+      const isAllChecked = availableVariants.every(variant => prev.has(variant.id));
+      
+      if (isAllChecked) {
+        availableVariants.forEach(variant => next.delete(variant.id));
+      } else {
+        availableVariants.forEach(variant => next.add(variant.id));
+      }
       return next;
     });
   };
@@ -113,12 +99,81 @@ const RestockDetailPage: React.FC = () => {
       .catch(err => console.error("Failed to copy", err));
   };
 
+  const updateListInDb = async (newCategories: Category[]) => {
+    if (!list || !id) return;
+    const updatedList = { ...list, categories: newCategories, updatedAt: new Date() };
+    try {
+      await db.restockLists.put(updatedList);
+      setList(updatedList);
+    } catch (error) {
+      console.error("Failed to update list in DB", error);
+    }
+  };
+
+  const handleTargetQuantityChange = (categoryId: string, variantId: string, quantity: number) => {
+    setChecklist(prev => {
+      const next = prev.map(cat => {
+        if (cat.id === categoryId) {
+          return {
+            ...cat,
+            variants: cat.variants.map(v => v.id === variantId ? { ...v, targetQuantity: quantity } : v)
+          };
+        }
+        return cat;
+      });
+      updateListInDb(next);
+      return next;
+    });
+  };
+
+  const handleDeleteVariant = (categoryId: string, variantId: string) => {
+    setChecklist(prev => {
+      const next = prev.map(cat => {
+        if (cat.id === categoryId) {
+          return {
+            ...cat,
+            variants: cat.variants.filter(v => v.id !== variantId)
+          };
+        }
+        return cat;
+      }).filter(cat => cat.variants.length > 0);
+      updateListInDb(next);
+      return next;
+    });
+  };
+
+  const handleDeleteCategory = (categoryId: string) => {
+    setDeleteModal({ isOpen: true, idToClear: categoryId });
+  };
+
+  const confirmDelete = () => {
+    if (deleteModal.idToClear === 'bulk') {
+      setChecklist(prev => {
+        const next = prev.map(cat => ({
+          ...cat,
+          variants: cat.variants.filter(v => !checkedVariants.has(v.id))
+        })).filter(cat => cat.variants.length > 0);
+        updateListInDb(next);
+        return next;
+      });
+      setCheckedVariants(new Set());
+    } else if (deleteModal.idToClear) {
+      setChecklist(prev => {
+        const next = prev.filter(cat => cat.id !== deleteModal.idToClear);
+        updateListInDb(next);
+        return next;
+      });
+    }
+    setDeleteModal({ isOpen: false, idToClear: null });
+  };
+
   const handleReplace = () => {
     setPasteError(null);
     try {
       const parsed = JSON.parse(pasteContent);
       if (Array.isArray(parsed)) {
         setChecklist(parsed);
+        updateListInDb(parsed);
         setIsPasting(false);
         setPasteContent('');
       } else {
@@ -134,7 +189,9 @@ const RestockDetailPage: React.FC = () => {
     try {
       const parsed = JSON.parse(pasteContent);
       if (Array.isArray(parsed)) {
-        setChecklist(prev => [...prev, ...parsed]);
+        const next = [...checklist, ...parsed];
+        setChecklist(next);
+        updateListInDb(next);
         setIsPasting(false);
         setPasteContent('');
       } else {
@@ -155,7 +212,14 @@ const RestockDetailPage: React.FC = () => {
           const existingVariants = [...existingCat.variants];
           
           newCat.variants.forEach(newVar => {
-            if (!existingVariants.some(v => v.id === newVar.id)) {
+            const existingVarIndex = existingVariants.findIndex(v => v.id === newVar.id);
+            if (existingVarIndex >= 0) {
+              const existingVar = existingVariants[existingVarIndex];
+              existingVariants[existingVarIndex] = {
+                ...existingVar,
+                targetQuantity: (existingVar.targetQuantity || 1) + (newVar.targetQuantity || 1)
+              };
+            } else {
               existingVariants.push(newVar);
             }
           });
@@ -165,8 +229,14 @@ const RestockDetailPage: React.FC = () => {
           updated.push(newCat);
         }
       });
+      updateListInDb(updated);
       return updated;
     });
+  };
+
+  const handleBulkDelete = () => {
+    if (checkedVariants.size === 0) return;
+    setDeleteModal({ isOpen: true, idToClear: 'bulk' });
   };
 
   return (
@@ -174,14 +244,42 @@ const RestockDetailPage: React.FC = () => {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl overflow-x-hidden">
         {/* Action Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border-y border-surface-variant p-md rounded-lg shadow-sm gap-sm">
-          <p className="font-body-md text-body-md text-on-surface-variant flex-1">Daftar restock untuk supplier tekstil dan kemasan.</p>
+          <p className="font-body-md text-body-md text-on-surface-variant flex-1">
+            {list ? list.title : "Daftar restock"}
+          </p>
           <div className="flex gap-sm self-end sm:self-auto flex-wrap">
+            {isEditing && checkedVariants.size > 0 && (
+              <button 
+                onClick={handleBulkDelete}
+                className="flex items-center gap-xs px-sm py-xs rounded-md transition-colors border cursor-pointer text-error hover:bg-error/10 border-transparent hover:border-error/20"
+              >
+                <span className="material-symbols-outlined text-[18px]">delete</span>
+                <span className="font-label-md text-label-md">Hapus ({checkedVariants.size})</span>
+              </button>
+            )}
+            {isEditing && (
+              <button 
+                onClick={() => setIsPasting(!isPasting)}
+                className={`flex items-center gap-xs px-sm py-xs rounded-md transition-colors border cursor-pointer ${
+                  isPasting 
+                    ? 'bg-primary-container text-on-primary-container border-primary-container' 
+                    : 'text-primary hover:bg-surface-container border-transparent hover:border-surface-variant'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">content_paste</span>
+                <span className="font-label-md text-label-md">Paste</span>
+              </button>
+            )}
             <button 
-              onClick={() => setDeleteModal({ isOpen: true, idToClear: 'all' })}
-              className="flex items-center gap-xs text-error hover:bg-error/10 px-sm py-xs rounded-md transition-colors border border-transparent hover:border-error/20 cursor-pointer"
+              onClick={() => setIsEditing(!isEditing)}
+              className={`flex items-center gap-xs px-sm py-xs rounded-md transition-colors border ${isEditing ? 'bg-primary-container text-on-primary-container border-transparent' : 'text-primary border-transparent hover:bg-surface-container hover:border-surface-variant'} cursor-pointer`}
             >
-              <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
-              <span className="font-label-md text-label-md">Clear All</span>
+              <span className="material-symbols-outlined text-[18px]">
+                {isEditing ? 'done' : 'edit'}
+              </span>
+              <span className="font-label-md text-label-md">
+                {isEditing ? 'Selesai Edit' : 'Edit'}
+              </span>
             </button>
             <button 
               onClick={handleCopy}
@@ -194,22 +292,11 @@ const RestockDetailPage: React.FC = () => {
                 {copySuccess ? 'Copied!' : 'Copy'}
               </span>
             </button>
-            <button 
-              onClick={() => setIsPasting(!isPasting)}
-              className={`flex items-center gap-xs px-sm py-xs rounded-md transition-colors border cursor-pointer ${
-                isPasting 
-                  ? 'bg-primary-container text-on-primary-container border-primary-container' 
-                  : 'text-primary hover:bg-surface-container border-transparent hover:border-surface-variant'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">content_paste</span>
-              <span className="font-label-md text-label-md">Paste</span>
-            </button>
           </div>
         </div>
 
         {/* Paste Area */}
-        {isPasting && (
+        {isEditing && isPasting && (
           <div className="bg-surface-container-lowest border border-surface-variant p-md rounded-lg flex flex-col gap-sm shadow-sm transition-all animate-in fade-in slide-in-from-top-2 duration-200">
             <label className="font-label-lg text-on-surface font-medium flex justify-between items-center">
               Paste JSON Data
@@ -253,11 +340,15 @@ const RestockDetailPage: React.FC = () => {
 
         {/* Checklist Canvas */}
         <div className="flex flex-col gap-0 bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden">
-          {checklist.length === 0 ? (
+          {isLoading ? (
+            <div className="py-xl text-center flex flex-col items-center justify-center">
+              <p className="text-on-surface-variant font-body-lg">Memuat data...</p>
+            </div>
+          ) : checklist.length === 0 ? (
             <div className="py-xl text-center flex flex-col items-center justify-center">
               <span className="material-symbols-outlined text-4xl text-surface-variant mb-sm">inventory_2</span>
               <p className="text-on-surface-variant font-body-lg">Tidak ada item restock.</p>
-              <p className="text-on-surface-variant/70 font-body-md mt-xs">Gunakan tombol tambah atau paste data JSON.</p>
+              <p className="text-on-surface-variant/70 font-body-md mt-xs">Data tidak ditemukan atau list kosong.</p>
             </div>
           ) : (
             checklist.map(category => (
@@ -269,24 +360,32 @@ const RestockDetailPage: React.FC = () => {
                 expandedVariants={expandedVariants}
                 onToggleVariant={toggleVariant}
                 onImageClick={setSelectedImage}
-                onDelete={(id) => setDeleteModal({ isOpen: true, idToClear: id })}
-                onDeleteVariant={(vId) => handleDeleteVariant(category.id, vId)}
-                onChangeVariantTargetQuantity={(vId, q) => handleChangeTargetQuantity(category.id, vId, q)}
+                readOnly={!isEditing}
+                checkedVariants={checkedVariants}
+                onToggleVariantCheck={toggleVariantCheck}
+                onToggleCategoryCheck={() => toggleCategoryCheck(category)}
+                onChangeVariantTargetQuantity={(varId, qty) => handleTargetQuantityChange(category.id, varId, qty)}
+                onDeleteVariant={(varId) => handleDeleteVariant(category.id, varId)}
+                onDelete={() => handleDeleteCategory(category.id)}
               />
             ))
           )}
         </div>
 
         {/* Add Button */}
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="mt-md w-full py-md border-2 border-dashed border-primary-fixed-dim rounded-xl text-primary font-body-lg text-body-lg font-medium flex items-center justify-center gap-sm hover:bg-surface-container-low hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-container cursor-pointer"
-        >
-          <span className="material-symbols-outlined">add</span>
-          Tambah Barang
-        </button>
-        {isModalOpen && <AddItemsForm onClose={() => setIsModalOpen(false)} onAddItems={handleAddItems} />}
+        {isEditing && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="mt-md w-full py-md border-2 border-dashed border-primary-fixed-dim rounded-xl text-primary font-body-lg text-body-lg font-medium flex items-center justify-center gap-sm hover:bg-surface-container-low hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-container cursor-pointer"
+          >
+            <span className="material-symbols-outlined">add</span>
+            Tambah Barang
+          </button>
+        )}
       </main>
+
+      {/* Modal Add Items */}
+      {isModalOpen && <AddItemsForm onClose={() => setIsModalOpen(false)} onAddItems={handleAddItems} />}
 
       {/* Delete Validation Modal */}
       {deleteModal.isOpen && (
@@ -303,8 +402,8 @@ const RestockDetailPage: React.FC = () => {
               Konfirmasi Hapus
             </h3>
             <p className="text-body-md text-on-surface-variant font-body-md">
-              {deleteModal.idToClear === 'all' 
-                ? "Apakah Anda yakin ingin menghapus semua list restock ini?" 
+              {deleteModal.idToClear === 'bulk'
+                ? `Apakah Anda yakin ingin menghapus ${checkedVariants.size} varian yang dipilih?`
                 : "Apakah Anda yakin ingin menghapus kategori beserta semua isinya?"}
             </p>
             <div className="flex gap-sm justify-end mt-sm">
