@@ -138,7 +138,7 @@ const NewRestockEntryPage: React.FC = () => {
     try {
       const parsed = JSON.parse(pasteContent);
       if (Array.isArray(parsed)) {
-        setChecklist(prev => [...prev, ...parsed]);
+        handleAddItems(parsed);
         setIsPasting(false);
         setPasteContent('');
       } else {

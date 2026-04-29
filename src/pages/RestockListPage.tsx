@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EmptyState from '../components/ui/EmptyState';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { db } from '../db/database';
 import type { RestockList } from '../types';
 
@@ -8,6 +9,7 @@ const RestockListPage: React.FC = () => {
   const navigate = useNavigate();
   const [lists, setLists] = useState<RestockList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [listToDelete, setListToDelete] = useState<RestockList | null>(null);
 
   useEffect(() => {
     const fetchLists = async () => {
@@ -23,6 +25,18 @@ const RestockListPage: React.FC = () => {
     };
     fetchLists();
   }, []);
+
+  const handleDelete = async () => {
+    if (!listToDelete) return;
+    try {
+      await db.restockLists.delete(listToDelete.id);
+      setLists(prev => prev.filter(l => l.id !== listToDelete.id));
+    } catch (error) {
+      console.error("Failed to delete list:", error);
+    } finally {
+      setListToDelete(null);
+    }
+  };
 
   const statusStyles = {
     draft: 'bg-tertiary-container text-on-tertiary-container',
@@ -80,14 +94,37 @@ const RestockListPage: React.FC = () => {
                     {itemCount} item · {dateStr}
                   </p>
                 </div>
-                <span className={`px-md py-xs rounded-full font-label-md text-label-md ${statusStyles[list.status]}`}>
-                  {statusLabels[list.status]}
-                </span>
+                <div className="flex items-center gap-md">
+                  <span className={`px-md py-xs rounded-full font-label-md text-label-md ${statusStyles[list.status]}`}>
+                    {statusLabels[list.status]}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setListToDelete(list);
+                    }}
+                    className="p-xs text-on-surface-variant hover:text-error hover:bg-error-container rounded-full transition-colors flex items-center justify-center cursor-pointer"
+                    title="Hapus Daftar"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">delete</span>
+                  </button>
+                </div>
               </div>
             );
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={!!listToDelete}
+        title="Hapus Restock List"
+        message={`Apakah kamu yakin ingin menghapus list "${listToDelete?.title}"? Semua data di dalamnya akan hilang.`}
+        confirmLabel="Hapus"
+        cancelLabel="Batal"
+        onConfirm={handleDelete}
+        onCancel={() => setListToDelete(null)}
+        variant="danger"
+      />
     </main>
   );
 };
