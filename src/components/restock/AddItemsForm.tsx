@@ -15,23 +15,60 @@ const VariantRow: React.FC<{
   variant: Variant;
   isChecked: boolean;
   onToggle: (id: string) => void;
-}> = ({ variant, isChecked, onToggle }) => {
+  targetQuantity?: number;
+  onTargetQuantityChange: (id: string, qty: number) => void;
+}> = ({ variant, isChecked, onToggle, targetQuantity, onTargetQuantityChange }) => {
   return (
-    <label className={`flex items-center p-sm hover:bg-surface-container-low rounded-DEFAULT cursor-pointer transition-colors ${isChecked ? 'bg-primary-container/10' : ''}`}>
+    <div 
+      className={`flex items-center p-sm hover:bg-surface-container-low rounded-DEFAULT cursor-pointer transition-colors ${isChecked ? 'bg-primary-container/10' : ''}`}
+      onClick={() => onToggle(variant.id)}
+    >
       <div className="relative flex items-center mr-md">
         <input 
+          readOnly
           checked={isChecked} 
-          onChange={() => onToggle(variant.id)}
           className={`custom-checkbox appearance-none w-md h-md border-2 rounded-DEFAULT cursor-pointer transition-colors relative ${isChecked ? 'border-primary-container bg-primary-container' : 'border-outline-variant'}`} 
           type="checkbox" 
         />
       </div>
       <span className={`font-body-sm text-body-sm text-on-surface-variant flex-1 ${isChecked ? 'font-medium' : ''}`}>{variant.name}</span>
+      
+      {isChecked && (
+        <div 
+          className="flex items-center gap-xs pl-sm pr-xs py-xs rounded-full mr-sm bg-secondary-container"
+          onClick={e => e.stopPropagation()}
+        >
+          <span className="material-symbols-outlined text-[14px] text-on-secondary-container">shopping_cart</span>
+          <span className="font-label-md text-label-md text-on-secondary-container mr-xs hidden sm:inline">Dicari:</span>
+          <button 
+            className="flex items-center justify-center w-5 h-5 rounded-full hover:bg-on-secondary-container/10 text-on-secondary-container transition-colors active:bg-on-secondary-container/20"
+            onClick={() => onTargetQuantityChange(variant.id, Math.max(1, (targetQuantity || 1) - 1))}
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[16px]">remove</span>
+          </button>
+          <input 
+            type="number" 
+            className="w-8 bg-transparent text-on-secondary-container font-label-md text-label-md outline-none border-b border-transparent focus:border-on-secondary-container/50 text-center custom-number-input"
+            value={targetQuantity || 1}
+            onChange={e => onTargetQuantityChange(variant.id, Number(e.target.value))}
+            min="1"
+          />
+          <button 
+            className="flex items-center justify-center w-5 h-5 rounded-full hover:bg-on-secondary-container/10 text-on-secondary-container transition-colors active:bg-on-secondary-container/20"
+            onClick={() => onTargetQuantityChange(variant.id, (targetQuantity || 1) + 1)}
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[16px]">add</span>
+          </button>
+        </div>
+      )}
+
       <div className={`flex items-center gap-xs px-sm py-xs rounded-full ${variant.stock === 0 ? 'bg-error-container' : 'bg-surface-container'}`}>
         <span className={`font-label-md text-label-md ${variant.stock === 0 ? 'text-on-error-container' : 'text-on-surface-variant'}`}>Stok: {variant.stock}</span>
         {variant.stock === 0 && <span className="material-symbols-outlined text-[14px] text-on-error-container">warning</span>}
       </div>
-    </label>
+    </div>
   );
 };
 
@@ -42,7 +79,9 @@ const AccordionCategory: React.FC<{
   selectedVariants: Set<string>;
   onToggleVariant: (id: string) => void;
   onToggleCategory: () => void;
-}> = ({ category, expanded, onToggleExpand, selectedVariants, onToggleVariant, onToggleCategory }) => {
+  targetQuantities: Record<string, number>;
+  onTargetQuantityChange: (id: string, qty: number) => void;
+}> = ({ category, expanded, onToggleExpand, selectedVariants, onToggleVariant, onToggleCategory, targetQuantities, onTargetQuantityChange }) => {
   const availableVariants = category.variants;
   const checkedCount = availableVariants.filter(variant => selectedVariants.has(variant.id)).length;
   
@@ -80,6 +119,8 @@ const AccordionCategory: React.FC<{
               variant={variant} 
               isChecked={selectedVariants.has(variant.id)} 
               onToggle={onToggleVariant} 
+              targetQuantity={targetQuantities[variant.id]}
+              onTargetQuantityChange={onTargetQuantityChange}
             />
           ))}
         </div>
@@ -93,7 +134,12 @@ const AccordionCategory: React.FC<{
 const AddItemsForm: React.FC<AddItemsFormProps> = ({ onClose, onAddItems }) => {
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
   const [selectedVariants, setSelectedVariants] = useState<Set<string>>(new Set());
+  const [targetQuantities, setTargetQuantities] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleTargetQuantityChange = (id: string, qty: number) => {
+    setTargetQuantities(prev => ({ ...prev, [id]: qty }));
+  };
 
   const toggleExpand = (catId: string) => {
     setExpandedCats(prev => {
@@ -134,7 +180,10 @@ const AddItemsForm: React.FC<AddItemsFormProps> = ({ onClose, onAddItems }) => {
     if (onAddItems && selectedVariants.size > 0) {
       const itemsToAdd = INITIAL_DATA.map(cat => ({
         ...cat,
-        variants: cat.variants.filter(v => selectedVariants.has(v.id))
+        variants: cat.variants.filter(v => selectedVariants.has(v.id)).map(v => ({
+          ...v,
+          targetQuantity: targetQuantities[v.id] || 1
+        }))
       })).filter(cat => cat.variants.length > 0);
       
       onAddItems(itemsToAdd);
@@ -200,6 +249,8 @@ const AddItemsForm: React.FC<AddItemsFormProps> = ({ onClose, onAddItems }) => {
                 selectedVariants={selectedVariants}
                 onToggleVariant={toggleVariant}
                 onToggleCategory={() => toggleCategory(category)}
+                targetQuantities={targetQuantities}
+                onTargetQuantityChange={handleTargetQuantityChange}
               />
             ))
           ) : (
