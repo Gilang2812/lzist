@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import AppLayout from './components/layout/AppLayout';
 import DashboardPage from './pages/DashboardPage';
 import RestockListPage from './pages/RestockListPage';

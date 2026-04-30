@@ -7,7 +7,7 @@ interface HeaderProps {
   onMenuClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ title = 'Lzist', onMenuClick }) => {
+const Header: React.FC<HeaderProps> = ({ title = 'Lzist', onMenuClick: _onMenuClick }) => {
   const { isOutOfSync, isSyncing, handleSync } = useDataSync();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
