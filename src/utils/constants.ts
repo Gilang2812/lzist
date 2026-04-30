@@ -9,7 +9,6 @@ export const ROUTES = {
   BARANG_DETAIL: '/katalog/:id',
   SUPPLIER_LIST: '/supplier',
   SUPPLIER_DETAIL: '/supplier/:id',
-  LAPORAN: '/laporan',
 } as const;
 
 export const NAV_ITEMS = [
@@ -17,7 +16,6 @@ export const NAV_ITEMS = [
   { label: 'Restock', icon: 'inventory_2', path: ROUTES.RESTOCK_LIST },
   { label: 'Katalog', icon: 'menu_book', path: ROUTES.KATALOG },
   { label: 'Supplier', icon: 'local_shipping', path: ROUTES.SUPPLIER_LIST },
-  { label: 'Laporan', icon: 'assessment', path: ROUTES.LAPORAN },
 ] as const;
 
 export const BREAKPOINTS = {

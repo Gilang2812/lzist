@@ -1,4 +1,4 @@
-import type { Category } from '../types';
+﻿import type { Category } from '../types';
 
 export const INITIAL_DATA: Category[] = [
   {
@@ -11,9 +11,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/tencel-hitam-01.jpg"
         ]
@@ -24,9 +21,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 99,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/tencel-iron-grey-01.jpg"
         ]
@@ -37,9 +31,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/tencel-ruby-01.jpg"
         ]
@@ -50,9 +41,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/tencel-lavender-01.jpg"
         ]
@@ -63,9 +51,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 98,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/tencel-dark-brown-01.jpg"
         ]
@@ -76,9 +61,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 99,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/tencel-sand-01.jpg"
         ]
@@ -89,9 +71,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 99,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/tencel-carob-01.jpg"
         ]
@@ -102,9 +81,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/tencel-navy-01.jpg"
         ]
@@ -115,9 +91,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/tencel-bw-01.jpg"
         ]
@@ -128,9 +101,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/tencel-nude-01.jpg"
         ]
@@ -141,9 +111,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/tencel-bue-grey-01.jpg"
         ]
@@ -160,9 +127,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-hitam-01.jpg"
         ]
@@ -173,9 +137,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-oat-01.jpg"
         ]
@@ -186,9 +147,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-rain-01.jpg"
         ]
@@ -199,9 +157,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-coffe-01.jpg"
         ]
@@ -212,9 +167,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-navy-01.jpg"
         ]
@@ -225,9 +177,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-red-wine-01.jpg"
         ]
@@ -238,9 +187,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-machiato-01.jpg"
         ]
@@ -251,9 +197,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-maroon-01.jpg"
         ]
@@ -264,9 +207,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 497,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-khaki-01.jpg"
         ]
@@ -277,9 +217,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-powder-01.jpg"
         ]
@@ -290,9 +227,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-burgundy-01.jpg"
         ]
@@ -303,9 +237,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-frappucino-01.jpg"
         ]
@@ -316,9 +247,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-silver-01.jpg"
         ]
@@ -329,9 +257,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/modal-viscose-bw-01.jpg"
         ]
@@ -348,9 +273,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-hitam-01.jpg"
         ]
@@ -361,9 +283,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-navy-01.jpg"
         ]
@@ -374,9 +293,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-sand-01.jpg"
         ]
@@ -387,9 +303,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-silver-01.jpg"
         ]
@@ -400,9 +313,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-bw-01.jpg"
         ]
@@ -413,9 +323,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-abu-tua-01.jpg"
         ]
@@ -426,9 +333,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 498,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-hazel-01.jpg"
         ]
@@ -439,9 +343,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-cream-01.jpg"
         ]
@@ -452,9 +353,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-mocca-01.jpg"
         ]
@@ -465,9 +363,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-milo-01.jpg"
         ]
@@ -478,9 +373,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-latte-01.jpg"
         ]
@@ -491,9 +383,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-nude-01.jpg"
         ]
@@ -504,9 +393,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-khaki-01.jpg"
         ]
@@ -517,9 +403,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-denim-01.jpg"
         ]
@@ -530,9 +413,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-maroon-01.jpg"
         ]
@@ -543,9 +423,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-ivory-01.jpg"
         ]
@@ -556,9 +433,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-soft-dusty-01.jpg"
         ]
@@ -569,9 +443,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-baby-pink-01.jpg"
         ]
@@ -582,9 +453,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-tan-01.jpg"
         ]
@@ -595,9 +463,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-wafle-01.jpg"
         ]
@@ -608,9 +473,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-coffee-01.jpg"
         ]
@@ -621,9 +483,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-frappucino-01.jpg"
         ]
@@ -634,9 +493,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-carob-01.jpg"
         ]
@@ -647,9 +503,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-taupe-01.jpg"
         ]
@@ -660,9 +513,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-powder-puff-01.jpg"
         ]
@@ -673,9 +523,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-burgundy-01.jpg"
         ]
@@ -686,9 +533,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-plum-01.jpg"
         ]
@@ -699,9 +543,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-soft-lilac-01.jpg"
         ]
@@ -712,9 +553,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-forest-green-01.jpg"
         ]
@@ -725,9 +563,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/rayon-avocado-01.jpg"
         ]
@@ -744,9 +579,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 498,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-hitam-01.jpg"
         ]
@@ -757,9 +589,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-espresso-01.jpg"
         ]
@@ -770,9 +599,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-maroon-01.jpg"
         ]
@@ -783,9 +609,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-red-wine-01.jpg"
         ]
@@ -796,9 +619,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-pearl-01.jpg"
         ]
@@ -809,9 +629,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-wood-01.jpg"
         ]
@@ -822,9 +639,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-navy-01.jpg"
         ]
@@ -835,9 +649,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-light-denim-01.jpg"
         ]
@@ -848,9 +659,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-deep-taupe-01.jpg"
         ]
@@ -861,9 +669,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-vanilla-cream-01.jpg"
         ]
@@ -874,9 +679,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-coffe-01.jpg"
         ]
@@ -887,9 +689,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-oat-01.jpg"
         ]
@@ -900,9 +699,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-ash-grey-01.jpg"
         ]
@@ -913,9 +709,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-frappucino-01.jpg"
         ]
@@ -926,9 +719,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-choco-plum-01.jpg"
         ]
@@ -939,9 +729,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-coksu-01.jpg"
         ]
@@ -952,9 +739,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-bw-01.jpg"
         ]
@@ -965,9 +749,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-ivory-01.jpg"
         ]
@@ -978,9 +759,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-baby-pink-01.jpg"
         ]
@@ -991,9 +769,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-deep-mahogany-01.jpg"
         ]
@@ -1004,9 +779,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-butter-cream-01.jpg"
         ]
@@ -1017,9 +789,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-burgundy-01.jpg"
         ]
@@ -1030,9 +799,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-grey-latte-01.jpg"
         ]
@@ -1043,9 +809,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-sky-blue-01.jpg"
         ]
@@ -1056,9 +819,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-milo-01.jpg"
         ]
@@ -1069,9 +829,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-soft-lilac-01.jpg"
         ]
@@ -1082,9 +839,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-choco-milk-01.jpg"
         ]
@@ -1095,9 +849,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-mauve-01.jpg"
         ]
@@ -1108,9 +859,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-rose-pink-01.jpg"
         ]
@@ -1121,9 +869,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-wine-01.jpg"
         ]
@@ -1134,9 +879,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/voal-sand-01.jpg"
         ]
@@ -1153,9 +895,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 99,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-smoke-01.jpg"
         ]
@@ -1166,9 +905,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 98,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-coffe-01.jpg"
         ]
@@ -1179,9 +915,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-nuttela-01.jpg"
         ]
@@ -1192,9 +925,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-choco-blush-01.jpg"
         ]
@@ -1205,9 +935,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 99,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-pistachio-01.jpg"
         ]
@@ -1218,9 +945,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 99,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-dark-grey-01.jpg"
         ]
@@ -1231,9 +955,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 99,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-charcoal-01.jpg"
         ]
@@ -1244,9 +965,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 99,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-rose-nude-01.jpg"
         ]
@@ -1257,9 +975,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 99,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-sand-01.jpg"
         ]
@@ -1270,9 +985,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-brownie-01.jpg"
         ]
@@ -1283,9 +995,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-espresso-01.jpg"
         ]
@@ -1296,9 +1005,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-stone-grey-01.jpg"
         ]
@@ -1309,9 +1015,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-cookies-01.jpg"
         ]
@@ -1322,9 +1025,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-choco-purple-01.jpg"
         ]
@@ -1335,9 +1035,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-chocolatte-01.jpg"
         ]
@@ -1348,9 +1045,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 99,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-granolla-01.jpg"
         ]
@@ -1361,9 +1055,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 99,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-burgundy-01.jpg"
         ]
@@ -1374,9 +1065,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-ivory-01.jpg"
         ]
@@ -1387,9 +1075,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-nude-01.jpg"
         ]
@@ -1400,9 +1085,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-baby-yellow-01.jpg"
         ]
@@ -1413,9 +1095,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-navy-01.jpg"
         ]
@@ -1426,9 +1105,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-yellow-01.jpg"
         ]
@@ -1439,9 +1115,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 100,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/viscose-textured-bridge-01.jpg"
         ]
@@ -1458,9 +1131,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-hitam-01.jpg"
         ]
@@ -1471,9 +1141,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-maroon-01.jpg"
         ]
@@ -1484,9 +1151,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-navy-01.jpg"
         ]
@@ -1497,9 +1161,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-putih-01.jpg"
         ]
@@ -1510,9 +1171,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 498,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-biscuit-01.jpg"
         ]
@@ -1523,9 +1181,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-ivory-01.jpg"
         ]
@@ -1536,9 +1191,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-espresso-01.jpg"
         ]
@@ -1549,9 +1201,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-ash-taupe-01.jpg"
         ]
@@ -1562,9 +1211,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-major-01.jpg"
         ]
@@ -1575,9 +1221,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-iron-01.jpg"
         ]
@@ -1588,9 +1231,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-tortila-01.jpg"
         ]
@@ -1601,9 +1241,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-charcoal-01.jpg"
         ]
@@ -1614,9 +1251,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-taupe-01.jpg"
         ]
@@ -1627,9 +1261,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-softlate-01.jpg"
         ]
@@ -1640,9 +1271,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-moccalate-01.jpg"
         ]
@@ -1653,9 +1281,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-milo-01.jpg"
         ]
@@ -1666,9 +1291,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-alter-01.jpg"
         ]
@@ -1679,9 +1301,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-khaky-01.jpg"
         ]
@@ -1692,9 +1311,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-coffelate-01.jpg"
         ]
@@ -1705,9 +1321,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-sand-01.jpg"
         ]
@@ -1718,9 +1331,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-coksu-01.jpg"
         ]
@@ -1731,9 +1341,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-softnude-01.jpg"
         ]
@@ -1744,9 +1351,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-wood-01.jpg"
         ]
@@ -1757,9 +1361,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-milky-01.jpg"
         ]
@@ -1770,9 +1371,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-caramel-01.jpg"
         ]
@@ -1783,9 +1381,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-crimsom-01.jpg"
         ]
@@ -1796,9 +1391,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-cream-01.jpg"
         ]
@@ -1809,9 +1401,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-dark-khaky-01.jpg"
         ]
@@ -1822,9 +1411,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-mocca-sedang-01.jpg"
         ]
@@ -1835,9 +1421,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-deep-army-01.jpg"
         ]
@@ -1848,9 +1431,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-ash-grey-01.jpg"
         ]
@@ -1861,9 +1441,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-sage-01.jpg"
         ]
@@ -1874,9 +1451,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-iced-blue-01.jpg"
         ]
@@ -1887,9 +1461,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-powder-pink-01.jpg"
         ]
@@ -1900,9 +1471,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-fusia-01.jpg"
         ]
@@ -1913,9 +1481,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-yellow-01.jpg"
         ]
@@ -1926,9 +1491,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-sky-blue-01.jpg"
         ]
@@ -1939,9 +1501,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-army-01.jpg"
         ]
@@ -1952,9 +1511,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-mocca-muda-01.jpg"
         ]
@@ -1965,9 +1521,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-dark-maroon-01.jpg"
         ]
@@ -1978,9 +1531,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-bw-01.jpg"
         ]
@@ -1991,9 +1541,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-soft-blue-01.jpg"
         ]
@@ -2004,9 +1551,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-sage-green-01.jpg"
         ]
@@ -2017,9 +1561,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-denim-01.jpg"
         ]
@@ -2030,9 +1571,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-dusty-purple-01.jpg"
         ]
@@ -2043,9 +1581,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-orchid-01.jpg"
         ]
@@ -2056,9 +1591,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-rose-berry-01.jpg"
         ]
@@ -2069,9 +1601,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-silver-01.jpg"
         ]
@@ -2082,9 +1611,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-stone-grey-01.jpg"
         ]
@@ -2095,9 +1621,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-soft-mint-01.jpg"
         ]
@@ -2108,9 +1631,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-taro-01.jpg"
         ]
@@ -2121,9 +1641,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-oat-01.jpg"
         ]
@@ -2134,9 +1651,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-sakura-01.jpg"
         ]
@@ -2147,9 +1661,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-dusty-pink-01.jpg"
         ]
@@ -2160,9 +1671,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-birel-01.jpg"
         ]
@@ -2173,9 +1681,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-terakota-01.jpg"
         ]
@@ -2186,9 +1691,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-mustard-01.jpg"
         ]
@@ -2199,9 +1701,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-lilac-01.jpg"
         ]
@@ -2212,9 +1711,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-zaitun-01.jpg"
         ]
@@ -2225,9 +1721,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-salem-01.jpg"
         ]
@@ -2238,9 +1731,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-dark-grey-01.jpg"
         ]
@@ -2251,9 +1741,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-binacota-01.jpg"
         ]
@@ -2264,9 +1751,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-coklat-pramuka-01.jpg"
         ]
@@ -2277,9 +1761,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-beige-01.jpg"
         ]
@@ -2290,9 +1771,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-bata-01.jpg"
         ]
@@ -2303,9 +1781,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-stone-01.jpg"
         ]
@@ -2316,9 +1791,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-peony-01.jpg"
         ]
@@ -2329,9 +1801,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-dessert-sage-01.jpg"
         ]
@@ -2342,9 +1811,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-soft-lilac-01.jpg"
         ]
@@ -2355,9 +1821,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-brunet-01.jpg"
         ]
@@ -2368,9 +1831,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-butter-01.jpg"
         ]
@@ -2381,9 +1841,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-coffe-01.jpg"
         ]
@@ -2394,9 +1851,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-olive-01.jpg"
         ]
@@ -2407,9 +1861,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-emerald-green-01.jpg"
         ]
@@ -2420,9 +1871,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-wine-01.jpg"
         ]
@@ -2433,9 +1881,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-vanilla-cream-01.jpg"
         ]
@@ -2446,9 +1891,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-smoky-01.jpg"
         ]
@@ -2459,9 +1901,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-cheesnut-01.jpg"
         ]
@@ -2472,9 +1911,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-choco-malt-01.jpg"
         ]
@@ -2485,9 +1921,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-medium-oak-01.jpg"
         ]
@@ -2498,9 +1931,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-frapucino-01.jpg"
         ]
@@ -2511,9 +1941,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-natural-01.jpg"
         ]
@@ -2524,9 +1951,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-clay-01.jpg"
         ]
@@ -2537,9 +1961,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-rosewood-01.jpg"
         ]
@@ -2550,9 +1971,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-cookies-01.jpg"
         ]
@@ -2563,9 +1981,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-nude-01.jpg"
         ]
@@ -2576,9 +1991,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-baby-pink-01.jpg"
         ]
@@ -2589,9 +2001,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-emerald-blue-01.jpg"
         ]
@@ -2602,9 +2011,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-misty-grey-01.jpg"
         ]
@@ -2615,9 +2021,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-mauve-01.jpg"
         ]
@@ -2628,9 +2031,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-blue-grey-01.jpg"
         ]
@@ -2641,9 +2041,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-bricket-01.jpg"
         ]
@@ -2654,9 +2051,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-lime-01.jpg"
         ]
@@ -2667,9 +2061,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-burgundy-01.jpg"
         ]
@@ -2680,9 +2071,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-pastel-pink-01.jpg"
         ]
@@ -2693,9 +2081,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-dusty-rose-01.jpg"
         ]
@@ -2706,9 +2091,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-coklat-mahogany-01.jpg"
         ]
@@ -2719,9 +2101,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-hijau-botol-01.jpg"
         ]
@@ -2732,9 +2111,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-jadul-nude-pink-01.jpg"
         ]
@@ -2751,9 +2127,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-hitam-01.jpg"
         ]
@@ -2764,9 +2137,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-pink-01.jpg"
         ]
@@ -2777,9 +2147,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-gray-01.jpg"
         ]
@@ -2790,9 +2157,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-oat-01.jpg"
         ]
@@ -2803,9 +2167,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-latte-01.jpg"
         ]
@@ -2816,9 +2177,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-nude-01.jpg"
         ]
@@ -2829,9 +2187,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-milo-01.jpg"
         ]
@@ -2842,9 +2197,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-khaki-01.jpg"
         ]
@@ -2855,9 +2207,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-wood-01.jpg"
         ]
@@ -2868,9 +2217,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-espresso-01.jpg"
         ]
@@ -2881,9 +2227,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-choco-01.jpg"
         ]
@@ -2894,9 +2237,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-bronze-01.jpg"
         ]
@@ -2907,9 +2247,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-navy-01.jpg"
         ]
@@ -2920,9 +2257,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/ciput-tali-putih-01.jpg"
         ]
@@ -2939,9 +2273,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-magenta-01.jpg"
         ]
@@ -2952,9 +2283,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-magenta-01.jpg"
         ]
@@ -2965,9 +2293,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-magenta-01.jpg"
         ]
@@ -2978,9 +2303,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-magenta-01.jpg"
         ]
@@ -2991,9 +2313,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-magenta-01.jpg"
         ]
@@ -3004,9 +2323,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-magenta-01.jpg"
         ]
@@ -3017,9 +2333,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-magenta-01.jpg"
         ]
@@ -3030,9 +2343,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-avocado-01.jpg"
         ]
@@ -3043,9 +2353,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-avocado-01.jpg"
         ]
@@ -3056,9 +2363,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-avocado-01.jpg"
         ]
@@ -3069,9 +2373,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-avocado-01.jpg"
         ]
@@ -3082,9 +2383,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-avocado-01.jpg"
         ]
@@ -3095,9 +2393,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-avocado-01.jpg"
         ]
@@ -3108,9 +2403,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-denim-01.jpg"
         ]
@@ -3121,9 +2413,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-avocado-01.jpg"
         ]
@@ -3134,9 +2423,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-iron-01.jpg"
         ]
@@ -3147,9 +2433,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-iron-01.jpg"
         ]
@@ -3160,9 +2443,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-iron-01.jpg"
         ]
@@ -3173,9 +2453,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-iron-01.jpg"
         ]
@@ -3186,9 +2463,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-iron-01.jpg"
         ]
@@ -3199,9 +2473,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-iron-01.jpg"
         ]
@@ -3212,9 +2483,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-brownie-01.jpg"
         ]
@@ -3225,9 +2493,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-brownie-01.jpg"
         ]
@@ -3238,9 +2503,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-brownie-01.jpg"
         ]
@@ -3251,9 +2513,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-brownie-01.jpg"
         ]
@@ -3264,9 +2523,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-brownie-01.jpg"
         ]
@@ -3277,9 +2533,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-brownie-01.jpg"
         ]
@@ -3290,11 +2543,8 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
-          "/assets/images/paris-premium-rose-wood-01.jpg"
+          "/assets/images/paris-premium-rosewood-01.jpg"
         ]
       },
       {
@@ -3303,11 +2553,8 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
-          "/assets/images/paris-premium-rose-wood-01.jpg"
+          "/assets/images/paris-premium-rosewood-01.jpg"
         ]
       },
       {
@@ -3316,11 +2563,8 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
-          "/assets/images/paris-premium-rose-wood-01.jpg"
+          "/assets/images/paris-premium-rosewood-01.jpg"
         ]
       },
       {
@@ -3329,11 +2573,8 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
-          "/assets/images/paris-premium-rose-wood-01.jpg"
+          "/assets/images/paris-premium-rosewood-01.jpg"
         ]
       },
       {
@@ -3342,11 +2583,8 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
-          "/assets/images/paris-premium-rose-wood-01.jpg"
+          "/assets/images/paris-premium-rosewood-01.jpg"
         ]
       },
       {
@@ -3355,9 +2593,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-black-01.jpg"
         ]
@@ -3368,9 +2603,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-black-01.jpg"
         ]
@@ -3381,9 +2613,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-black-01.jpg"
         ]
@@ -3394,9 +2623,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-black-01.jpg"
         ]
@@ -3407,11 +2633,8 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
-          "/assets/images/paris-premium-wood-01.jpg"
+          "/assets/images/paris-premium-rosewood-01.jpg"
         ]
       },
       {
@@ -3420,11 +2643,8 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
-          "/assets/images/paris-premium-wood-01.jpg"
+          "/assets/images/paris-premium-rosewood-01.jpg"
         ]
       },
       {
@@ -3433,11 +2653,8 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
-          "/assets/images/paris-premium-wood-01.jpg"
+          "/assets/images/paris-premium-iris-01.jpg"
         ]
       },
       {
@@ -3446,11 +2663,8 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
-          "/assets/images/paris-premium-wood-01.jpg"
+          "/assets/images/paris-premium-rosewood-01.jpg"
         ]
       },
       {
@@ -3459,11 +2673,8 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
-          "/assets/images/paris-premium-wood-01.jpg"
+          "/assets/images/paris-premium-rosewood-01.jpg"
         ]
       },
       {
@@ -3472,11 +2683,8 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
-          "/assets/images/paris-premium-wood-01.jpg"
+          "/assets/images/paris-premium-rosewood-01.jpg"
         ]
       },
       {
@@ -3485,9 +2693,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-black-01.jpg"
         ]
@@ -3498,9 +2703,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-black-01.jpg"
         ]
@@ -3511,9 +2713,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/paris-premium-black-01.jpg"
         ]
@@ -3530,9 +2729,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-black-01.jpg"
         ]
@@ -3543,9 +2739,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-bw-01.jpg"
         ]
@@ -3556,9 +2749,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-ivory-01.jpg"
         ]
@@ -3569,9 +2759,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-latte-01.jpg"
         ]
@@ -3582,9 +2769,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-grey-01.jpg"
         ]
@@ -3595,9 +2779,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-dark-grey-01.jpg"
         ]
@@ -3608,9 +2789,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-beige-01.jpg"
         ]
@@ -3621,9 +2799,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-lavender-01.jpg"
         ]
@@ -3634,9 +2809,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-navy-01.jpg"
         ]
@@ -3647,9 +2819,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 499,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-matcha-01.jpg"
         ]
@@ -3660,9 +2829,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-baby-pink-01.jpg"
         ]
@@ -3673,9 +2839,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 0,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-biscuit-01.jpg"
         ]
@@ -3686,9 +2849,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-burgundy-01.jpg"
         ]
@@ -3699,9 +2859,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-brown-01.jpg"
         ]
@@ -3712,9 +2869,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-denim-01.jpg"
         ]
@@ -3725,9 +2879,6 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-milo-01.jpg"
         ]
@@ -3738,13 +2889,363 @@ export const INITIAL_DATA: Category[] = [
         "stock": 500,
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
-        "stores": [
-          "Gudang Utama"
-        ],
         "images": [
           "/assets/images/polycotton-creamy-01.jpg"
         ]
       }
     ]
+  },
+  {
+    "id": "494451270779",
+    "name": "ciput kaos",
+    "variants": [
+      {
+        "id": "494451270805",
+        "name": "Black",
+        "stock": 500,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/polycotton-black-01.jpg"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "46954018421",
+    "name": "Jarum Pentul Stainless Anti Karat || Pentul Hijab Stainless",
+    "variants": [
+      {
+        "id": "430379414900",
+        "name": "Hitam",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "430379414901",
+        "name": "Rose Gold",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "430379414902",
+        "name": "Silver",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "430379414903",
+        "name": "Random",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      }
+    ]
+  },
+  {
+    "id": "56953998340",
+    "name": "Earrings | Anting Hijab Elegan",
+    "variants": [
+      {
+        "id": "282302727453",
+        "name": "ACC01Gold",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "282302727454",
+        "name": "ACC01Silver",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "282302727455",
+        "name": "ACC02Gold",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "282302727456",
+        "name": "ACC02Silver",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "282302727457",
+        "name": "Random",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      }
+    ]
+  },
+  {
+    "id": "25305878196",
+    "name": "Voilee - Pashmina Jersey Premium | Pashmina Mleyot",
+    "variants": [
+      {
+        "id": "166552756800",
+        "name": "Hitam",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756801",
+        "name": "BW",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756802",
+        "name": "Navy",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756803",
+        "name": "Silver",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756804",
+        "name": "Milo",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756805",
+        "name": "Abu Tua",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756806",
+        "name": "Hazel",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756807",
+        "name": "Mocca",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756808",
+        "name": "Latte",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756809",
+        "name": "Denim",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756810",
+        "name": "Maroon",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756811",
+        "name": "Sage",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756812",
+        "name": "Coksu",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756813",
+        "name": "Soft Dusty",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756814",
+        "name": "Abu-abu",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "166552756815",
+        "name": "Olive",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "147162612920",
+        "name": "Army",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "187622591039",
+        "name": "Nude",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      }
+    ]
+  },
+  {
+    "id": "19695964365",
+    "name": "Voilee - Ciput Kaos / Inner Kaos",
+    "variants": [
+      {
+        "id": "187217554580",
+        "name": "Khaki",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "187217554574",
+        "name": "Coksu",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "187217554575",
+        "name": "Latte",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "187217554581",
+        "name": "BW",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "187217554576",
+        "name": "Milo",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "187217554577",
+        "name": "White",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "187217554582",
+        "name": "Black",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "187217554583",
+        "name": "Navy",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "187217554584",
+        "name": "Dusty",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "187217554579",
+        "name": "Grey",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "187217554578",
+        "name": "Dark Grey",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      },
+      {
+        "id": "187217554573",
+        "name": "Random",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": []
+      }
+    ]
   }
 ];
+

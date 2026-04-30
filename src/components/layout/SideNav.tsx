@@ -60,10 +60,6 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen = false, onClose }) => {
             Install App
           </button>
         )}
-        <NavLink to="/restock/new" onClick={onClose} className="w-full flex items-center justify-center gap-2 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors font-medium text-sm">
-          <span className="material-symbols-outlined text-sm">add</span>
-          New Entry
-        </NavLink>
         <div className="mt-6 flex items-center gap-3 px-2">
           <div className="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
             <span className="material-symbols-outlined text-teal-600">person</span>

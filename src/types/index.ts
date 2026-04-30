@@ -14,6 +14,7 @@ export interface Category {
   id: string;
   name: string;
   variants: Variant[];
+  supplierNames?: string[];
 }
 
 export interface RestockList {
@@ -41,10 +42,8 @@ export interface SubBarang {
 export interface Barang {
   id: string;
   name: string;
-  category?: string;
-  description?: string;
-  subBarang: SubBarang[];
-  supplierId?: string;
+  supplierIds?: string[];
+  subBarang?: SubBarang[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -58,6 +57,13 @@ export interface Supplier {
   address?: string;
   notes?: string;
   createdAt: Date;
+}
+
+// ─── Barang ↔ Supplier (many-to-many junction) ──────────────
+export interface BarangSupplier {
+  id: string;
+  barangId: string;
+  supplierId: string;
 }
 
 // ─── Stok Log ───────────────────────────────────────────────

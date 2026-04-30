@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import type { Variant, Category } from '../../types';
 import SearchInput from '../ui/SearchInput';
-import { INITIAL_DATA } from '../../data/restockInitialData';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { fetchCatalogAsCategories } from '../../utils/dbHelpers';
 
 interface AddItemsFormProps {
   onClose: () => void;
@@ -108,7 +109,7 @@ const AccordionCategory: React.FC<{
             type="checkbox" 
           />
         </div>
-        <span className={`font-body-md text-body-md text-on-surface flex-1 ${hasChecked ? 'font-medium' : ''}`}>{category.name}</span>
+        <span className={`font-body-md text-body-md text-on-surface flex-1 truncate ${hasChecked ? 'font-medium' : ''}`}>{category.name}</span>
       </div>
       
       {expanded && category.variants.length > 0 && (
@@ -132,6 +133,8 @@ const AccordionCategory: React.FC<{
 // ─── Main Component ─────────────────────────────────────────
 
 const AddItemsForm: React.FC<AddItemsFormProps> = ({ onClose, onAddItems }) => {
+  const catalogData = useLiveQuery(fetchCatalogAsCategories);
+
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
   const [selectedVariants, setSelectedVariants] = useState<Set<string>>(new Set());
   const [targetQuantities, setTargetQuantities] = useState<Record<string, number>>({});
@@ -177,8 +180,8 @@ const AddItemsForm: React.FC<AddItemsFormProps> = ({ onClose, onAddItems }) => {
   };
 
   const handleAdd = () => {
-    if (onAddItems && selectedVariants.size > 0) {
-      const itemsToAdd = INITIAL_DATA.map(cat => ({
+    if (onAddItems && selectedVariants.size > 0 && catalogData) {
+      const itemsToAdd = catalogData.map(cat => ({
         ...cat,
         variants: cat.variants.filter(v => selectedVariants.has(v.id)).map(v => ({
           ...v,
@@ -192,7 +195,8 @@ const AddItemsForm: React.FC<AddItemsFormProps> = ({ onClose, onAddItems }) => {
   };
 
   const filteredAndSortedData = React.useMemo(() => {
-    let data = INITIAL_DATA;
+    if (!catalogData) return [];
+    let data = catalogData;
     
     if (searchQuery.trim() !== '') {
       const searchTerms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
@@ -216,7 +220,7 @@ const AddItemsForm: React.FC<AddItemsFormProps> = ({ onClose, onAddItems }) => {
       ...cat,
       variants: [...cat.variants].sort((a, b) => a.name.localeCompare(b.name))
     })).sort((a, b) => a.name.localeCompare(b.name));
-  }, [searchQuery]);
+  }, [searchQuery, catalogData]);
 
   const totalSelected = selectedVariants.size;
 
@@ -239,7 +243,11 @@ const AddItemsForm: React.FC<AddItemsFormProps> = ({ onClose, onAddItems }) => {
 
         {/* List Content */}
         <div className="flex-1 overflow-y-auto p-md max-h-[512px] bg-surface">
-          {filteredAndSortedData.length > 0 ? (
+          {catalogData === undefined ? (
+            <div className="p-lg text-center text-on-surface-variant font-body-md py-8">
+              Memuat data...
+            </div>
+          ) : filteredAndSortedData.length > 0 ? (
             filteredAndSortedData.map(category => (
               <AccordionCategory 
                 key={category.id}

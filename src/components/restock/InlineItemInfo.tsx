@@ -86,13 +86,6 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
         )}
         
         <div className="flex items-center gap-sm ml-auto">
-          {variant.stores && variant.stores.length > 0 && (
-            <div className="flex flex-wrap gap-sm">
-              <span className="px-md py-xs text-primary font-body-sm text-body-sm flex items-center gap-xs">
-                {variant.stores.join(' | ')}
-              </span>
-            </div>
-          )}
           {onDelete && !readOnly && (
             <button
               onClick={handleDeleteClick}

@@ -1,5 +1,5 @@
 import { db } from './database';
-import type { Barang, Supplier } from '../types';
+import type { Barang, Supplier, BarangSupplier } from '../types';
 import { generateId } from '../utils/generateId';
 
 /**
@@ -20,21 +20,32 @@ export async function seedDatabase(): Promise<void> {
     createdAt: new Date(),
   };
 
+  const barangId = generateId('brg');
   const barang: Barang = {
-    id: generateId('brg'),
+    id: barangId,
     name: 'Kain Jilbab',
-    category: 'Tekstil',
-    description: 'Berbagai jenis kain jilbab',
-    supplierId,
-    subBarang: [
-      { id: generateId('sb'), barangId: '', name: 'Jilbab Merah', stock: 2, images: [] },
-      { id: generateId('sb'), barangId: '', name: 'Jilbab Biru', stock: 5, images: [] },
-      { id: generateId('sb'), barangId: '', name: 'Jilbab Hitam', stock: 0, images: [] },
-    ],
+    supplierIds: [supplierId],
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 
+  const junction: BarangSupplier = {
+    id: `${barangId}-${supplierId}`,
+    barangId,
+    supplierId,
+  };
+
   await db.suppliers.add(supplier);
   await db.barang.add(barang);
+  await db.barangSupplier.add(junction);
+
+  // add sub-barang separately
+  const subItems = [
+    { id: generateId('sb'), barangId, name: 'Jilbab Merah', stock: 2, images: [] },
+    { id: generateId('sb'), barangId, name: 'Jilbab Biru', stock: 5, images: [] },
+    { id: generateId('sb'), barangId, name: 'Jilbab Hitam', stock: 0, images: [] },
+  ];
+  for (const item of subItems) {
+    await db.subBarang.add(item);
+  }
 }

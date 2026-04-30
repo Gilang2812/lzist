@@ -44,27 +44,45 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
   return (
     <div className="border-b border-surface-variant last:border-b-0">
       {/* Category Header */}
-      <div className="flex items-center py-md px-md cursor-pointer hover:bg-surface-container-low transition-colors group" onClick={onToggleExpand}>
-        <span className={`material-symbols-outlined text-on-surface-variant mr-sm transition-transform ${isExpanded ? 'rotate-90' : ''}`}>chevron_right</span>
+      <div
+        className="flex items-center py-sm px-md cursor-pointer hover:bg-surface-container-low transition-colors group gap-sm"
+        onClick={onToggleExpand}
+      >
+        <span className={`material-symbols-outlined text-on-surface-variant transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`}>chevron_right</span>
         {showCheckboxes && (
-          <input 
-            className={`w-5 h-5 rounded border-outline text-primary focus:ring-primary-container mr-md bg-surface-container-lowest cursor-pointer ${isIndeterminate ? 'indeterminate' : ''}`} 
-            type="checkbox" 
+          <input
+            className={`w-5 h-5 rounded border-outline text-primary focus:ring-primary-container bg-surface-container-lowest cursor-pointer flex-shrink-0 ${isIndeterminate ? 'indeterminate' : ''}`}
+            type="checkbox"
             checked={isAllChecked || isIndeterminate}
             onChange={() => onToggleCategoryCheck && onToggleCategoryCheck()}
             ref={el => { if (el) el.indeterminate = isIndeterminate; }}
-            onClick={e => e.stopPropagation()} 
+            onClick={e => e.stopPropagation()}
           />
         )}
-        <h2 className="font-h3 text-h3 text-on-surface flex-grow">{category.name}</h2>
-        <span className="bg-surface-container px-sm py-xs rounded-full font-label-md text-label-md text-on-surface-variant transition-all">{category.variants.length} Varian</span>
+        <div className="flex-1 min-w-0">
+          <h2 className="font-h3 text-h3 text-on-surface leading-snug truncate">{category.name}</h2>
+          {category.supplierNames && category.supplierNames.length > 0 && (
+            <div className="flex flex-wrap gap-xs mt-0.5">
+              {category.supplierNames.map(s => (
+                <span
+                  key={s}
+                  className="inline-flex items-center gap-0.5 text-[11px] text-on-secondary-container bg-secondary-container px-xs py-0.5 rounded-full leading-none"
+                >
+                  <span className="material-symbols-outlined text-[11px]">local_shipping</span>
+                  {s}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <span className="bg-surface-container px-sm py-xs rounded-full font-label-md text-label-md text-on-surface-variant flex-shrink-0">{category.variants.length} Varian</span>
         {onDelete && !readOnly && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onDelete(category.id);
             }}
-            className="ml-sm w-8 h-8 flex items-center justify-center text-error hover:bg-error/10 rounded-full transition-all cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center text-error hover:bg-error/10 rounded-full transition-all cursor-pointer flex-shrink-0"
             title="Hapus Kategori"
           >
             <span className="material-symbols-outlined text-[20px]">delete</span>
@@ -74,7 +92,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
 
       {/* Category Variants */}
       {isExpanded && category.variants.length > 0 && (
-        <div className="flex flex-col pl-md sm:pl-xl border-l-2 border-surface-variant ml-[18px] sm:ml-[34px] mb-md">
+        <div className="flex flex-col pl-md sm:pl-xl border-l-2 border-primary-fixed-dim ml-[18px] sm:ml-[34px] mb-md">
           {category.variants.map(variant => (
             <InlineItemInfo
               key={variant.id}

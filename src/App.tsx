@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
 import AppLayout from './components/layout/AppLayout';
 import DashboardPage from './pages/DashboardPage';
 import RestockListPage from './pages/RestockListPage';
@@ -8,9 +9,13 @@ import KatalogPage from './pages/KatalogPage';
 import BarangDetailPage from './pages/BarangDetailPage';
 import SupplierListPage from './pages/SupplierListPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
-import LaporanPage from './pages/LaporanPage';
+import { initDb } from './utils/initDb';
 
 function App() {
+  useEffect(() => {
+    initDb();
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
@@ -24,7 +29,6 @@ function App() {
           <Route path="/katalog/:id" element={<BarangDetailPage />} />
           <Route path="/supplier" element={<SupplierListPage />} />
           <Route path="/supplier/:id" element={<SupplierDetailPage />} />
-          <Route path="/laporan" element={<LaporanPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
