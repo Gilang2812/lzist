@@ -2896,22 +2896,6 @@ export const INITIAL_DATA: Category[] = [
     ]
   },
   {
-    "id": "494451270779",
-    "name": "ciput kaos",
-    "variants": [
-      {
-        "id": "494451270805",
-        "name": "Black",
-        "stock": 500,
-        "targetQuantity": 0,
-        "color": "bg-primary-fixed-dim",
-        "images": [
-          "/assets/images/polycotton-black-01.jpg"
-        ]
-      }
-    ]
-  },
-  {
     "id": "46954018421",
     "name": "Jarum Pentul Stainless Anti Karat || Pentul Hijab Stainless",
     "variants": [
