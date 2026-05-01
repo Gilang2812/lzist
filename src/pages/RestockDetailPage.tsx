@@ -1,9 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 import type { Category, RestockList } from '../types';
 import RestockListCard from '../components/restock/RestockListCard';
 import AddItemsForm from '../components/restock/AddItemsForm';
 import { db } from '../db/database';
+import { fetchCatalogAsCategories } from '../utils/dbHelpers';
+
+interface UnmatchedRow {
+  productName: string;
+  variantName: string;
+  reason: string;
+}
+
+interface ImportSummaryData {
+  isOpen: boolean;
+  matched: Category[];
+  unmatched: UnmatchedRow[];
+}
 
 const RestockDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +36,8 @@ const RestockDetailPage: React.FC = () => {
   const [pasteContent, setPasteContent] = useState('');
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, idToClear: string | 'bulk' | null}>({isOpen: false, idToClear: null});
+  const [importSummary, setImportSummary] = useState<ImportSummaryData>({ isOpen: false, matched: [], unmatched: [] });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchList = async () => {
@@ -233,6 +249,97 @@ const RestockDetailPage: React.FC = () => {
     });
   };
 
+  const handleExcelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const catalogData = await fetchCatalogAsCategories();
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json<any>(ws);
+        
+        const categoriesMap = new Map<string, Category>();
+        const unmatchedRows: UnmatchedRow[] = [];
+        
+        data.forEach((row) => {
+          const productInfoStr = row['product_info'] || row['Product Info'] || row['Product_Info'] || row['Info Produk'];
+          if (!productInfoStr || typeof productInfoStr !== 'string') return;
+          
+          const itemsStr = productInfoStr.split(/\r?\n/).filter(line => line.trim().startsWith('['));
+          
+          itemsStr.forEach(itemStr => {
+            const productNameMatch = itemStr.match(/Nama Produk:\s*([^;]+);/);
+            const variantNameMatch = itemStr.match(/Nama Variasi:\s*([^;]+);/);
+            const quantityMatch = itemStr.match(/Jumlah:\s*(\d+);/);
+
+            if (!productNameMatch) return;
+
+            const productName = productNameMatch[1].trim();
+            const variantName = variantNameMatch ? variantNameMatch[1].trim() : '';
+            const quantity = quantityMatch ? parseInt(quantityMatch[1], 10) : 1;
+
+            const getWords = (str: string) => str.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 2);
+            const targetWords = getWords(productName);
+
+            let bestCategoryMatch: Category | null = null;
+            let maxWordMatch = 0;
+
+            for (const cat of catalogData) {
+              const catWords = getWords(cat.name);
+              const matchCount = catWords.filter(w => targetWords.includes(w)).length;
+              const hasVariant = cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase());
+              
+              if (hasVariant && matchCount > maxWordMatch) {
+                maxWordMatch = matchCount;
+                bestCategoryMatch = cat;
+              }
+            }
+
+            if (!bestCategoryMatch) {
+              unmatchedRows.push({ productName, variantName, reason: 'Produk/Varian tidak ditemukan di master data' });
+              return;
+            }
+
+            const initialVariant = bestCategoryMatch.variants.find(v => v.name.toLowerCase() === variantName.toLowerCase());
+            if (!initialVariant) {
+              unmatchedRows.push({ productName, variantName, reason: 'Varian tidak ditemukan di master data' });
+              return;
+            }
+
+            const itemId = bestCategoryMatch.id;
+            if (!categoriesMap.has(itemId)) {
+              categoriesMap.set(itemId, { ...bestCategoryMatch, variants: [] });
+            }
+            
+            const category = categoriesMap.get(itemId)!;
+            const existingVar = category.variants.find(v => v.id === initialVariant.id);
+            if (existingVar) {
+              existingVar.targetQuantity = (existingVar.targetQuantity || 0) + quantity;
+            } else {
+              category.variants.push({ ...initialVariant, targetQuantity: quantity });
+            }
+          });
+        });
+
+        const matchedItems = Array.from(categoriesMap.values());
+        setImportSummary({ isOpen: true, matched: matchedItems, unmatched: unmatchedRows });
+        
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } catch (err) {
+        console.error("Failed to parse Excel file", err);
+        alert("Gagal membaca file Excel. Pastikan format file sesuai.");
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
   const handleBulkDelete = () => {
     if (checkedVariants.size === 0) return;
     setDeleteModal({ isOpen: true, idToClear: 'bulk' });
@@ -257,17 +364,33 @@ const RestockDetailPage: React.FC = () => {
               </button>
             )}
             {isEditing && (
-              <button 
-                onClick={() => setIsPasting(!isPasting)}
-                className={`flex items-center gap-xs px-sm py-xs rounded-md transition-colors border cursor-pointer ${
-                  isPasting 
-                    ? 'bg-primary-container text-on-primary-container border-primary-container' 
-                    : 'text-primary hover:bg-surface-container border-transparent hover:border-surface-variant'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">content_paste</span>
-                <span className="font-label-md text-label-md">Paste</span>
-              </button>
+              <>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  accept=".xlsx, .xls" 
+                  className="hidden" 
+                  onChange={handleExcelUpload} 
+                />
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-xs text-primary hover:bg-surface-container px-sm py-xs rounded-md transition-colors border border-transparent hover:border-surface-variant cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">upload_file</span>
+                  <span className="font-label-md text-label-md">Import Excel</span>
+                </button>
+                <button 
+                  onClick={() => setIsPasting(!isPasting)}
+                  className={`flex items-center gap-xs px-sm py-xs rounded-md transition-colors border cursor-pointer ${
+                    isPasting 
+                      ? 'bg-primary-container text-on-primary-container border-primary-container' 
+                      : 'text-primary hover:bg-surface-container border-transparent hover:border-surface-variant'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">content_paste</span>
+                  <span className="font-label-md text-label-md">Paste</span>
+                </button>
+              </>
             )}
             <button 
               onClick={() => setIsEditing(!isEditing)}
@@ -442,6 +565,105 @@ const RestockDetailPage: React.FC = () => {
                 alt="Enlarged Reference" 
                 className="max-w-full max-h-[75vh] object-contain rounded-lg" 
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import Summary Modal */}
+      {importSummary.isOpen && (
+        <div 
+          className="fixed inset-0 bg-on-surface/50 z-50 flex items-center justify-center p-md backdrop-blur-sm"
+          onClick={() => setImportSummary({ ...importSummary, isOpen: false })}
+        >
+          <div 
+            className="bg-surface p-lg rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200 max-w-2xl w-full max-h-[80vh] overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="font-h3 text-h3 text-on-surface flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">analytics</span>
+              Ringkasan Import Excel
+            </h3>
+            
+            <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-md">
+              <div className="bg-surface-container-low p-sm rounded-lg flex gap-4 text-center">
+                <div className="flex-1">
+                  <div className="text-2xl font-bold text-primary">{importSummary.matched.reduce((acc, cat) => acc + cat.variants.length, 0)}</div>
+                  <div className="text-sm text-on-surface-variant">Varian Sesuai</div>
+                </div>
+                <div className="w-px bg-surface-variant"></div>
+                <div className="flex-1">
+                  <div className="text-2xl font-bold text-error">{importSummary.unmatched.length}</div>
+                  <div className="text-sm text-on-surface-variant">Tidak Sesuai</div>
+                </div>
+              </div>
+
+              {importSummary.matched.length > 0 && (
+                <div>
+                  <h4 className="font-label-lg text-on-surface mb-2 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+                    Data Sesuai (Akan Diimport)
+                  </h4>
+                  <ul className="text-sm text-on-surface-variant flex flex-col gap-1 list-disc pl-5">
+                    {importSummary.matched.slice(0, 5).map(cat => (
+                      <li key={cat.id}>{cat.name} ({cat.variants.length} varian)</li>
+                    ))}
+                    {importSummary.matched.length > 5 && (
+                      <li className="italic text-on-surface-variant/70">...dan {importSummary.matched.length - 5} kategori lainnya</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
+              {importSummary.unmatched.length > 0 && (
+                <div>
+                  <h4 className="font-label-lg text-on-surface mb-2 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-error text-[18px]">cancel</span>
+                    Data Tidak Sesuai (Diabaikan)
+                  </h4>
+                  <div className="bg-error-container text-on-error-container text-xs p-2 rounded-md mb-2">
+                    Data berikut tidak ditemukan di master data sistem sehingga diabaikan.
+                  </div>
+                  <ul className="text-sm text-on-surface flex flex-col gap-2 max-h-40 overflow-y-auto border border-surface-variant rounded-md p-2">
+                    {importSummary.unmatched.map((row, idx) => (
+                      <li key={idx} className="flex flex-col border-b border-surface-variant/50 last:border-0 pb-1 last:pb-0">
+                        <span className="font-medium">{row.productName || 'Tanpa Nama'} - {row.variantName || 'Tanpa Varian'}</span>
+                        <span className="text-error text-xs">{row.reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-sm justify-end mt-2 pt-4 border-t border-surface-variant flex-wrap">
+              <button 
+                onClick={() => setImportSummary({ ...importSummary, isOpen: false })}
+                className="px-md py-xs rounded-full border border-outline text-on-surface hover:bg-surface-variant transition-colors font-label-md cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  setChecklist(importSummary.matched);
+                  updateListInDb(importSummary.matched);
+                  setImportSummary({ ...importSummary, isOpen: false });
+                }}
+                disabled={importSummary.matched.length === 0}
+                className="px-md py-xs rounded-full bg-error text-on-error hover:bg-error/90 transition-colors font-label-md cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Replace
+              </button>
+              <button 
+                onClick={() => {
+                  handleAddItems(importSummary.matched);
+                  setImportSummary({ ...importSummary, isOpen: false });
+                }}
+                disabled={importSummary.matched.length === 0}
+                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Append
+              </button>
             </div>
           </div>
         </div>

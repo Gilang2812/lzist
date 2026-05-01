@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { fetchCatalogAsCategories } from '../utils/dbHelpers';
 import type { Category } from '../types';
@@ -6,9 +6,24 @@ import RestockListCard from '../components/restock/RestockListCard';
 import AddItemsForm from '../components/restock/AddItemsForm';
 import { db } from '../db/database';
 import type { RestockList } from '../types';
+import { useUndoableState } from '../hooks/useUndoableState';
+
+interface UnmatchedRow {
+  productName: string;
+  variantName: string;
+  reason: string;
+}
+
+interface ImportSummary {
+  isOpen: boolean;
+  matched: Category[];
+  unmatched: UnmatchedRow[];
+}
+
+const AUTOSAVE_DEBOUNCE_MS = 1500;
 
 const NewRestockEntryPage: React.FC = () => {
-  const [checklist, setChecklist] = useState<Category[]>([]);
+  const { state: checklist, setState: setChecklist, undo, redo, canUndo, canRedo } = useUndoableState<Category[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
@@ -22,20 +37,88 @@ const NewRestockEntryPage: React.FC = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveConflictModal, setSaveConflictModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, idToClear: string | 'all' | 'bulk' | null}>({isOpen: false, idToClear: null});
-  interface UnmatchedRow {
-    productName: string;
-    variantName: string;
-    reason: string;
-  }
-  
-  interface ImportSummary {
-    isOpen: boolean;
-    matched: Category[];
-    unmatched: UnmatchedRow[];
-  }
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   const [importSummary, setImportSummary] = useState<ImportSummary>({ isOpen: false, matched: [], unmatched: [] });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isFirstRender = useRef(true);
+
+  const getTodayId = () => {
+    const today = new Date();
+    const offset = today.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(today.getTime() - offset)).toISOString().slice(0, 10);
+    return `restock-${localISOTime}`;
+  };
+
+  // ─── Autosave: only when today's list doesn't exist yet ──────
+  const performAutoSave = useCallback(async (data: Category[]) => {
+    if (data.length === 0) return;
+    try {
+      const id = getTodayId();
+      const existing = await db.restockLists.get(id);
+      // If today's list already exists, skip autosave
+      if (existing) return;
+
+      setAutoSaveStatus('saving');
+      const newList: RestockList = {
+        id,
+        title: `Restock ${id.replace('restock-', '')}`,
+        categories: data,
+        status: 'draft',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      await db.restockLists.add(newList);
+      setAutoSaveStatus('saved');
+      setTimeout(() => setAutoSaveStatus('idle'), 2000);
+    } catch (err) {
+      console.error('Autosave failed:', err);
+      setAutoSaveStatus('idle');
+    }
+  }, []);
+
+  useEffect(() => {
+    // Skip autosave on initial mount (empty list)
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      performAutoSave(checklist);
+    }, AUTOSAVE_DEBOUNCE_MS);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [checklist, performAutoSave]);
+
+  // ─── Keyboard shortcuts for Undo / Redo ─────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const isMod = e.ctrlKey || e.metaKey;
+      if (!isMod) return;
+      if (e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if (e.key === 'z' && e.shiftKey) {
+        e.preventDefault();
+        redo();
+      } else if (e.key === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undo, redo]);
 
   const confirmDelete = () => {
     if (deleteModal.idToClear === 'all') {
@@ -300,13 +383,6 @@ const NewRestockEntryPage: React.FC = () => {
     reader.readAsBinaryString(file);
   };
 
-  const getTodayId = () => {
-    const today = new Date();
-    const offset = today.getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(today.getTime() - offset)).toISOString().slice(0, 10);
-    return `restock-${localISOTime}`;
-  };
-
   const triggerSaveSuccess = () => {
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2000);
@@ -388,8 +464,51 @@ const NewRestockEntryPage: React.FC = () => {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl overflow-x-hidden">
         {/* Action Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border-y border-surface-variant p-md rounded-lg shadow-sm gap-sm">
-          <p className="font-body-md text-body-md text-on-surface-variant flex-1">List entry baru untuk restock barang.</p>
+          <div className="flex items-center gap-sm flex-1">
+            <p className="font-body-md text-body-md text-on-surface-variant">List entry baru untuk restock barang.</p>
+            {/* Autosave status indicator */}
+            {autoSaveStatus !== 'idle' && (
+              <span className={`flex items-center gap-[3px] text-[11px] font-medium px-sm py-[2px] rounded-full transition-all ${
+                autoSaveStatus === 'saving'
+                  ? 'text-on-surface-variant bg-surface-container animate-pulse'
+                  : 'text-primary bg-primary-container/50'
+              }`}>
+                <span className="material-symbols-outlined text-[14px]">
+                  {autoSaveStatus === 'saving' ? 'sync' : 'cloud_done'}
+                </span>
+                {autoSaveStatus === 'saving' ? 'Menyimpan...' : 'Tersimpan'}
+              </span>
+            )}
+          </div>
           <div className="flex gap-sm self-end sm:self-auto flex-wrap">
+            {/* Undo / Redo */}
+            <div className="flex items-center border border-surface-variant rounded-md overflow-hidden">
+              <button
+                onClick={undo}
+                disabled={!canUndo}
+                title="Undo (Ctrl+Z)"
+                className={`flex items-center justify-center w-8 h-8 transition-colors cursor-pointer ${
+                  canUndo
+                    ? 'text-primary hover:bg-surface-container'
+                    : 'text-on-surface-variant/30 cursor-not-allowed'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">undo</span>
+              </button>
+              <div className="w-px h-4 bg-surface-variant"></div>
+              <button
+                onClick={redo}
+                disabled={!canRedo}
+                title="Redo (Ctrl+Y)"
+                className={`flex items-center justify-center w-8 h-8 transition-colors cursor-pointer ${
+                  canRedo
+                    ? 'text-primary hover:bg-surface-container'
+                    : 'text-on-surface-variant/30 cursor-not-allowed'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">redo</span>
+              </button>
+            </div>
             {checkedVariants.size > 0 && (
               <button 
                 onClick={handleBulkDelete}

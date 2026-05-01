@@ -77,41 +77,88 @@ const RestockListPage: React.FC = () => {
           description="Buat restock list pertama kamu untuk mulai mengelola belanja."
         />
       ) : (
-        <div className="flex flex-col gap-md">
-          {lists.map((list) => {
-            const itemCount = list.categories.reduce((acc, cat) => acc + cat.variants.length, 0);
-            const dateStr = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(list.createdAt);
+        <div className="flex flex-col gap-lg">
+          {(() => {
+            const now = new Date();
+            const isToday = (d: Date) =>
+              d.getDate() === now.getDate() &&
+              d.getMonth() === now.getMonth() &&
+              d.getFullYear() === now.getFullYear();
+
+            const todayLists = lists.filter(l => isToday(l.createdAt));
+            const olderLists = lists.filter(l => !isToday(l.createdAt));
+
+            const renderCard = (list: RestockList, today: boolean) => {
+              const itemCount = list.categories.reduce((acc, cat) => acc + cat.variants.length, 0);
+              const dateStr = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(list.createdAt);
+
+              return (
+                <div
+                  key={list.id}
+                  onClick={() => navigate(`/restock/${list.id}`)}
+                  className={`rounded-xl p-lg cursor-pointer hover:shadow-md transition-all flex items-center justify-between ${
+                    today
+                      ? 'bg-primary-container/40 border-l-4 border-primary border-r border-t border-b border-r-primary/20 border-t-primary/20 border-b-primary/20 hover:border-r-primary/40 hover:border-t-primary/40 hover:border-b-primary/40'
+                      : 'bg-surface-container-lowest border border-surface-variant hover:border-primary-fixed-dim'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center gap-sm">
+                      <h3 className="font-h3 text-h3 text-on-surface">{list.title}</h3>
+                      {today && (
+                        <span className="bg-primary text-on-primary text-[10px] font-bold px-sm py-[2px] rounded-full uppercase tracking-wide">
+                          Hari ini
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">
+                      {itemCount} item · {dateStr}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-md">
+                    <span className={`px-md py-xs rounded-full font-label-md text-label-md ${statusStyles[list.status]}`}>
+                      {statusLabels[list.status]}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setListToDelete(list);
+                      }}
+                      className="p-xs text-on-surface-variant hover:text-error hover:bg-error-container rounded-full transition-colors flex items-center justify-center cursor-pointer"
+                      title="Hapus Daftar"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">delete</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            };
 
             return (
-              <div
-                key={list.id}
-                onClick={() => navigate(`/restock/${list.id}`)}
-                className="bg-surface-container-lowest rounded-xl border border-surface-variant p-lg cursor-pointer hover:shadow-md hover:border-primary-fixed-dim transition-all flex items-center justify-between"
-              >
-                <div>
-                  <h3 className="font-h3 text-h3 text-on-surface">{list.title}</h3>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">
-                    {itemCount} item · {dateStr}
-                  </p>
-                </div>
-                <div className="flex items-center gap-md">
-                  <span className={`px-md py-xs rounded-full font-label-md text-label-md ${statusStyles[list.status]}`}>
-                    {statusLabels[list.status]}
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setListToDelete(list);
-                    }}
-                    className="p-xs text-on-surface-variant hover:text-error hover:bg-error-container rounded-full transition-colors flex items-center justify-center cursor-pointer"
-                    title="Hapus Daftar"
-                  >
-                    <span className="material-symbols-outlined text-[20px]">delete</span>
-                  </button>
-                </div>
-              </div>
+              <>
+                {todayLists.length > 0 && (
+                  <div className="flex flex-col gap-md">
+                    <div className="flex items-center gap-sm">
+                      <span className="material-symbols-outlined text-primary text-[20px]">today</span>
+                      <h2 className="font-label-lg text-label-lg text-primary">Hari Ini</h2>
+                    </div>
+                    {todayLists.map(l => renderCard(l, true))}
+                  </div>
+                )}
+                {olderLists.length > 0 && (
+                  <div className="flex flex-col gap-md">
+                    {todayLists.length > 0 && (
+                      <div className="flex items-center gap-sm">
+                        <span className="material-symbols-outlined text-on-surface-variant text-[20px]">history</span>
+                        <h2 className="font-label-lg text-label-lg text-on-surface-variant">Sebelumnya</h2>
+                      </div>
+                    )}
+                    {olderLists.map(l => renderCard(l, false))}
+                  </div>
+                )}
+              </>
             );
-          })}
+          })()}
         </div>
       )}
 
