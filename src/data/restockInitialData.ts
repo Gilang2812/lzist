@@ -571,7 +571,7 @@ export const INITIAL_DATA: Category[] = [
   },
   {
     "id": "53908272713",
-    "name": "Pashmina Voal | Arabian Voal Shawl | Voilee",
+    "name": "Pashmina Voal | Arabian Voal Shawl",
     "variants": [
       {
         "id": "410735144010",
@@ -2997,7 +2997,7 @@ export const INITIAL_DATA: Category[] = [
   },
   {
     "id": "25305878196",
-    "name": "Voilee - Pashmina Jersey Premium | Pashmina Mleyot",
+    "name": "Pashmina Jersey Premium | Pashmina Mleyot",
     "variants": [
       {
         "id": "166552756800",
@@ -3147,7 +3147,7 @@ export const INITIAL_DATA: Category[] = [
   },
   {
     "id": "19695964365",
-    "name": "Voilee - Ciput Kaos / Inner Kaos",
+    "name": "Ciput Kaos / Inner Kaos",
     "variants": [
       {
         "id": "187217554580",
