@@ -14,7 +14,6 @@ interface RestockListCardProps {
   onChangeVariantTargetQuantity?: (variantId: string, quantity: number) => void;
   readOnly?: boolean;
   showCheckboxes?: boolean;
-  checkedVariants?: Set<string>;
   onToggleVariantCheck?: (id: string) => void;
   onToggleCategoryCheck?: () => void;
 }
@@ -31,15 +30,20 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
   onChangeVariantTargetQuantity,
   readOnly = false,
   showCheckboxes = true,
-  checkedVariants = new Set(),
   onToggleVariantCheck,
   onToggleCategoryCheck,
 }) => {
   const availableVariants = category.variants;
-  const checkedCount = availableVariants.filter(variant => checkedVariants.has(variant.id)).length;
+  const checkedCount = availableVariants.filter(variant => variant.checked).length;
+  const totalQty = availableVariants.reduce((acc, v) => acc + (v.targetQuantity || 0), 0);
   
   const isAllChecked = availableVariants.length > 0 && checkedCount === availableVariants.length;
   const isIndeterminate = checkedCount > 0 && checkedCount < availableVariants.length;
+
+  const sortedVariants = [...availableVariants].sort((a, b) => {
+    if (a.checked === b.checked) return 0;
+    return a.checked ? 1 : -1;
+  });
 
   return (
     <div className="border-b border-surface-variant last:border-b-0">
@@ -75,7 +79,14 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
             </div>
           )}
         </div>
-        <span className="bg-surface-container px-sm py-xs rounded-full font-label-md text-label-md text-on-surface-variant flex-shrink-0">{category.variants.length} Varian</span>
+        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+          <span className="bg-surface-container px-sm py-[2px] rounded-full font-label-md text-label-md text-on-surface-variant">
+            {checkedCount}/{availableVariants.length} Varian
+          </span>
+          <span className="font-label-sm text-[11px] text-on-surface-variant opacity-70 px-sm">
+            Total: {totalQty} qty
+          </span>
+        </div>
         {onDelete && !readOnly && (
           <button
             onClick={(e) => {
@@ -93,7 +104,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
       {/* Category Variants */}
       {isExpanded && category.variants.length > 0 && (
         <div className="flex flex-col pl-md sm:pl-xl border-l-2 border-primary-fixed-dim ml-[18px] sm:ml-[34px] mb-md">
-          {category.variants.map(variant => (
+          {sortedVariants.map(variant => (
             <InlineItemInfo
               key={variant.id}
               variant={variant}
@@ -104,7 +115,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
               onDelete={onDeleteVariant ? () => onDeleteVariant(variant.id) : undefined}
               readOnly={readOnly}
               showCheckboxes={showCheckboxes}
-              isChecked={checkedVariants.has(variant.id)}
+              isChecked={variant.checked}
               onToggleCheck={() => onToggleVariantCheck && onToggleVariantCheck(variant.id)}
             />
           ))}

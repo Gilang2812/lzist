@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import * as XLSX from 'xlsx';
-import type { Category, RestockList } from '../types';
+import type { Category, RestockList, ImportRecord } from '../types';
 import RestockListCard from '../components/restock/RestockListCard';
 import AddItemsForm from '../components/restock/AddItemsForm';
 import { db } from '../db/database';
@@ -17,6 +17,7 @@ interface ImportSummaryData {
   isOpen: boolean;
   matched: Category[];
   unmatched: UnmatchedRow[];
+  filename?: string;
 }
 
 const RestockDetailPage: React.FC = () => {
@@ -27,15 +28,39 @@ const RestockDetailPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedVariants, setExpandedVariants] = useState<Set<string>>(new Set());
-  const [checkedVariants, setCheckedVariants] = useState<Set<string>>(new Set());
+  const checkedVariants = React.useMemo(() => {
+    const set = new Set<string>();
+    checklist.forEach(cat => {
+      cat.variants.forEach(v => {
+        if (v.checked) set.add(v.id);
+      });
+    });
+    return set;
+  }, [checklist]);
+
+  const sortedChecklist = React.useMemo(() => {
+    return [...checklist].sort((a, b) => {
+      const aDone = a.variants.length > 0 && a.variants.every(v => v.checked);
+      const bDone = b.variants.length > 0 && b.variants.every(v => v.checked);
+      if (aDone && !bDone) return 1;
+      if (!aDone && bDone) return -1;
+      return 0;
+    });
+  }, [checklist]);
   const [copySuccess, setCopySuccess] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isImportListOpen, setIsImportListOpen] = useState(true);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPasting, setIsPasting] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
   const [pasteError, setPasteError] = useState<string | null>(null);
-  const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, idToClear: string | 'bulk' | null}>({isOpen: false, idToClear: null});
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean, 
+    idToClear: string | 'bulk' | 'import' | null,
+    importId?: string,
+    filename?: string
+  }>({isOpen: false, idToClear: null});
   const [importSummary, setImportSummary] = useState<ImportSummaryData>({ isOpen: false, matched: [], unmatched: [] });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,10 +105,12 @@ const RestockDetailPage: React.FC = () => {
   };
 
   const toggleVariantCheck = (varId: string) => {
-    setCheckedVariants(prev => {
-      const next = new Set(prev);
-      if (next.has(varId)) next.delete(varId);
-      else next.add(varId);
+    setChecklist(prev => {
+      const next = prev.map(cat => ({
+        ...cat,
+        variants: cat.variants.map(v => v.id === varId ? { ...v, checked: !v.checked } : v)
+      }));
+      updateListInDb(next);
       return next;
     });
   };
@@ -92,15 +119,21 @@ const RestockDetailPage: React.FC = () => {
     const availableVariants = category.variants;
     if (availableVariants.length === 0) return;
 
-    setCheckedVariants(prev => {
-      const next = new Set(prev);
-      const isAllChecked = availableVariants.every(variant => prev.has(variant.id));
+    setChecklist(prev => {
+      const isAllChecked = availableVariants.every(variant => 
+        prev.find(c => c.id === category.id)?.variants.find(v => v.id === variant.id)?.checked
+      );
       
-      if (isAllChecked) {
-        availableVariants.forEach(variant => next.delete(variant.id));
-      } else {
-        availableVariants.forEach(variant => next.add(variant.id));
-      }
+      const next = prev.map(cat => {
+        if (cat.id === category.id) {
+          return {
+            ...cat,
+            variants: cat.variants.map(v => ({ ...v, checked: !isAllChecked }))
+          };
+        }
+        return cat;
+      });
+      updateListInDb(next);
       return next;
     });
   };
@@ -114,9 +147,15 @@ const RestockDetailPage: React.FC = () => {
       .catch(err => console.error("Failed to copy", err));
   };
 
-  const updateListInDb = async (newCategories: Category[]) => {
+  const updateListInDb = async (newCategories: Category[], newImportedFiles?: string[], newImportHistory?: ImportRecord[]) => {
     if (!list || !id) return;
-    const updatedList = { ...list, categories: newCategories, updatedAt: new Date() };
+    const updatedList: RestockList = { 
+      ...list, 
+      categories: newCategories || list.categories, 
+      importedFiles: newImportedFiles || list.importedFiles,
+      importHistory: newImportHistory || list.importHistory,
+      updatedAt: new Date() 
+    };
     try {
       await db.restockLists.put(updatedList);
       setList(updatedList);
@@ -166,12 +205,13 @@ const RestockDetailPage: React.FC = () => {
       setChecklist(prev => {
         const next = prev.map(cat => ({
           ...cat,
-          variants: cat.variants.filter(v => !checkedVariants.has(v.id))
+          variants: cat.variants.filter(v => !v.checked)
         })).filter(cat => cat.variants.length > 0);
         updateListInDb(next);
         return next;
       });
-      setCheckedVariants(new Set());
+    } else if (deleteModal.idToClear === 'import' && deleteModal.importId) {
+      handleDeleteImport(deleteModal.importId);
     } else if (deleteModal.idToClear) {
       setChecklist(prev => {
         const next = prev.filter(cat => cat.id !== deleteModal.idToClear);
@@ -199,6 +239,47 @@ const RestockDetailPage: React.FC = () => {
     }
   };
 
+  const handleDeleteImport = (importId: string) => {
+    if (!list) return;
+    const recordToDelete = list.importHistory?.find(r => r.id === importId);
+    if (!recordToDelete) return;
+
+    const newHistory = list.importHistory?.filter(r => r.id !== importId) || [];
+    
+    let newCategories = [...checklist];
+    
+    recordToDelete.categories.forEach(importCat => {
+      const catIndex = newCategories.findIndex(c => c.id === importCat.id);
+      if (catIndex >= 0) {
+        const category = { ...newCategories[catIndex] };
+        const variants = [...category.variants];
+        
+        importCat.variants.forEach(importVar => {
+          const varIndex = variants.findIndex(v => v.id === importVar.id);
+          if (varIndex >= 0) {
+            const variant = { ...variants[varIndex] };
+            variant.targetQuantity = (variant.targetQuantity || 0) - (importVar.targetQuantity || 0);
+            if (variant.targetQuantity <= 0) {
+              variants.splice(varIndex, 1);
+            } else {
+              variants[varIndex] = variant;
+            }
+          }
+        });
+        
+        if (variants.length === 0) {
+          newCategories.splice(catIndex, 1);
+        } else {
+          category.variants = variants;
+          newCategories[catIndex] = category;
+        }
+      }
+    });
+
+    setChecklist(newCategories);
+    updateListInDb(newCategories, newHistory.map(h => h.filename), newHistory);
+  };
+
   const handleAppend = () => {
     setPasteError(null);
     try {
@@ -217,7 +298,7 @@ const RestockDetailPage: React.FC = () => {
     }
   };
 
-  const handleAddItems = (newItems: Category[]) => {
+  const handleAddItems = (newItems: Category[], newImportedFiles?: string[], newImportHistory?: ImportRecord[]) => {
     setChecklist(prev => {
       let updated = [...prev];
       newItems.forEach(newCat => {
@@ -244,7 +325,7 @@ const RestockDetailPage: React.FC = () => {
           updated.push(newCat);
         }
       });
-      updateListInDb(updated);
+      updateListInDb(updated, newImportedFiles, newImportHistory);
       return updated;
     });
   };
@@ -327,7 +408,7 @@ const RestockDetailPage: React.FC = () => {
         });
 
         const matchedItems = Array.from(categoriesMap.values());
-        setImportSummary({ isOpen: true, matched: matchedItems, unmatched: unmatchedRows });
+        setImportSummary({ isOpen: true, matched: matchedItems, unmatched: unmatchedRows, filename: file.name });
         
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
@@ -460,6 +541,60 @@ const RestockDetailPage: React.FC = () => {
           </div>
         )}
 
+        {/* Imported Files Section */}
+        {list?.importHistory && list.importHistory.length > 0 && (
+          <div className="bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden shadow-sm">
+            <button 
+              onClick={() => setIsImportListOpen(!isImportListOpen)}
+              className="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors"
+            >
+              <div className="flex items-center gap-sm">
+                <span className="material-symbols-outlined text-primary">history</span>
+                <h3 className="font-label-lg text-on-surface">File yang Diimpor ({list.importHistory.length})</h3>
+              </div>
+              <span className={`material-symbols-outlined transition-transform ${isImportListOpen ? 'rotate-180' : ''}`}>expand_more</span>
+            </button>
+            
+            {isImportListOpen && (
+              <div className="px-md pb-md flex flex-col gap-sm">
+                <div className="h-px bg-surface-variant mb-xs"></div>
+                <div className="flex flex-wrap gap-sm">
+                  {list.importHistory.map((h) => (
+                    <div key={h.id} className="flex items-center gap-2 bg-surface-container px-sm py-xs rounded-lg border border-surface-variant/30 group hover:border-primary/30 transition-colors">
+                      <div className="flex flex-col">
+                        <span className="font-label-md text-on-surface flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[16px] text-primary">description</span>
+                          {h.filename}
+                        </span>
+                        <span className="text-[10px] text-on-surface-variant opacity-60">
+                          {new Date(h.importedAt).toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      {isEditing && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteModal({
+                              isOpen: true,
+                              idToClear: 'import',
+                              importId: h.id,
+                              filename: h.filename
+                            });
+                          }}
+                          className="w-7 h-7 flex items-center justify-center rounded-full text-error opacity-0 group-hover:opacity-100 hover:bg-error/10 transition-all cursor-pointer"
+                          title="Hapus Import & Batalkan Perubahan"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">close</span>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Checklist Canvas */}
         <div className="flex flex-col gap-0 bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden">
           {isLoading ? (
@@ -473,7 +608,7 @@ const RestockDetailPage: React.FC = () => {
               <p className="text-on-surface-variant/70 font-body-md mt-xs">Data tidak ditemukan atau list kosong.</p>
             </div>
           ) : (
-            checklist.map(category => (
+            sortedChecklist.map(category => (
               <RestockListCard 
                 key={category.id}
                 category={category}
@@ -483,7 +618,6 @@ const RestockDetailPage: React.FC = () => {
                 onToggleVariant={toggleVariant}
                 onImageClick={setSelectedImage}
                 readOnly={!isEditing}
-                checkedVariants={checkedVariants}
                 onToggleVariantCheck={toggleVariantCheck}
                 onToggleCategoryCheck={() => toggleCategoryCheck(category)}
                 onChangeVariantTargetQuantity={(varId, qty) => handleTargetQuantityChange(category.id, varId, qty)}
@@ -526,7 +660,9 @@ const RestockDetailPage: React.FC = () => {
             <p className="text-body-md text-on-surface-variant font-body-md">
               {deleteModal.idToClear === 'bulk'
                 ? `Apakah Anda yakin ingin menghapus ${checkedVariants.size} varian yang dipilih?`
-                : "Apakah Anda yakin ingin menghapus kategori beserta semua isinya?"}
+                : deleteModal.idToClear === 'import'
+                  ? `Apakah Anda yakin ingin menghapus import file "${deleteModal.filename}"? Ini akan mengurangi jumlah barang yang diimpor dari file ini.`
+                  : "Apakah Anda yakin ingin menghapus kategori beserta semua isinya?"}
             </p>
             <div className="flex gap-sm justify-end mt-sm">
               <button 
@@ -645,8 +781,21 @@ const RestockDetailPage: React.FC = () => {
               </button>
               <button 
                 onClick={() => {
+                  const newFiles = list?.importedFiles ? [...list.importedFiles] : [];
+                  if (importSummary.filename) newFiles.push(importSummary.filename);
+                  
+                  const newHistory = list?.importHistory ? [...list.importHistory] : [];
+                  if (importSummary.filename) {
+                    newHistory.push({
+                      id: Date.now().toString(),
+                      filename: importSummary.filename,
+                      categories: importSummary.matched,
+                      importedAt: new Date()
+                    });
+                  }
+                  
                   setChecklist(importSummary.matched);
-                  updateListInDb(importSummary.matched);
+                  updateListInDb(importSummary.matched, newFiles, newHistory);
                   setImportSummary({ ...importSummary, isOpen: false });
                 }}
                 disabled={importSummary.matched.length === 0}
@@ -656,7 +805,20 @@ const RestockDetailPage: React.FC = () => {
               </button>
               <button 
                 onClick={() => {
-                  handleAddItems(importSummary.matched);
+                  const newFiles = list?.importedFiles ? [...list.importedFiles] : [];
+                  if (importSummary.filename) newFiles.push(importSummary.filename);
+
+                  const newHistory = list?.importHistory ? [...list.importHistory] : [];
+                  if (importSummary.filename) {
+                    newHistory.push({
+                      id: Date.now().toString(),
+                      filename: importSummary.filename,
+                      categories: importSummary.matched,
+                      importedAt: new Date()
+                    });
+                  }
+
+                  handleAddItems(importSummary.matched, newFiles, newHistory);
                   setImportSummary({ ...importSummary, isOpen: false });
                 }}
                 disabled={importSummary.matched.length === 0}

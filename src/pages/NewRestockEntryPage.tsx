@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { fetchCatalogAsCategories } from '../utils/dbHelpers';
-import type { Category } from '../types';
+import type { Category, ImportRecord, Variant } from '../types';
 import RestockListCard from '../components/restock/RestockListCard';
 import AddItemsForm from '../components/restock/AddItemsForm';
 import { db } from '../db/database';
@@ -18,17 +18,60 @@ interface ImportSummary {
   isOpen: boolean;
   matched: Category[];
   unmatched: UnmatchedRow[];
+  filename?: string;
 }
 
 const AUTOSAVE_DEBOUNCE_MS = 1500;
+ 
+interface RestockState {
+  categories: Category[];
+  importedFiles: string[];
+  importHistory: ImportRecord[];
+}
 
 const NewRestockEntryPage: React.FC = () => {
-  const { state: checklist, setState: setChecklist, undo, redo, canUndo, canRedo } = useUndoableState<Category[]>([]);
+  const { 
+    state: { categories: checklist, importedFiles, importHistory }, 
+    setState, 
+    undo, 
+    redo, 
+    canUndo, 
+    canRedo 
+  } = useUndoableState<RestockState>({ categories: [], importedFiles: [], importHistory: [] });
+
+  const setChecklist = useCallback((updater: Category[] | ((prev: Category[]) => Category[])) => {
+    setState(prev => ({
+      ...prev,
+      categories: typeof updater === 'function' ? updater(prev.categories) : updater
+    }));
+  }, [setState]);
+
+
+  const [isImportListOpen, setIsImportListOpen] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedVariants, setExpandedVariants] = useState<Set<string>>(new Set());
-  const [checkedVariants, setCheckedVariants] = useState<Set<string>>(new Set());
+  const checkedVariants = React.useMemo(() => {
+    const set = new Set<string>();
+    checklist.forEach(cat => {
+      cat.variants.forEach(v => {
+        if (v.checked) set.add(v.id);
+      });
+    });
+    return set;
+  }, [checklist]);
+
+  const sortedChecklist = React.useMemo(() => {
+    return [...checklist].sort((a, b) => {
+      const aDone = a.variants.length > 0 && a.variants.every(v => v.checked);
+      const bDone = b.variants.length > 0 && b.variants.every(v => v.checked);
+      if (aDone && !bDone) return 1;
+      if (!aDone && bDone) return -1;
+      return 0;
+    });
+  }, [checklist]);
+
 
   const [isPasting, setIsPasting] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
@@ -36,7 +79,12 @@ const NewRestockEntryPage: React.FC = () => {
   const [copySuccess, setCopySuccess] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveConflictModal, setSaveConflictModal] = useState(false);
-  const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, idToClear: string | 'all' | 'bulk' | null}>({isOpen: false, idToClear: null});
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean, 
+    idToClear: string | 'all' | 'bulk' | 'import' | null,
+    importId?: string,
+    filename?: string
+  }>({isOpen: false, idToClear: null});
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   const [importSummary, setImportSummary] = useState<ImportSummary>({ isOpen: false, matched: [], unmatched: [] });
@@ -65,6 +113,8 @@ const NewRestockEntryPage: React.FC = () => {
         id,
         title: `Restock ${id.replace('restock-', '')}`,
         categories: data,
+        importedFiles,
+        importHistory,
         status: 'draft',
         createdAt: new Date(),
         updatedAt: new Date()
@@ -76,7 +126,7 @@ const NewRestockEntryPage: React.FC = () => {
       console.error('Autosave failed:', err);
       setAutoSaveStatus('idle');
     }
-  }, []);
+  }, [importedFiles, importHistory]);
 
   useEffect(() => {
     // Skip autosave on initial mount (empty list)
@@ -126,9 +176,10 @@ const NewRestockEntryPage: React.FC = () => {
     } else if (deleteModal.idToClear === 'bulk') {
       setChecklist(prev => prev.map(cat => ({
         ...cat,
-        variants: cat.variants.filter(v => !checkedVariants.has(v.id))
+        variants: cat.variants.filter(v => !v.checked)
       })).filter(cat => cat.variants.length > 0));
-      setCheckedVariants(new Set());
+    } else if (deleteModal.idToClear === 'import' && deleteModal.importId) {
+      handleDeleteImport(deleteModal.importId);
     } else if (deleteModal.idToClear) {
       setChecklist(prev => prev.filter(c => c.id !== deleteModal.idToClear));
     }
@@ -155,7 +206,7 @@ const NewRestockEntryPage: React.FC = () => {
         return { ...c, variants: c.variants.filter(v => v.id !== variantId) };
       }
       return c;
-    }));
+    }).filter(cat => cat.variants.length > 0));
   };
 
   const toggleCategory = (id: string) => {
@@ -177,28 +228,30 @@ const NewRestockEntryPage: React.FC = () => {
   };
 
   const toggleVariantCheck = (varId: string) => {
-    setCheckedVariants(prev => {
-      const next = new Set(prev);
-      if (next.has(varId)) next.delete(varId);
-      else next.add(varId);
-      return next;
-    });
+    setChecklist(prev => prev.map(cat => ({
+      ...cat,
+      variants: cat.variants.map(v => v.id === varId ? { ...v, checked: !v.checked } : v)
+    })));
   };
 
   const toggleCategoryCheck = (category: Category) => {
     const availableVariants = category.variants;
     if (availableVariants.length === 0) return;
 
-    setCheckedVariants(prev => {
-      const next = new Set(prev);
-      const isAllChecked = availableVariants.every(variant => prev.has(variant.id));
-      
-      if (isAllChecked) {
-        availableVariants.forEach(variant => next.delete(variant.id));
-      } else {
-        availableVariants.forEach(variant => next.add(variant.id));
-      }
-      return next;
+    setChecklist(prev => {
+      const isAllChecked = availableVariants.every(variant => 
+        prev.find(c => c.id === category.id)?.variants.find(v => v.id === variant.id)?.checked
+      );
+
+      return prev.map(cat => {
+        if (cat.id === category.id) {
+          return {
+            ...cat,
+            variants: cat.variants.map(v => ({ ...v, checked: !isAllChecked }))
+          };
+        }
+        return cat;
+      });
     });
   };
 
@@ -369,7 +422,8 @@ const NewRestockEntryPage: React.FC = () => {
         setImportSummary({
           isOpen: true,
           matched: matchedItems,
-          unmatched: unmatchedRows
+          unmatched: unmatchedRows,
+          filename: file.name
         });
         
         if (fileInputRef.current) {
@@ -401,6 +455,8 @@ const NewRestockEntryPage: React.FC = () => {
         id,
         title: `Restock ${id.replace('restock-', '')}`,
         categories: checklist,
+        importedFiles,
+        importHistory,
         status: 'draft',
         createdAt: new Date(),
         updatedAt: new Date()
@@ -415,6 +471,8 @@ const NewRestockEntryPage: React.FC = () => {
     const existing = await db.restockLists.get(id);
     if (existing) {
       existing.categories = checklist;
+      existing.importedFiles = importedFiles;
+      existing.importHistory = importHistory;
       existing.updatedAt = new Date();
       await db.restockLists.put(existing);
     }
@@ -452,6 +510,8 @@ const NewRestockEntryPage: React.FC = () => {
         }
       });
       existing.categories = updated;
+      existing.importedFiles = Array.from(new Set([...(existing.importedFiles || []), ...importedFiles]));
+      existing.importHistory = [...(existing.importHistory || []), ...importHistory];
       existing.updatedAt = new Date();
       await db.restockLists.put(existing);
     }
@@ -459,13 +519,60 @@ const NewRestockEntryPage: React.FC = () => {
     triggerSaveSuccess();
   };
 
+  const handleDeleteImport = (importId: string) => {
+    setState(prev => {
+      const recordToDelete = prev.importHistory.find(r => r.id === importId);
+      if (!recordToDelete) return prev;
+
+      const newHistory = prev.importHistory.filter(r => r.id !== importId);
+      
+      let newCategories = [...prev.categories];
+      
+      recordToDelete.categories.forEach((importCat: Category) => {
+        const catIndex = newCategories.findIndex(c => c.id === importCat.id);
+        if (catIndex >= 0) {
+          const category = { ...newCategories[catIndex] };
+          const variants = [...category.variants];
+          
+          importCat.variants.forEach((importVar: Variant) => {
+            const varIndex = variants.findIndex(v => v.id === importVar.id);
+            if (varIndex >= 0) {
+              const variant = { ...variants[varIndex] };
+              variant.targetQuantity = (variant.targetQuantity || 0) - (importVar.targetQuantity || 0);
+              if (variant.targetQuantity <= 0) {
+                variants.splice(varIndex, 1);
+              } else {
+                variants[varIndex] = variant;
+              }
+            }
+          });
+          
+          if (variants.length === 0) {
+            newCategories.splice(catIndex, 1);
+          } else {
+            category.variants = variants;
+            newCategories[catIndex] = category;
+          }
+        }
+      });
+
+      return {
+        ...prev,
+        categories: newCategories,
+        importHistory: newHistory,
+        importedFiles: newHistory.map(h => h.filename)
+      };
+    });
+  };
+
   return (
     <>
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl overflow-x-hidden">
         {/* Action Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border-y border-surface-variant p-md rounded-lg shadow-sm gap-sm">
-          <div className="flex items-center gap-sm flex-1">
+          <div className="flex flex-col gap-1 flex-1">
             <p className="font-body-md text-body-md text-on-surface-variant">List entry baru untuk restock barang.</p>
+          </div>
             {/* Autosave status indicator */}
             {autoSaveStatus !== 'idle' && (
               <span className={`flex items-center gap-[3px] text-[11px] font-medium px-sm py-[2px] rounded-full transition-all ${
@@ -479,7 +586,6 @@ const NewRestockEntryPage: React.FC = () => {
                 {autoSaveStatus === 'saving' ? 'Menyimpan...' : 'Tersimpan'}
               </span>
             )}
-          </div>
           <div className="flex gap-sm self-end sm:self-auto flex-wrap">
             {/* Undo / Redo */}
             <div className="flex items-center border border-surface-variant rounded-md overflow-hidden">
@@ -625,6 +731,58 @@ const NewRestockEntryPage: React.FC = () => {
           </div>
         )}
 
+        {/* Imported Files Section */}
+        {importHistory.length > 0 && (
+          <div className="bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden shadow-sm">
+            <button 
+              onClick={() => setIsImportListOpen(!isImportListOpen)}
+              className="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors"
+            >
+              <div className="flex items-center gap-sm">
+                <span className="material-symbols-outlined text-primary">history</span>
+                <h3 className="font-label-lg text-on-surface">File yang Diimpor ({importHistory.length})</h3>
+              </div>
+              <span className={`material-symbols-outlined transition-transform ${isImportListOpen ? 'rotate-180' : ''}`}>expand_more</span>
+            </button>
+            
+            {isImportListOpen && (
+              <div className="px-md pb-md flex flex-col gap-sm">
+                <div className="h-px bg-surface-variant mb-xs"></div>
+                <div className="flex flex-wrap gap-sm">
+                  {importHistory.map((h) => (
+                    <div key={h.id} className="flex items-center gap-2 bg-surface-container px-sm py-xs rounded-lg border border-surface-variant/30 group hover:border-primary/30 transition-colors">
+                      <div className="flex flex-col">
+                        <span className="font-label-md text-on-surface flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[16px] text-primary">description</span>
+                          {h.filename}
+                        </span>
+                        <span className="text-[10px] text-on-surface-variant opacity-60">
+                          {new Date(h.importedAt).toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteModal({
+                            isOpen: true,
+                            idToClear: 'import',
+                            importId: h.id,
+                            filename: h.filename
+                          });
+                        }}
+                        className="w-7 h-7 flex items-center justify-center rounded-full text-error opacity-0 group-hover:opacity-100 hover:bg-error/10 transition-all cursor-pointer"
+                        title="Hapus Import & Batalkan Perubahan"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">close</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Checklist Canvas */}
         <div className="flex flex-col gap-0 bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden">
           {checklist.length === 0 ? (
@@ -634,7 +792,7 @@ const NewRestockEntryPage: React.FC = () => {
               <p className="text-on-surface-variant/70 font-body-md mt-xs">Gunakan tombol tambah atau paste data JSON.</p>
             </div>
           ) : (
-            checklist.map(category => (
+            sortedChecklist.map(category => (
               <RestockListCard 
                 key={category.id}
                 category={category}
@@ -646,7 +804,6 @@ const NewRestockEntryPage: React.FC = () => {
                 onDelete={(id) => setDeleteModal({ isOpen: true, idToClear: id })}
                 onDeleteVariant={(vId) => handleDeleteVariant(category.id, vId)}
                 onChangeVariantTargetQuantity={(vId, q) => handleChangeTargetQuantity(category.id, vId, q)}
-                checkedVariants={checkedVariants}
                 onToggleVariantCheck={toggleVariantCheck}
                 onToggleCategoryCheck={() => toggleCategoryCheck(category)}
               />
@@ -684,7 +841,9 @@ const NewRestockEntryPage: React.FC = () => {
                 ? "Apakah Anda yakin ingin menghapus semua list restock ini?" 
                 : deleteModal.idToClear === 'bulk'
                   ? `Apakah Anda yakin ingin menghapus ${checkedVariants.size} varian yang dipilih?`
-                  : "Apakah Anda yakin ingin menghapus kategori beserta semua isinya?"}
+                  : deleteModal.idToClear === 'import'
+                    ? `Apakah Anda yakin ingin menghapus import file "${deleteModal.filename}"? Ini akan mengurangi jumlah barang yang diimpor dari file ini.`
+                    : "Apakah Anda yakin ingin menghapus kategori beserta semua isinya?"}
             </p>
             <div className="flex gap-sm justify-end mt-sm">
               <button 
@@ -843,7 +1002,27 @@ const NewRestockEntryPage: React.FC = () => {
               </button>
               <button 
                 onClick={() => {
-                  setChecklist(importSummary.matched);
+                  setState(prev => {
+                    const newFiles = importSummary.filename 
+                      ? Array.from(new Set([...prev.importedFiles, importSummary.filename]))
+                      : prev.importedFiles;
+                    
+                    const newHistory = importSummary.filename ? [
+                      ...prev.importHistory,
+                      {
+                        id: Date.now().toString(),
+                        filename: importSummary.filename,
+                        categories: importSummary.matched,
+                        importedAt: new Date()
+                      }
+                    ] : prev.importHistory;
+
+                    return {
+                      categories: importSummary.matched,
+                      importedFiles: newFiles,
+                      importHistory: newHistory
+                    };
+                  });
                   setImportSummary({ ...importSummary, isOpen: false });
                 }}
                 disabled={importSummary.matched.length === 0}
@@ -853,8 +1032,58 @@ const NewRestockEntryPage: React.FC = () => {
               </button>
               <button 
                 onClick={() => {
-                  handleAddItems(importSummary.matched);
+                  const newFilename = importSummary.filename;
+                  
                   setImportSummary({ ...importSummary, isOpen: false });
+                  
+                  // We need to update both categories and importedFiles atomically to history
+                  setState(prev => {
+                    let updated = [...prev.categories];
+                    importSummary.matched.forEach(newCat => {
+                      const existingCatIndex = updated.findIndex(c => c.id === newCat.id);
+                      if (existingCatIndex >= 0) {
+                        const existingCat = { ...updated[existingCatIndex] };
+                        const existingVariants = [...existingCat.variants];
+                        
+                        newCat.variants.forEach(newVar => {
+                          const existingVarIndex = existingVariants.findIndex(v => v.id === newVar.id);
+                          if (existingVarIndex >= 0) {
+                            const existingVar = existingVariants[existingVarIndex];
+                            existingVariants[existingVarIndex] = {
+                              ...existingVar,
+                              targetQuantity: (existingVar.targetQuantity || 1) + (newVar.targetQuantity || 1)
+                            };
+                          } else {
+                            existingVariants.push(newVar);
+                          }
+                        });
+                        existingCat.variants = existingVariants;
+                        updated[existingCatIndex] = existingCat;
+                      } else {
+                        updated.push(newCat);
+                      }
+                    });
+
+                    const nextFiles = newFilename 
+                      ? Array.from(new Set([...prev.importedFiles, newFilename]))
+                      : prev.importedFiles;
+
+                    const nextHistory = newFilename ? [
+                      ...prev.importHistory,
+                      {
+                        id: Date.now().toString(),
+                        filename: newFilename,
+                        categories: importSummary.matched,
+                        importedAt: new Date()
+                      }
+                    ] : prev.importHistory;
+
+                    return {
+                      categories: updated,
+                      importedFiles: nextFiles,
+                      importHistory: nextHistory
+                    };
+                  });
                 }}
                 disabled={importSummary.matched.length === 0}
                 className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"

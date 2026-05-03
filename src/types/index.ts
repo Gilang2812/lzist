@@ -8,6 +8,7 @@ export interface Variant {
   outOfStock?: boolean;
   stores?: string[];
   images?: string[];
+  checked?: boolean;
 }
 
 export interface Category {
@@ -17,12 +18,21 @@ export interface Category {
   supplierNames?: string[];
 }
 
+export interface ImportRecord {
+  id: string;
+  filename: string;
+  categories: Category[];
+  importedAt: Date;
+}
+
 export interface RestockList {
   id: string;
   title: string;
   description?: string;
   categories: Category[];
   status: 'draft' | 'finalized' | 'completed';
+  importedFiles?: string[];
+  importHistory?: ImportRecord[];
   createdAt: Date;
   updatedAt: Date;
 }
