@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import SideNav from './SideNav';
 import Header from './Header';
 import BottomNav from './BottomNav';
+import ReloadPrompt from './ReloadPrompt';
 
 const AppLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -19,6 +20,7 @@ const AppLayout: React.FC = () => {
         </div>
       </div>
       <BottomNav />
+      <ReloadPrompt />
     </div>
   );
 };
