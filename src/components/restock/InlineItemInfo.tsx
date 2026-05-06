@@ -37,7 +37,7 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
             onClick={e => e.stopPropagation()} 
           />
         )}
-        <h3 className={`font-body-lg text-body-lg text-on-surface ${isExpanded ? 'font-medium' : ''}`}>{variant.name}</h3>
+        <h3 className={`font-label-sm sm:font-body-lg text-label-sm sm:text-body-lg text-on-surface ${isExpanded ? 'font-medium' : ''}`}>{variant.name}</h3>
         
         <div className={`flex items-center gap-xs px-sm py-xs rounded-full sm:ml-md w-fit ${variant.outOfStock ? 'bg-error-container border border-error/20' : 'bg-surface-container'}`}>
           <span className={`w-2 h-2 rounded-full ${variant.color || 'bg-primary-fixed-dim'}`}></span>

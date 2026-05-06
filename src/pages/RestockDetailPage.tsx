@@ -140,7 +140,11 @@ const RestockDetailPage: React.FC = () => {
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(JSON.stringify(checklist, null, 2))
+    const dataToCopy = {
+      categories: checklist,
+      importedFiles: list?.importedFiles || []
+    };
+    navigator.clipboard.writeText(JSON.stringify(dataToCopy, null, 2))
       .then(() => {
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
@@ -232,8 +236,13 @@ const RestockDetailPage: React.FC = () => {
         updateListInDb(parsed);
         setIsPasting(false);
         setPasteContent('');
+      } else if (parsed && Array.isArray(parsed.categories)) {
+        setChecklist(parsed.categories);
+        updateListInDb(parsed.categories, parsed.importedFiles);
+        setIsPasting(false);
+        setPasteContent('');
       } else {
-        setPasteError("Data JSON harus berupa array of category.");
+        setPasteError("Data JSON harus berupa array of category atau object dengan properties categories.");
       }
     } catch {
       setPasteError("Format JSON tidak valid.");
@@ -291,8 +300,17 @@ const RestockDetailPage: React.FC = () => {
         updateListInDb(next);
         setIsPasting(false);
         setPasteContent('');
+      } else if (parsed && Array.isArray(parsed.categories)) {
+        const next = [...checklist, ...parsed.categories];
+        setChecklist(next);
+        const nextImportedFiles = parsed.importedFiles && list?.importedFiles 
+          ? [...new Set([...list.importedFiles, ...parsed.importedFiles])] 
+          : parsed.importedFiles || list?.importedFiles;
+        updateListInDb(next, nextImportedFiles);
+        setIsPasting(false);
+        setPasteContent('');
       } else {
-        setPasteError("Data JSON harus berupa array of category.");
+        setPasteError("Data JSON harus berupa array of category atau object dengan properties categories.");
       }
     } catch {
       setPasteError("Format JSON tidak valid.");
