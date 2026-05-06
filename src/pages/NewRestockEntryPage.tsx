@@ -78,7 +78,7 @@ const NewRestockEntryPage: React.FC = () => {
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveConflictModal, setSaveConflictModal] = useState(false);
+  // remove saveConflictModal state
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean, 
     idToClear: string | 'all' | 'bulk' | 'import' | null,
@@ -88,45 +88,41 @@ const NewRestockEntryPage: React.FC = () => {
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   const [importSummary, setImportSummary] = useState<ImportSummary>({ isOpen: false, matched: [], unmatched: [] });
+  const [importDetailsModal, setImportDetailsModal] = useState<{ isOpen: boolean, record: ImportRecord | null }>({ isOpen: false, record: null });
+  const [currentListId, setCurrentListId] = useState<string | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstRender = useRef(true);
 
-  const getTodayId = () => {
-    const today = new Date();
-    const offset = today.getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(today.getTime() - offset)).toISOString().slice(0, 10);
-    return `restock-${localISOTime}`;
-  };
-
-  // ─── Autosave: only when today's list doesn't exist yet ──────
+  // ─── Autosave: session based ──────
   const performAutoSave = useCallback(async (data: Category[]) => {
     if (data.length === 0) return;
     try {
-      const id = getTodayId();
+      const id = currentListId || `restock-${Date.now()}`;
+      if (!currentListId) setCurrentListId(id);
+
       const existing = await db.restockLists.get(id);
-      // If today's list already exists, skip autosave
-      if (existing) return;
 
       setAutoSaveStatus('saving');
       const newList: RestockList = {
         id,
-        title: `Restock ${id.replace('restock-', '')}`,
+        title: existing?.title || `Restock List`,
         categories: data,
         importedFiles,
         importHistory,
-        status: 'draft',
-        createdAt: new Date(),
+        status: existing?.status || 'draft',
+        createdAt: existing?.createdAt || new Date(),
         updatedAt: new Date()
       };
-      await db.restockLists.add(newList);
+      await db.restockLists.put(newList);
       setAutoSaveStatus('saved');
       setTimeout(() => setAutoSaveStatus('idle'), 2000);
     } catch (err) {
       console.error('Autosave failed:', err);
       setAutoSaveStatus('idle');
     }
-  }, [importedFiles, importHistory]);
+  }, [importedFiles, importHistory, currentListId]);
 
   useEffect(() => {
     // Skip autosave on initial mount (empty list)
@@ -280,7 +276,7 @@ const NewRestockEntryPage: React.FC = () => {
       } else {
         setPasteError("Data JSON harus berupa array of category.");
       }
-    } catch (e) {
+    } catch {
       setPasteError("Format JSON tidak valid.");
     }
   };
@@ -296,14 +292,14 @@ const NewRestockEntryPage: React.FC = () => {
       } else {
         setPasteError("Data JSON harus berupa array of category.");
       }
-    } catch (e) {
+    } catch {
       setPasteError("Format JSON tidak valid.");
     }
   };
 
   const handleAddItems = (newItems: Category[]) => {
     setChecklist(prev => {
-      let updated = [...prev];
+      const updated = [...prev];
       newItems.forEach(newCat => {
         const existingCatIndex = updated.findIndex(c => c.id === newCat.id);
         if (existingCatIndex >= 0) {
@@ -344,6 +340,7 @@ const NewRestockEntryPage: React.FC = () => {
         const wb = XLSX.read(bstr, { type: 'binary' });
         const wsname = wb.SheetNames[0];
         const ws = wb.Sheets[wsname];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data = XLSX.utils.sheet_to_json<any>(ws);
         
         const categoriesMap = new Map<string, Category>();
@@ -445,77 +442,22 @@ const NewRestockEntryPage: React.FC = () => {
   const handleSave = async () => {
     if (checklist.length === 0) return;
     
-    const id = getTodayId();
+    const id = currentListId || `restock-${Date.now()}`;
+    if (!currentListId) setCurrentListId(id);
+    
     const existing = await db.restockLists.get(id);
     
-    if (existing) {
-      setSaveConflictModal(true);
-    } else {
-      const newList: RestockList = {
-        id,
-        title: `Restock ${id.replace('restock-', '')}`,
-        categories: checklist,
-        importedFiles,
-        importHistory,
-        status: 'draft',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      await db.restockLists.add(newList);
-      triggerSaveSuccess();
-    }
-  };
-
-  const handleSaveReplace = async () => {
-    const id = getTodayId();
-    const existing = await db.restockLists.get(id);
-    if (existing) {
-      existing.categories = checklist;
-      existing.importedFiles = importedFiles;
-      existing.importHistory = importHistory;
-      existing.updatedAt = new Date();
-      await db.restockLists.put(existing);
-    }
-    setSaveConflictModal(false);
-    triggerSaveSuccess();
-  };
-
-  const handleSaveCombine = async () => {
-    const id = getTodayId();
-    const existing = await db.restockLists.get(id);
-    if (existing) {
-      let updated = [...existing.categories];
-      checklist.forEach(newCat => {
-        const existingCatIndex = updated.findIndex(c => c.id === newCat.id);
-        if (existingCatIndex >= 0) {
-          const existingCat = { ...updated[existingCatIndex] };
-          const existingVariants = [...existingCat.variants];
-          
-          newCat.variants.forEach(newVar => {
-            const existingVarIndex = existingVariants.findIndex(v => v.id === newVar.id);
-            if (existingVarIndex >= 0) {
-              const existingVar = existingVariants[existingVarIndex];
-              existingVariants[existingVarIndex] = {
-                ...existingVar,
-                targetQuantity: (existingVar.targetQuantity || 1) + (newVar.targetQuantity || 1)
-              };
-            } else {
-              existingVariants.push(newVar);
-            }
-          });
-          existingCat.variants = existingVariants;
-          updated[existingCatIndex] = existingCat;
-        } else {
-          updated.push(newCat);
-        }
-      });
-      existing.categories = updated;
-      existing.importedFiles = Array.from(new Set([...(existing.importedFiles || []), ...importedFiles]));
-      existing.importHistory = [...(existing.importHistory || []), ...importHistory];
-      existing.updatedAt = new Date();
-      await db.restockLists.put(existing);
-    }
-    setSaveConflictModal(false);
+    const newList: RestockList = {
+      id,
+      title: existing ? existing.title : `Restock List`,
+      categories: checklist,
+      importedFiles,
+      importHistory,
+      status: existing?.status || 'draft',
+      createdAt: existing?.createdAt || new Date(),
+      updatedAt: new Date()
+    };
+    await db.restockLists.put(newList);
     triggerSaveSuccess();
   };
 
@@ -526,7 +468,7 @@ const NewRestockEntryPage: React.FC = () => {
 
       const newHistory = prev.importHistory.filter(r => r.id !== importId);
       
-      let newCategories = [...prev.categories];
+      const newCategories = [...prev.categories];
       
       recordToDelete.categories.forEach((importCat: Category) => {
         const catIndex = newCategories.findIndex(c => c.id === importCat.id);
@@ -567,7 +509,7 @@ const NewRestockEntryPage: React.FC = () => {
 
   return (
     <>
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl overflow-x-hidden">
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl overflow-x-hidden">
         {/* Action Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border-y border-surface-variant p-md rounded-lg shadow-sm gap-sm">
           <div className="flex flex-col gap-1 flex-1">
@@ -750,7 +692,11 @@ const NewRestockEntryPage: React.FC = () => {
                 <div className="h-px bg-surface-variant mb-xs"></div>
                 <div className="flex flex-wrap gap-sm">
                   {importHistory.map((h) => (
-                    <div key={h.id} className="flex items-center gap-2 bg-surface-container px-sm py-xs rounded-lg border border-surface-variant/30 group hover:border-primary/30 transition-colors">
+                    <div 
+                      key={h.id} 
+                      className="flex items-center gap-2 bg-surface-container px-sm py-xs rounded-lg border border-surface-variant/30 group hover:border-primary/30 transition-colors cursor-pointer"
+                      onClick={() => setImportDetailsModal({ isOpen: true, record: h })}
+                    >
                       <div className="flex flex-col">
                         <span className="font-label-md text-on-surface flex items-center gap-1">
                           <span className="material-symbols-outlined text-[16px] text-primary">description</span>
@@ -836,15 +782,31 @@ const NewRestockEntryPage: React.FC = () => {
               <span className="material-symbols-outlined text-error">warning</span>
               Konfirmasi Hapus
             </h3>
-            <p className="text-body-md text-on-surface-variant font-body-md">
+            <div className="text-body-md text-on-surface-variant font-body-md">
               {deleteModal.idToClear === 'all' 
-                ? "Apakah Anda yakin ingin menghapus semua list restock ini?" 
+                ? <p>Apakah Anda yakin ingin menghapus semua list restock ini?</p> 
                 : deleteModal.idToClear === 'bulk'
-                  ? `Apakah Anda yakin ingin menghapus ${checkedVariants.size} varian yang dipilih?`
+                  ? <p>Apakah Anda yakin ingin menghapus {checkedVariants.size} varian yang dipilih?</p>
                   : deleteModal.idToClear === 'import'
-                    ? `Apakah Anda yakin ingin menghapus import file "${deleteModal.filename}"? Ini akan mengurangi jumlah barang yang diimpor dari file ini.`
-                    : "Apakah Anda yakin ingin menghapus kategori beserta semua isinya?"}
-            </p>
+                    ? (
+                      <>
+                        <p className="mb-2">Apakah Anda yakin ingin menghapus import file "{deleteModal.filename}"? Ini akan mengurangi jumlah barang yang diimpor dari file ini.</p>
+                        <div className="bg-surface-container-low text-sm p-3 rounded-md max-h-40 overflow-y-auto border border-surface-variant">
+                          {importHistory.find(r => r.id === deleteModal.importId)?.categories?.map(cat => (
+                            <div key={cat.id} className="mb-2 last:mb-0">
+                              <strong className="text-on-surface block mb-1">{cat.name}</strong>
+                              <ul className="list-disc pl-5 text-xs text-on-surface-variant flex flex-col gap-0.5">
+                                {cat.variants.map(v => (
+                                  <li key={v.id}>{v.name} ({v.targetQuantity} qty)</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )
+                    : <p>Apakah Anda yakin ingin menghapus kategori beserta semua isinya?</p>}
+            </div>
             <div className="flex gap-sm justify-end mt-sm">
               <button 
                 onClick={() => setDeleteModal({ isOpen: false, idToClear: null })}
@@ -863,46 +825,7 @@ const NewRestockEntryPage: React.FC = () => {
         </div>
       )}
 
-      {/* Save Conflict Modal */}
-      {saveConflictModal && (
-        <div 
-          className="fixed inset-0 bg-on-surface/50 z-50 flex items-center justify-center p-md backdrop-blur-sm"
-          onClick={() => setSaveConflictModal(false)}
-        >
-          <div 
-            className="bg-surface p-xl rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200 max-w-ms"
-            onClick={e => e.stopPropagation()}
-          >
-            <h3 className="font-h3 text-h3 text-on-surface flex items-center gap-2">
-              <span className="material-symbols-outlined text-secondary">info</span>
-              List Hari Ini Sudah Ada
-            </h3>
-            <p className="text-body-md text-on-surface-variant font-body-md">
-              Restock list untuk hari ini sudah pernah disimpan. Apakah Anda ingin menimpanya dengan list saat ini, atau menggabungkan datanya?
-            </p>
-            <div className="flex gap-sm justify-end mt-sm flex-wrap">
-              <button 
-                onClick={() => setSaveConflictModal(false)}
-                className="px-md py-xs rounded-full border border-outline text-on-surface hover:bg-surface-variant transition-colors font-label-md cursor-pointer"
-              >
-                Batal
-              </button>
-              <button 
-                onClick={handleSaveReplace}
-                className="px-md py-xs rounded-full bg-error text-on-error hover:bg-error/90 transition-colors font-label-md cursor-pointer shadow-sm"
-              >
-                Timpa
-              </button>
-              <button 
-                onClick={handleSaveCombine}
-                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm"
-              >
-                Gabung
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Image Lightbox Modal */}
       {selectedImage && (
@@ -910,7 +833,7 @@ const NewRestockEntryPage: React.FC = () => {
           className="fixed inset-0 bg-on-surface/80 z-50 flex items-center justify-center p-md backdrop-blur-sm" 
           onClick={() => setSelectedImage(null)}
         >
-          <div className="relative max-w-4xl w-full h-full max-h-[80vh] flex flex-col items-center justify-center pointer-events-none">
+          <div className="relative max-w-lx4 w-full h-full max-h-[80vh] flex flex-col items-center justify-center pointer-events-none">
             <div className="relative bg-surface p-sm rounded-xl shadow-lg pointer-events-auto max-h-full flex flex-col" onClick={e => e.stopPropagation()}>
               <button 
                 className="absolute -top-3 -right-3 w-8 h-8 bg-error text-on-error rounded-full flex items-center justify-center shadow-md hover:bg-error/90 transition-colors z-10"
@@ -934,7 +857,7 @@ const NewRestockEntryPage: React.FC = () => {
           onClick={() => setImportSummary({ ...importSummary, isOpen: false })}
         >
           <div 
-            className="bg-surface p-lg rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200 max-w-2xl w-full max-h-[80vh] overflow-hidden"
+            className="bg-surface p-lg rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200 max-w-lx2 w-full max-h-[80vh] overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             <h3 className="font-h3 text-h3 text-on-surface flex items-center gap-2">
@@ -1038,7 +961,7 @@ const NewRestockEntryPage: React.FC = () => {
                   
                   // We need to update both categories and importedFiles atomically to history
                   setState(prev => {
-                    let updated = [...prev.categories];
+                    const updated = [...prev.categories];
                     importSummary.matched.forEach(newCat => {
                       const existingCatIndex = updated.findIndex(c => c.id === newCat.id);
                       if (existingCatIndex >= 0) {
@@ -1089,6 +1012,44 @@ const NewRestockEntryPage: React.FC = () => {
                 className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Append
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Import Details Modal */}
+      {importDetailsModal.isOpen && importDetailsModal.record && (
+        <div 
+          className="fixed inset-0 bg-on-surface/50 z-50 flex items-center justify-center p-md backdrop-blur-sm"
+          onClick={() => setImportDetailsModal({ isOpen: false, record: null })}
+        >
+          <div 
+            className="bg-surface p-lg rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200 max-w-gl w-full max-h-[80vh] overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="font-h3 text-h3 text-on-surface flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">list_alt</span>
+              Barang Diimpor: {importDetailsModal.record.filename}
+            </h3>
+            <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-sm">
+              <p className="text-sm text-on-surface-variant mb-2">Daftar barang yang ditambahkan dari file ini:</p>
+              {importDetailsModal.record.categories.map(cat => (
+                <div key={cat.id} className="bg-surface-container-lowest border border-surface-variant rounded-lg p-3">
+                  <strong className="text-on-surface block mb-1 text-sm">{cat.name}</strong>
+                  <ul className="list-disc pl-5 text-xs text-on-surface-variant flex flex-col gap-1">
+                    {cat.variants.map(v => (
+                      <li key={v.id}>{v.name} <span className="font-medium text-primary">({v.targetQuantity} qty)</span></li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end mt-2 pt-4 border-t border-surface-variant">
+              <button 
+                onClick={() => setImportDetailsModal({ isOpen: false, record: null })}
+                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm"
+              >
+                Tutup
               </button>
             </div>
           </div>

@@ -62,6 +62,7 @@ const RestockDetailPage: React.FC = () => {
     filename?: string
   }>({isOpen: false, idToClear: null});
   const [importSummary, setImportSummary] = useState<ImportSummaryData>({ isOpen: false, matched: [], unmatched: [] });
+  const [importDetailsModal, setImportDetailsModal] = useState<{ isOpen: boolean, record: ImportRecord | null }>({ isOpen: false, record: null });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -234,7 +235,7 @@ const RestockDetailPage: React.FC = () => {
       } else {
         setPasteError("Data JSON harus berupa array of category.");
       }
-    } catch (e) {
+    } catch {
       setPasteError("Format JSON tidak valid.");
     }
   };
@@ -246,7 +247,7 @@ const RestockDetailPage: React.FC = () => {
 
     const newHistory = list.importHistory?.filter(r => r.id !== importId) || [];
     
-    let newCategories = [...checklist];
+    const newCategories = [...checklist];
     
     recordToDelete.categories.forEach(importCat => {
       const catIndex = newCategories.findIndex(c => c.id === importCat.id);
@@ -293,14 +294,14 @@ const RestockDetailPage: React.FC = () => {
       } else {
         setPasteError("Data JSON harus berupa array of category.");
       }
-    } catch (e) {
+    } catch {
       setPasteError("Format JSON tidak valid.");
     }
   };
 
   const handleAddItems = (newItems: Category[], newImportedFiles?: string[], newImportHistory?: ImportRecord[]) => {
     setChecklist(prev => {
-      let updated = [...prev];
+      const updated = [...prev];
       newItems.forEach(newCat => {
         const existingCatIndex = updated.findIndex(c => c.id === newCat.id);
         if (existingCatIndex >= 0) {
@@ -342,6 +343,7 @@ const RestockDetailPage: React.FC = () => {
         const wb = XLSX.read(bstr, { type: 'binary' });
         const wsname = wb.SheetNames[0];
         const ws = wb.Sheets[wsname];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data = XLSX.utils.sheet_to_json<any>(ws);
         
         const categoriesMap = new Map<string, Category>();
@@ -428,7 +430,7 @@ const RestockDetailPage: React.FC = () => {
 
   return (
     <>
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl overflow-x-hidden">
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl overflow-x-hidden">
         {/* Action Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border-y border-surface-variant p-md rounded-lg shadow-sm gap-sm">
           <p className="font-body-md text-body-md text-on-surface-variant flex-1">
@@ -560,7 +562,11 @@ const RestockDetailPage: React.FC = () => {
                 <div className="h-px bg-surface-variant mb-xs"></div>
                 <div className="flex flex-wrap gap-sm">
                   {list.importHistory.map((h) => (
-                    <div key={h.id} className="flex items-center gap-2 bg-surface-container px-sm py-xs rounded-lg border border-surface-variant/30 group hover:border-primary/30 transition-colors">
+                    <div 
+                      key={h.id} 
+                      className="flex items-center gap-2 bg-surface-container px-sm py-xs rounded-lg border border-surface-variant/30 group hover:border-primary/30 transition-colors cursor-pointer"
+                      onClick={() => setImportDetailsModal({ isOpen: true, record: h })}
+                    >
                       <div className="flex flex-col">
                         <span className="font-label-md text-on-surface flex items-center gap-1">
                           <span className="material-symbols-outlined text-[16px] text-primary">description</span>
@@ -657,13 +663,29 @@ const RestockDetailPage: React.FC = () => {
               <span className="material-symbols-outlined text-error">warning</span>
               Konfirmasi Hapus
             </h3>
-            <p className="text-body-md text-on-surface-variant font-body-md">
+            <div className="text-body-md text-on-surface-variant font-body-md">
               {deleteModal.idToClear === 'bulk'
-                ? `Apakah Anda yakin ingin menghapus ${checkedVariants.size} varian yang dipilih?`
+                ? <p>Apakah Anda yakin ingin menghapus {checkedVariants.size} varian yang dipilih?</p>
                 : deleteModal.idToClear === 'import'
-                  ? `Apakah Anda yakin ingin menghapus import file "${deleteModal.filename}"? Ini akan mengurangi jumlah barang yang diimpor dari file ini.`
-                  : "Apakah Anda yakin ingin menghapus kategori beserta semua isinya?"}
-            </p>
+                  ? (
+                      <>
+                        <p className="mb-2">Apakah Anda yakin ingin menghapus import file "{deleteModal.filename}"? Ini akan mengurangi jumlah barang yang diimpor dari file ini.</p>
+                        <div className="bg-surface-container-low text-sm p-3 rounded-md max-h-40 overflow-y-auto border border-surface-variant">
+                          {list?.importHistory?.find(r => r.id === deleteModal.importId)?.categories?.map(cat => (
+                            <div key={cat.id} className="mb-2 last:mb-0">
+                              <strong className="text-on-surface block mb-1">{cat.name}</strong>
+                              <ul className="list-disc pl-5 text-xs text-on-surface-variant flex flex-col gap-0.5">
+                                {cat.variants.map(v => (
+                                  <li key={v.id}>{v.name} ({v.targetQuantity} qty)</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )
+                  : <p>Apakah Anda yakin ingin menghapus kategori beserta semua isinya?</p>}
+            </div>
             <div className="flex gap-sm justify-end mt-sm">
               <button 
                 onClick={() => setDeleteModal({ isOpen: false, idToClear: null })}
@@ -688,7 +710,7 @@ const RestockDetailPage: React.FC = () => {
           className="fixed inset-0 bg-on-surface/80 z-50 flex items-center justify-center p-md backdrop-blur-sm" 
           onClick={() => setSelectedImage(null)}
         >
-          <div className="relative max-w-4xl w-full h-full max-h-[80vh] flex flex-col items-center justify-center pointer-events-none">
+          <div className="relative max-w-lx4 w-full h-full max-h-[80vh] flex flex-col items-center justify-center pointer-events-none">
             <div className="relative bg-surface p-sm rounded-xl shadow-lg pointer-events-auto max-h-full flex flex-col" onClick={e => e.stopPropagation()}>
               <button 
                 className="absolute -top-3 -right-3 w-8 h-8 bg-error text-on-error rounded-full flex items-center justify-center shadow-md hover:bg-error/90 transition-colors z-10"
@@ -713,7 +735,7 @@ const RestockDetailPage: React.FC = () => {
           onClick={() => setImportSummary({ ...importSummary, isOpen: false })}
         >
           <div 
-            className="bg-surface p-lg rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200 max-w-2xl w-full max-h-[80vh] overflow-hidden"
+            className="bg-surface p-lg rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200 max-w-lx2 w-full max-h-[80vh] overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             <h3 className="font-h3 text-h3 text-on-surface flex items-center gap-2">
@@ -825,6 +847,44 @@ const RestockDetailPage: React.FC = () => {
                 className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Append
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Import Details Modal */}
+      {importDetailsModal.isOpen && importDetailsModal.record && (
+        <div 
+          className="fixed inset-0 bg-on-surface/50 z-50 flex items-center justify-center p-md backdrop-blur-sm"
+          onClick={() => setImportDetailsModal({ isOpen: false, record: null })}
+        >
+          <div 
+            className="bg-surface p-lg rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200 max-w-gl w-full max-h-[80vh] overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="font-h3 text-h3 text-on-surface flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">list_alt</span>
+              Barang Diimpor: {importDetailsModal.record.filename}
+            </h3>
+            <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-sm">
+              <p className="text-sm text-on-surface-variant mb-2">Daftar barang yang ditambahkan dari file ini:</p>
+              {importDetailsModal.record.categories.map(cat => (
+                <div key={cat.id} className="bg-surface-container-lowest border border-surface-variant rounded-lg p-3">
+                  <strong className="text-on-surface block mb-1 text-sm">{cat.name}</strong>
+                  <ul className="list-disc pl-5 text-xs text-on-surface-variant flex flex-col gap-1">
+                    {cat.variants.map(v => (
+                      <li key={v.id}>{v.name} <span className="font-medium text-primary">({v.targetQuantity} qty)</span></li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end mt-2 pt-4 border-t border-surface-variant">
+              <button 
+                onClick={() => setImportDetailsModal({ isOpen: false, record: null })}
+                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm"
+              >
+                Tutup
               </button>
             </div>
           </div>

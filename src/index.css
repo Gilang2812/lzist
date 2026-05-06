@@ -172,6 +172,16 @@
   }
 }
 
-@utility max-w-ms {
-  max-width: 24rem;
-}
+@utility max-w-sx3 { max-width: var(--container-3xs, 16rem); }
+@utility max-w-sx2 { max-width: var(--container-2xs, 18rem); }
+@utility max-w-sx { max-width: var(--container-xs, 20rem); }
+@utility max-w-ms { max-width: var(--container-sm, 24rem); }
+@utility max-w-dm { max-width: var(--container-md, 28rem); }
+@utility max-w-gl { max-width: var(--container-lg, 32rem); }
+@utility max-w-lx { max-width: var(--container-xl, 36rem); }
+@utility max-w-lx2 { max-width: var(--container-2xl, 42rem); }
+@utility max-w-lx3 { max-width: var(--container-3xl, 48rem); }
+@utility max-w-lx4 { max-width: var(--container-4xl, 56rem); }
+@utility max-w-lx5 { max-width: var(--container-5xl, 64rem); }
+@utility max-w-lx6 { max-width: var(--container-6xl, 72rem); }
+@utility max-w-lx7 { max-width: var(--container-7xl, 80rem); }

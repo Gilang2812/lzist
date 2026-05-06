@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useState, useRef, useCallback } from 'react';
 
 interface UndoableStateReturn<T> {

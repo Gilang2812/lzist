@@ -14,7 +14,7 @@ const AppLayout: React.FC = () => {
         
         {/* Main Content Area */}
         <div className="flex-grow md:ml-64 flex flex-col min-h-screen w-full pb-16 md:pb-0">
-          <Header onMenuClick={() => setIsSidebarOpen(true)} />
+          <Header />
           <Outlet />
         </div>
       </div>

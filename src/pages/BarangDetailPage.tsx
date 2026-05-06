@@ -41,7 +41,7 @@ const BarangDetailPage: React.FC = () => {
 
   if (data === undefined) {
     return (
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
         <p className="text-on-surface-variant text-center py-xl">Memuat data...</p>
       </main>
     );
@@ -49,7 +49,7 @@ const BarangDetailPage: React.FC = () => {
 
   if (data === null) {
     return (
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
         <button onClick={() => navigate(-1)} className="flex items-center gap-xs text-primary font-label-md text-label-md hover:underline w-fit cursor-pointer">
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Kembali
@@ -128,7 +128,7 @@ const BarangDetailPage: React.FC = () => {
   };
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+    <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
       <div className="flex flex-col gap-md">
         <button onClick={() => navigate(-1)} className="flex items-center gap-xs text-primary font-label-md text-label-md hover:underline w-fit cursor-pointer">
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>

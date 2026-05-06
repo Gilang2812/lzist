@@ -4,10 +4,9 @@ import { useDataSync } from '../../hooks/useDataSync';
 
 interface HeaderProps {
   title?: string;
-  onMenuClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ title = 'Lzist', onMenuClick: _onMenuClick }) => {
+const Header: React.FC<HeaderProps> = ({ title = 'Lzist' }) => {
   const { isOutOfSync, isSyncing, handleSync } = useDataSync();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 

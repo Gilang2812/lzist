@@ -32,7 +32,7 @@ const DashboardPage: React.FC = () => {
   }));
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+    <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
       <div>
         <h1 className="font-h1 text-h1 text-on-surface mb-xs">Dashboard</h1>
         <p className="font-body-md text-body-md text-on-surface-variant">Ringkasan inventaris kamu.</p>

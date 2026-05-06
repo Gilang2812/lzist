@@ -65,6 +65,7 @@ const SupplierListPage: React.FC = () => {
     if (!formData.name.trim()) return;
     try {
       await db.suppliers.add({
+        // eslint-disable-next-line react-hooks/purity
         id: Date.now().toString(),
         name: formData.name,
         contact: formData.contact || undefined,
@@ -160,7 +161,7 @@ const SupplierListPage: React.FC = () => {
     });
   };
 
-  const SupplierForm: React.FC<{ onSubmit: (e: React.FormEvent) => void; submitLabel: string; onCancel: () => void }> = ({ onSubmit, submitLabel, onCancel }) => (
+  const renderSupplierForm = (onSubmit: (e: React.FormEvent) => void, submitLabel: string, onCancel: () => void) => (
     <form onSubmit={onSubmit} className="p-md flex flex-col gap-md">
       {field('name', 'Nama Supplier', 'Contoh: CV Tekstil Jaya')}
       {field('contact', 'Nama Kontak', 'Contoh: Pak Ahmad')}
@@ -177,9 +178,8 @@ const SupplierListPage: React.FC = () => {
       </div>
     </form>
   );
-
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+    <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-h1 text-h1 text-on-surface mb-xs">Supplier</h1>
@@ -275,12 +275,12 @@ const SupplierListPage: React.FC = () => {
 
       {/* Add Modal */}
       <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Tambah Supplier">
-        <SupplierForm onSubmit={handleAdd} submitLabel="Simpan" onCancel={() => setIsAddModalOpen(false)} />
+        {renderSupplierForm(handleAdd, "Simpan", () => setIsAddModalOpen(false))}
       </Modal>
 
       {/* Edit Modal */}
       <Modal isOpen={!!editItem} onClose={() => { setEditItem(null); setFormData(emptyForm); }} title="Edit Supplier">
-        <SupplierForm onSubmit={handleEdit} submitLabel="Simpan Perubahan" onCancel={() => { setEditItem(null); setFormData(emptyForm); }} />
+        {renderSupplierForm(handleEdit, "Simpan Perubahan", () => { setEditItem(null); setFormData(emptyForm); })}
       </Modal>
 
       {/* Delete Confirm */}

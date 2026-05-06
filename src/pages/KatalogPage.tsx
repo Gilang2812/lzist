@@ -131,7 +131,7 @@ const KatalogPage: React.FC = () => {
     setDeleteItem(item);
   };
 
-  const SupplierPicker: React.FC = () => (
+  const renderSupplierPicker = () => (
     <div className="flex flex-col gap-xs">
       <label className="font-label-md text-on-surface">Supplier</label>
       {!suppliers || suppliers.length === 0 ? (
@@ -171,7 +171,7 @@ const KatalogPage: React.FC = () => {
   );
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+    <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-h1 text-h1 text-on-surface mb-xs">Katalog Barang</h1>
@@ -277,7 +277,7 @@ const KatalogPage: React.FC = () => {
               placeholder="Contoh: Pashmina Tencel"
             />
           </div>
-          <SupplierPicker />
+          {renderSupplierPicker()}
           <div className="flex justify-end gap-sm mt-sm">
             <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-md py-sm font-label-md text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer">
               Batal
@@ -302,7 +302,7 @@ const KatalogPage: React.FC = () => {
               className="bg-surface-container px-md py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
-          <SupplierPicker />
+          {renderSupplierPicker()}
           <div className="flex justify-end gap-sm mt-sm">
             <button type="button" onClick={() => { setEditItem(null); resetForm(); }} className="px-md py-sm font-label-md text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer">
               Batal

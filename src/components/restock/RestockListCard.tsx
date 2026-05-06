@@ -64,7 +64,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
           />
         )}
         <div className="flex-1 min-w-0">
-          <h2 className="font-h3 text-h3 text-on-surface leading-snug truncate">{category.name}</h2>
+          <h2 className={`font-label-lg sm:font-h3 text-label-lg sm:text-h3 text-on-surface leading-snug ${isExpanded ? '' : 'truncate'}`}>{category.name}</h2>
           {category.supplierNames && category.supplierNames.length > 0 && (
             <div className="flex flex-wrap gap-xs mt-0.5">
               {category.supplierNames.map(s => (

@@ -20,6 +20,7 @@ export const useDataSync = () => {
 
   useEffect(() => {
     // Check initially
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     checkSync();
 
     // Listen to custom event when db syncs

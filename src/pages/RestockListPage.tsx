@@ -51,7 +51,7 @@ const RestockListPage: React.FC = () => {
   };
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+    <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-h1 text-h1 text-on-surface mb-xs">Restock List</h1>
@@ -79,18 +79,21 @@ const RestockListPage: React.FC = () => {
       ) : (
         <div className="flex flex-col gap-lg">
           {(() => {
-            const now = new Date();
-            const isToday = (d: Date) =>
-              d.getDate() === now.getDate() &&
-              d.getMonth() === now.getMonth() &&
-              d.getFullYear() === now.getFullYear();
+            const groupedLists = lists.reduce((acc, list) => {
+              const d = list.createdAt;
+              const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+              if (!acc[dateKey]) acc[dateKey] = [];
+              acc[dateKey].push(list);
+              return acc;
+            }, {} as Record<string, RestockList[]>);
 
-            const todayLists = lists.filter(l => isToday(l.createdAt));
-            const olderLists = lists.filter(l => !isToday(l.createdAt));
+            const sortedDateKeys = Object.keys(groupedLists).sort((a, b) => b.localeCompare(a));
+            const now = new Date();
+            const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
             const renderCard = (list: RestockList, today: boolean) => {
               const itemCount = list.categories.reduce((acc, cat) => acc + cat.variants.length, 0);
-              const dateStr = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(list.createdAt);
+              const dateStr = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' }).format(list.createdAt);
 
               return (
                 <div
@@ -136,26 +139,35 @@ const RestockListPage: React.FC = () => {
 
             return (
               <>
-                {todayLists.length > 0 && (
-                  <div className="flex flex-col gap-md">
-                    <div className="flex items-center gap-sm">
-                      <span className="material-symbols-outlined text-primary text-[20px]">today</span>
-                      <h2 className="font-label-lg text-label-lg text-primary">Hari Ini</h2>
-                    </div>
-                    {todayLists.map(l => renderCard(l, true))}
-                  </div>
-                )}
-                {olderLists.length > 0 && (
-                  <div className="flex flex-col gap-md">
-                    {todayLists.length > 0 && (
+                {sortedDateKeys.map(dateKey => {
+                  const dateLists = groupedLists[dateKey];
+                  const isToday = dateKey === todayKey;
+                  
+                  let headerText = '';
+                  let icon = '';
+                  let iconColor = '';
+                  
+                  if (isToday) {
+                    headerText = 'Hari Ini';
+                    icon = 'today';
+                    iconColor = 'text-primary';
+                  } else {
+                    const d = new Date(dateKey);
+                    headerText = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+                    icon = 'calendar_month';
+                    iconColor = 'text-on-surface-variant';
+                  }
+
+                  return (
+                    <div key={dateKey} className="flex flex-col gap-md mb-lg last:mb-0">
                       <div className="flex items-center gap-sm">
-                        <span className="material-symbols-outlined text-on-surface-variant text-[20px]">history</span>
-                        <h2 className="font-label-lg text-label-lg text-on-surface-variant">Sebelumnya</h2>
+                        <span className={`material-symbols-outlined ${iconColor} text-[20px]`}>{icon}</span>
+                        <h2 className={`font-label-lg text-label-lg ${isToday ? 'text-primary' : 'text-on-surface-variant'}`}>{headerText}</h2>
                       </div>
-                    )}
-                    {olderLists.map(l => renderCard(l, false))}
-                  </div>
-                )}
+                      {dateLists.map(l => renderCard(l, isToday))}
+                    </div>
+                  );
+                })}
               </>
             );
           })()}

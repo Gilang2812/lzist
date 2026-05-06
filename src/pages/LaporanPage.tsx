@@ -4,7 +4,7 @@ import EmptyState from '../components/ui/EmptyState';
 
 const LaporanPage: React.FC = () => {
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+    <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
       <div>
         <h1 className="font-h1 text-h1 text-on-surface mb-xs">Laporan Stok</h1>
         <p className="font-body-md text-body-md text-on-surface-variant">Riwayat perubahan stok masuk dan keluar.</p>
