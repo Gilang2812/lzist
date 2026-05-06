@@ -4,6 +4,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "47158306682",
     "name": "Pashmina TENCEL | Basic Tencel Shawl",
+    "uniqueKeyword": "basic tencel",
     "variants": [
       {
         "id": "365735307947",
@@ -120,6 +121,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "48308287626",
     "name": "Pashmina Modal Viscose | Modal Viscose Shawl",
+    "uniqueKeyword": "modal viscose",
     "variants": [
       {
         "id": "345734031211",
@@ -266,6 +268,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "52008267608",
     "name": "Pashmina Kaos Rayon Premium | Turkish Shawl",
+    "uniqueKeyword": "kaos rayon",
     "variants": [
       {
         "id": "425734033768",
@@ -572,6 +575,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "53908272713",
     "name": "Pashmina Voal | Arabian Voal Shawl",
+    "uniqueKeyword": "arabian voal",
     "variants": [
       {
         "id": "410735144010",
@@ -581,6 +585,16 @@ export const INITIAL_DATA: Category[] = [
         "color": "bg-primary-fixed-dim",
         "images": [
           "/assets/images/voal-hitam-01.jpg"
+        ]
+      },
+      {
+        "id": "410735144011",
+        "name": "Silver",
+        "stock": 498,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/voal-silver-01.jpg"
         ]
       },
       {
@@ -888,6 +902,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "44708292808",
     "name": "Pashmina Viscose Textured | Viscose Hightlight",
+    "uniqueKeyword": "viscose textured",
     "variants": [
       {
         "id": "272509239716",
@@ -1124,6 +1139,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "47658293044",
     "name": "Hijab Segi Empat Paris Jadul Varisha | Paris Jadul Azara",
+    "uniqueKeyword": "paris jadul",
     "variants": [
       {
         "id": "277509275386",
@@ -2120,6 +2136,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "44129795351",
     "name": "Inner Basic Turkey | Ciput Tali Kaos Rayon Premium",
+    "uniqueKeyword": "ciput tali",
     "variants": [
       {
         "id": "395735213918",
@@ -2266,6 +2283,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "28944521101",
     "name": "Paris Square | Hijab Segi Empat Paris Premium",
+    "uniqueKeyword": "paris premium",
     "variants": [
       {
         "id": "430735233219",
@@ -2722,6 +2740,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "52908272964",
     "name": "Plain Polycotton Square Hijab | Hijab Segiempat Polycotton no",
+    "uniqueKeyword": "segiempat polycotton",
     "variants": [
       {
         "id": "395735243275",
@@ -2898,6 +2917,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "46954018421",
     "name": "Jarum Pentul Stainless Anti Karat || Pentul Hijab Stainless",
+    "uniqueKeyword": "jarum pentul",
     "variants": [
       {
         "id": "430379414900",
@@ -2936,6 +2956,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "56953998340",
     "name": "Earrings | Anting Hijab Elegan",
+    "uniqueKeyword": "anting hijab",
     "variants": [
       {
         "id": "282302727453",
@@ -2982,6 +3003,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "25305878196",
     "name": "Pashmina Jersey Premium | Pashmina Mleyot",
+    "uniqueKeyword": "pashmina mleyot",
     "variants": [
       {
         "id": "166552756800",
@@ -3132,6 +3154,7 @@ export const INITIAL_DATA: Category[] = [
   {
     "id": "19695964365",
     "name": "Ciput Kaos / Inner Kaos",
+    "uniqueKeyword": "ciput kaos",
     "variants": [
       {
         "id": "187217554580",

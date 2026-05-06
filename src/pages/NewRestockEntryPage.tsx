@@ -385,32 +385,45 @@ const NewRestockEntryPage: React.FC = () => {
             const variantName = variantNameMatch ? variantNameMatch[1].trim() : '';
             const quantity = quantityMatch ? parseInt(quantityMatch[1], 10) : 1;
 
-            const getWords = (str: string) => str.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 2);
-            const targetWords = getWords(productName);
-
             let bestCategoryMatch: Category | null = null;
-            let maxWordMatch = 0;
 
-            for (const cat of catalogData) {
-              const catWords = getWords(cat.name);
-              const matchCount = catWords.filter(w => targetWords.includes(w)).length;
-              
-              const hasVariant = cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase());
-              
-              if (hasVariant && matchCount > maxWordMatch) {
-                maxWordMatch = matchCount;
-                bestCategoryMatch = cat;
+            // 1. Coba pencocokan berdasarkan uniqueKeyword (paling akurat)
+            const keywordMatch = catalogData.find(cat => 
+              cat.uniqueKeyword && productName.toLowerCase().includes(cat.uniqueKeyword.toLowerCase())
+            );
+
+            if (keywordMatch) {
+              bestCategoryMatch = keywordMatch;
+            } else {
+              // 2. Fallback ke fuzzy matching kata
+              let maxWordMatch = 0;
+              const getWords = (str: string) => str.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 3);
+              const targetWords = getWords(productName);
+
+              for (const cat of catalogData) {
+                const catWords = getWords(cat.name);
+                const matchCount = catWords.filter(w => targetWords.includes(w)).length;
+                
+                if (matchCount > maxWordMatch) {
+                  maxWordMatch = matchCount;
+                  bestCategoryMatch = cat;
+                }
+              }
+
+              // Jika kecocokan kata terlalu sedikit, anggap tidak ada yang cocok
+              if (maxWordMatch < 2) {
+                bestCategoryMatch = null;
               }
             }
 
             if (!bestCategoryMatch) {
-              unmatchedRows.push({ productName, variantName, reason: 'Produk/Varian tidak ditemukan di master data' });
+              unmatchedRows.push({ productName, variantName, reason: 'Produk tidak ditemukan di master data' });
               return;
             }
 
             const initialVariant = bestCategoryMatch.variants.find(v => v.name.toLowerCase() === variantName.toLowerCase());
             if (!initialVariant) {
-               unmatchedRows.push({ productName, variantName, reason: 'Varian tidak ditemukan di master data' });
+               unmatchedRows.push({ productName, variantName, reason: `Varian '${variantName}' tidak ditemukan di produk ${bestCategoryMatch.name}` });
                return;
             }
 

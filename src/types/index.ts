@@ -14,6 +14,7 @@ export interface Variant {
 export interface Category {
   id: string;
   name: string;
+  uniqueKeyword?: string;
   variants: Variant[];
   supplierNames?: string[];
 }
@@ -52,6 +53,7 @@ export interface SubBarang {
 export interface Barang {
   id: string;
   name: string;
+  uniqueKeyword?: string;
   supplierIds?: string[];
   subBarang?: SubBarang[];
   createdAt: Date;

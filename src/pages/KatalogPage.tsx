@@ -15,6 +15,7 @@ const KatalogPage: React.FC = () => {
   const [deleteItem, setDeleteItem] = useState<Barang | null>(null);
 
   const [formName, setFormName] = useState('');
+  const [formUniqueKeyword, setFormUniqueKeyword] = useState('');
   const [selectedSupplierIds, setSelectedSupplierIds] = useState<string[]>([]);
 
   const suppliers = useLiveQuery(() => db.suppliers.orderBy('name').toArray());
@@ -48,6 +49,7 @@ const KatalogPage: React.FC = () => {
 
   const resetForm = () => {
     setFormName('');
+    setFormUniqueKeyword('');
     setSelectedSupplierIds([]);
   };
 
@@ -66,6 +68,7 @@ const KatalogPage: React.FC = () => {
       await db.barang.add({
         id: barangId,
         name: formName,
+        uniqueKeyword: formUniqueKeyword || undefined,
         supplierIds: selectedSupplierIds,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -89,6 +92,7 @@ const KatalogPage: React.FC = () => {
       await db.transaction('rw', db.barang, db.barangSupplier, async () => {
         await db.barang.update(editItem.id, {
           name: formName,
+          uniqueKeyword: formUniqueKeyword || undefined,
           supplierIds: selectedSupplierIds,
           updatedAt: new Date()
         });
@@ -123,6 +127,7 @@ const KatalogPage: React.FC = () => {
     e.stopPropagation();
     setEditItem(item);
     setFormName(item.name);
+    setFormUniqueKeyword(item.uniqueKeyword || '');
     setSelectedSupplierIds(item.supplierIds || []);
   };
 
@@ -277,6 +282,16 @@ const KatalogPage: React.FC = () => {
               placeholder="Contoh: Pashmina Tencel"
             />
           </div>
+          <div className="flex flex-col gap-xs">
+            <label className="font-label-md text-on-surface">Kata Kunci Unik (Untuk Impor Excel)</label>
+            <input
+              type="text"
+              value={formUniqueKeyword}
+              onChange={e => setFormUniqueKeyword(e.target.value)}
+              className="bg-surface-container px-md py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Contoh: pashmina tencel"
+            />
+          </div>
           {renderSupplierPicker()}
           <div className="flex justify-end gap-sm mt-sm">
             <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-md py-sm font-label-md text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer">
@@ -300,6 +315,16 @@ const KatalogPage: React.FC = () => {
               value={formName}
               onChange={e => setFormName(e.target.value)}
               className="bg-surface-container px-md py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <div className="flex flex-col gap-xs">
+            <label className="font-label-md text-on-surface">Kata Kunci Unik (Untuk Impor Excel)</label>
+            <input
+              type="text"
+              value={formUniqueKeyword}
+              onChange={e => setFormUniqueKeyword(e.target.value)}
+              className="bg-surface-container px-md py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Contoh: pashmina tencel"
             />
           </div>
           {renderSupplierPicker()}

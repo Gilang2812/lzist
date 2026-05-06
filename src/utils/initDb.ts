@@ -18,6 +18,7 @@ export const syncDatabaseWithMaster = async () => {
       barangData.push({
         id: category.id,
         name: category.name,
+        uniqueKeyword: category.uniqueKeyword,
         createdAt: new Date(),
         updatedAt: new Date()
       });
