@@ -395,22 +395,37 @@ const RestockDetailPage: React.FC = () => {
             const variantName = variantNameMatch ? variantNameMatch[1].trim() : '';
             const quantity = quantityMatch ? parseInt(quantityMatch[1], 10) : 1;
 
-            const getWords = (str: string) => str.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 2);
-            const targetWords = getWords(productName);
+            const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+            const nProduct = normalize(productName);
 
             let bestCategoryMatch: Category | null = null;
-            let maxWordMatch = 0;
 
-            for (const cat of catalogData) {
-              const catWords = getWords(cat.name);
-              const matchCount = catWords.filter(w => targetWords.includes(w)).length;
-              const hasVariant = cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase());
-              
-              if (hasVariant && matchCount > maxWordMatch) {
-                maxWordMatch = matchCount;
-                bestCategoryMatch = cat;
+            // 1. Prioritas: uniqueKeyword (Strict Match)
+            const keywordMatch = catalogData.find(cat => {
+              if (!cat.uniqueKeyword) return false;
+              const nKeyword = normalize(cat.uniqueKeyword);
+              return nProduct.includes(nKeyword) && 
+                     cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase());
+            });
+
+            if (keywordMatch) {
+              bestCategoryMatch = keywordMatch;
+            } else {
+              // 2. Fallback: Nama Barang (Strict Match)
+              // Cari yang namanya paling panjang yang cocok agar lebih spesifik
+              let longestMatchLen = 0;
+              for (const cat of catalogData) {
+                const nName = normalize(cat.name);
+                if (nProduct.includes(nName) && 
+                    cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase())) {
+                  if (nName.length > longestMatchLen) {
+                    longestMatchLen = nName.length;
+                    bestCategoryMatch = cat;
+                  }
+                }
               }
             }
+
 
             if (!bestCategoryMatch) {
               unmatchedRows.push({ productName, variantName, reason: 'Produk/Varian tidak ditemukan di master data' });
