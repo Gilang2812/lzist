@@ -259,7 +259,8 @@ const NewRestockEntryPage: React.FC = () => {
   const handleCopy = () => {
     const dataToCopy = {
       categories: checklist,
-      importedFiles: importedFiles || []
+      importedFiles: importedFiles || [],
+      importHistory: importHistory || []
     };
     navigator.clipboard.writeText(JSON.stringify(dataToCopy, null, 2))
       .then(() => {
@@ -281,7 +282,8 @@ const NewRestockEntryPage: React.FC = () => {
         setState(prev => ({
           ...prev,
           categories: parsed.categories,
-          importedFiles: parsed.importedFiles || prev.importedFiles
+          importHistory: parsed.importHistory || prev.importHistory,
+          importedFiles: parsed.importedFiles || (parsed.importHistory ? parsed.importHistory.map((h: ImportRecord) => h.filename) : prev.importedFiles)
         }));
         setIsPasting(false);
         setPasteContent('');
@@ -303,7 +305,19 @@ const NewRestockEntryPage: React.FC = () => {
         setPasteContent('');
       } else if (parsed && Array.isArray(parsed.categories)) {
         handleAddItems(parsed.categories);
-        if (parsed.importedFiles) {
+        
+        if (parsed.importHistory) {
+          setState(prev => {
+            const existingIds = new Set(prev.importHistory.map(h => h.id));
+            const newRecordsToAdd = (parsed.importHistory as ImportRecord[]).filter(h => !existingIds.has(h.id));
+            const newHistory = [...prev.importHistory, ...newRecordsToAdd];
+            return {
+              ...prev,
+              importHistory: newHistory,
+              importedFiles: [...new Set(newHistory.map(h => h.filename))]
+            };
+          });
+        } else if (parsed.importedFiles) {
           setState(prev => ({
             ...prev,
             importedFiles: [...new Set([...prev.importedFiles, ...parsed.importedFiles])]

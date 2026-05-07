@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useDataSync } from '../../hooks/useDataSync';
+import Toast from '../ui/Toast';
 
 interface HeaderProps {
   title?: string;
@@ -9,6 +10,34 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ title = 'Lzist' }) => {
   const { isOutOfSync, isSyncing, handleSync } = useDataSync();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
+
+  const handleCheckUpdate = async () => {
+    setIsChecking(true);
+    
+    // Check PWA Update
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          await registration.update();
+        }
+      } catch (e) {
+        console.error('Failed to check for PWA update:', e);
+      }
+    }
+
+    // Give some feedback after a delay
+    setTimeout(() => {
+      setIsChecking(false);
+      setToast({ 
+        message: 'Pengecekan selesai. Aplikasi akan memberitahu jika ada versi baru.', 
+        type: 'info' 
+      });
+      setTimeout(() => setToast(null), 3000);
+    }, 1500);
+  };
 
   const onConfirmSync = async () => {
     setIsConfirmOpen(false);
@@ -45,6 +74,17 @@ const Header: React.FC<HeaderProps> = ({ title = 'Lzist' }) => {
               <span className="hidden sm:inline">{isSyncing ? 'Memperbarui...' : 'Update Data'}</span>
             </button>
           )}
+
+          <button
+            onClick={handleCheckUpdate}
+            disabled={isChecking}
+            className="flex items-center justify-center gap-1 md:gap-2 px-3 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg transition-colors font-medium text-sm border border-outline/20 shadow-sm disabled:opacity-50 cursor-pointer"
+          >
+            <span className={`material-symbols-outlined text-sm ${isChecking ? 'animate-spin' : ''}`}>
+              {isChecking ? 'progress_activity' : 'sync'}
+            </span>
+            <span className="hidden sm:inline">{isChecking ? 'Mengecek...' : 'Cek Update'}</span>
+          </button>
 
           <NavLink
             to="/restock/new"
@@ -97,6 +137,14 @@ const Header: React.FC<HeaderProps> = ({ title = 'Lzist' }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
       )}
     </>
   );

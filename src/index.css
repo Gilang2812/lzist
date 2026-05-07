@@ -120,6 +120,13 @@
   --text-body-md--line-height: 24px;
   --text-body-md--letter-spacing: 0;
   --text-body-md--font-weight: 400;
+
+  --animate-slide-up: slide-up 0.3s ease-out;
+
+  @keyframes slide-up {
+    from { transform: translate(-50%, 1rem); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+  }
 }
 
 @layer utilities {

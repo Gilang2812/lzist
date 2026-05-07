@@ -142,7 +142,8 @@ const RestockDetailPage: React.FC = () => {
   const handleCopy = () => {
     const dataToCopy = {
       categories: checklist,
-      importedFiles: list?.importedFiles || []
+      importedFiles: list?.importedFiles || [],
+      importHistory: list?.importHistory || []
     };
     navigator.clipboard.writeText(JSON.stringify(dataToCopy, null, 2))
       .then(() => {
@@ -238,7 +239,7 @@ const RestockDetailPage: React.FC = () => {
         setPasteContent('');
       } else if (parsed && Array.isArray(parsed.categories)) {
         setChecklist(parsed.categories);
-        updateListInDb(parsed.categories, parsed.importedFiles);
+        updateListInDb(parsed.categories, parsed.importedFiles, parsed.importHistory);
         setIsPasting(false);
         setPasteContent('');
       } else {
@@ -303,10 +304,20 @@ const RestockDetailPage: React.FC = () => {
       } else if (parsed && Array.isArray(parsed.categories)) {
         const next = [...checklist, ...parsed.categories];
         setChecklist(next);
-        const nextImportedFiles = parsed.importedFiles && list?.importedFiles 
-          ? [...new Set([...list.importedFiles, ...parsed.importedFiles])] 
-          : parsed.importedFiles || list?.importedFiles;
-        updateListInDb(next, nextImportedFiles);
+        
+        let nextImportedFiles = list?.importedFiles || [];
+        let nextImportHistory = list?.importHistory || [];
+
+        if (parsed.importHistory) {
+          const existingIds = new Set(nextImportHistory.map(h => h.id));
+          const newRecordsToAdd = (parsed.importHistory as ImportRecord[]).filter(h => !existingIds.has(h.id));
+          nextImportHistory = [...nextImportHistory, ...newRecordsToAdd];
+          nextImportedFiles = [...new Set(nextImportHistory.map(h => h.filename))];
+        } else if (parsed.importedFiles) {
+          nextImportedFiles = [...new Set([...nextImportedFiles, ...parsed.importedFiles])];
+        }
+        
+        updateListInDb(next, nextImportedFiles, nextImportHistory);
         setIsPasting(false);
         setPasteContent('');
       } else {
