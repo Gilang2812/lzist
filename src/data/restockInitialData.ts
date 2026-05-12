@@ -1,4 +1,4 @@
-﻿import type { Category } from '../types';
+import type { Category } from '../types';
 
 export const INITIAL_DATA: Category[] = [
   {
@@ -3251,6 +3251,203 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": []
+      }
+    ]
+  },
+  {
+    "id": "54059922940",
+    "name": "Lazoulé - Khiban || Khimar Bandana Segi Empat Tali Ceruty Babydoll Premium",
+    "uniqueKeyword": "khimar bandana",
+    "variants": [
+      {
+        "id": "385876412978",
+        "name": "Hitam",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-hitam-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412982",
+        "name": "Baby Pink",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-baby-pink-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412987",
+        "name": "BW",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-bw-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412988",
+        "name": "Coffe",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-coffe-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412979",
+        "name": "Frappucino",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-frappucino-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412990",
+        "name": "Khaky",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-khaky-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412983",
+        "name": "Latte",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-latte-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412980",
+        "name": "Mahogany",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-mahogany-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412984",
+        "name": "Maroon",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-maroon-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412981",
+        "name": "Mocca",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-mocca-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412985",
+        "name": "Navy",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-navy-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412991",
+        "name": "Silver",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-silver-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412992",
+        "name": "Taupe",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-taupe-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412986",
+        "name": "Vanilla",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-vanilla-01.jpg"
+        ]
+      },
+      {
+        "id": "385876412989",
+        "name": "Violet",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-violet-01.jpg"
+        ]
+      },
+      {
+        "id": "380894689274",
+        "name": "Milo",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-milo-01.jpg"
+        ]
+      },
+      {
+        "id": "380894689276",
+        "name": "Burgundy",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-burgundy-01.jpg"
+        ]
+      },
+      {
+        "id": "380894689275",
+        "name": "Denim",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-denim-01.jpg"
+        ]
+      },
+      {
+        "id": "380894689277",
+        "name": "Dusty Pink",
+        "stock": 0,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/khimar-dusty-pink-01.jpg"
+        ]
       }
     ]
   }
