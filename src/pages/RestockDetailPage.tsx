@@ -6,6 +6,7 @@ import RestockListCard from '../components/restock/RestockListCard';
 import AddItemsForm from '../components/restock/AddItemsForm';
 import { db } from '../db/database';
 import { fetchCatalogAsCategories } from '../utils/dbHelpers';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface UnmatchedRow {
   productName: string;
@@ -658,23 +659,33 @@ const RestockDetailPage: React.FC = () => {
               <p className="text-on-surface-variant/70 font-body-md mt-xs">Data tidak ditemukan atau list kosong.</p>
             </div>
           ) : (
-            sortedChecklist.map(category => (
-              <RestockListCard 
-                key={category.id}
-                category={category}
-                isExpanded={expandedCategories.has(category.id)}
-                onToggleExpand={() => toggleCategory(category.id)}
-                expandedVariants={expandedVariants}
-                onToggleVariant={toggleVariant}
-                onImageClick={setSelectedImage}
-                readOnly={!isEditing}
-                onToggleVariantCheck={toggleVariantCheck}
-                onToggleCategoryCheck={() => toggleCategoryCheck(category)}
-                onChangeVariantTargetQuantity={(varId, qty) => handleTargetQuantityChange(category.id, varId, qty)}
-                onDeleteVariant={(varId) => handleDeleteVariant(category.id, varId)}
-                onDelete={() => handleDeleteCategory(category.id)}
-              />
-            ))
+            <AnimatePresence>
+              {sortedChecklist.map(category => (
+                <motion.div
+                  key={category.id}
+                  layout="position"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <RestockListCard 
+                    category={category}
+                    isExpanded={expandedCategories.has(category.id)}
+                    onToggleExpand={() => toggleCategory(category.id)}
+                    expandedVariants={expandedVariants}
+                    onToggleVariant={toggleVariant}
+                    onImageClick={setSelectedImage}
+                    readOnly={!isEditing}
+                    onToggleVariantCheck={toggleVariantCheck}
+                    onToggleCategoryCheck={() => toggleCategoryCheck(category)}
+                    onChangeVariantTargetQuantity={(varId, qty) => handleTargetQuantityChange(category.id, varId, qty)}
+                    onDeleteVariant={(varId) => handleDeleteVariant(category.id, varId)}
+                    onDelete={() => handleDeleteCategory(category.id)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           )}
         </div>
 

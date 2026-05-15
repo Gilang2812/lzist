@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Category } from '../../types';
 import InlineItemInfo from './InlineItemInfo';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface RestockListCardProps {
   category: Category;
@@ -35,6 +36,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
 }) => {
   const availableVariants = category.variants;
   const checkedCount = availableVariants.filter(variant => variant.checked).length;
+  const checkedQty = availableVariants.filter(v => v.checked).reduce((acc, v) => acc + (v.targetQuantity || 0), 0);
   const totalQty = availableVariants.reduce((acc, v) => acc + (v.targetQuantity || 0), 0);
   
   const isAllChecked = availableVariants.length > 0 && checkedCount === availableVariants.length;
@@ -84,7 +86,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
             {checkedCount}/{availableVariants.length} Varian
           </span>
           <span className="font-label-sm text-[11px] text-on-surface-variant opacity-70 px-sm">
-            Total: {totalQty} qty
+            {checkedQty}/{totalQty} qty
           </span>
         </div>
         {onDelete && !readOnly && (
@@ -104,21 +106,31 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
       {/* Category Variants */}
       {isExpanded && category.variants.length > 0 && (
         <div className="flex flex-col pl-md sm:pl-xl border-l-2 border-primary-fixed-dim ml-[18px] sm:ml-[34px] mb-md">
-          {sortedVariants.map(variant => (
-            <InlineItemInfo
-              key={variant.id}
-              variant={variant}
-              isExpanded={expandedVariants.has(variant.id)}
-              onToggleExpand={() => onToggleVariant(variant.id)}
-              onImageClick={onImageClick}
-              onChangeTargetQuantity={(q) => onChangeVariantTargetQuantity?.(variant.id, q)}
-              onDelete={onDeleteVariant ? () => onDeleteVariant(variant.id) : undefined}
-              readOnly={readOnly}
-              showCheckboxes={showCheckboxes}
-              isChecked={variant.checked}
-              onToggleCheck={() => onToggleVariantCheck && onToggleVariantCheck(variant.id)}
-            />
-          ))}
+          <AnimatePresence>
+            {sortedVariants.map(variant => (
+              <motion.div
+                key={variant.id}
+                layout="position"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+              >
+                <InlineItemInfo
+                  variant={variant}
+                  isExpanded={expandedVariants.has(variant.id)}
+                  onToggleExpand={() => onToggleVariant(variant.id)}
+                  onImageClick={onImageClick}
+                  onChangeTargetQuantity={(q) => onChangeVariantTargetQuantity?.(variant.id, q)}
+                  onDelete={onDeleteVariant ? () => onDeleteVariant(variant.id) : undefined}
+                  readOnly={readOnly}
+                  showCheckboxes={showCheckboxes}
+                  isChecked={variant.checked}
+                  onToggleCheck={() => onToggleVariantCheck && onToggleVariantCheck(variant.id)}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>
