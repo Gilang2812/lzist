@@ -14,6 +14,8 @@ const KatalogPage: React.FC = () => {
   const [editItem, setEditItem] = useState<Barang | null>(null);
   const [deleteItem, setDeleteItem] = useState<Barang | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+
   const [formName, setFormName] = useState('');
   const [formUniqueKeyword, setFormUniqueKeyword] = useState('');
   const [selectedSupplierIds, setSelectedSupplierIds] = useState<string[]>([]);
@@ -44,8 +46,10 @@ const KatalogPage: React.FC = () => {
       return { ...b, variantCount: subBarangs.length, totalStock, imageUrl, supplierNames };
     }));
 
-    return enriched.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return enriched.sort((a, b) => a.name.localeCompare(b.name));
   });
+
+  const filteredBarangs = barangs?.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase())) || [];
 
   const resetForm = () => {
     setFormName('');
@@ -177,68 +181,80 @@ const KatalogPage: React.FC = () => {
 
   return (
     <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-md items-start sm:items-center justify-between">
         <div>
           <h1 className="font-h1 text-h1 text-on-surface mb-xs">Katalog Barang</h1>
           <p className="font-body-md text-body-md text-on-surface-variant">Kelola semua barang dan varian.</p>
         </div>
-        <button
-          onClick={() => {
-            resetForm();
-            setIsAddModalOpen(true);
-          }}
-          className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors flex items-center gap-xs cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-[18px]">add</span>
-          Tambah
-        </button>
+        <div className="flex items-center gap-sm w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none sm:w-64">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+            <input
+              type="text"
+              placeholder="Cari barang..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-surface-container pl-10 pr-4 py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <button
+            onClick={() => {
+              resetForm();
+              setIsAddModalOpen(true);
+            }}
+            className="bg-primary text-on-primary px-md sm:px-lg py-sm rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors flex items-center gap-xs cursor-pointer flex-shrink-0"
+          >
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            Tambah
+          </button>
+        </div>
       </div>
 
       {!barangs ? (
         <div className="flex justify-center py-xl">
           <p className="text-on-surface-variant">Memuat data...</p>
         </div>
-      ) : barangs.length === 0 ? (
+      ) : filteredBarangs.length === 0 ? (
         <EmptyState
-          icon="menu_book"
-          title="Katalog masih kosong"
-          description="Tambahkan barang pertama untuk memulai mengelola inventaris."
+          icon={barangs.length === 0 ? "menu_book" : "search_off"}
+          title={barangs.length === 0 ? "Katalog masih kosong" : "Barang tidak ditemukan"}
+          description={barangs.length === 0 ? "Tambahkan barang pertama untuk memulai mengelola inventaris." : "Coba gunakan kata kunci pencarian yang lain."}
         />
       ) : (
         <div className="flex flex-col gap-sm">
-          {barangs.map((item) => (
+          {filteredBarangs.map((item) => (
             <div
               key={item.id}
               onClick={() => navigate(`/katalog/${item.id}`)}
               className="bg-surface-container-lowest rounded-xl border border-surface-variant border-l-4 border-l-primary-fixed-dim p-md cursor-pointer hover:shadow-md hover:border-l-primary transition-all flex gap-md items-center"
             >
               {item.imageUrl ? (
-                <img src={item.imageUrl} alt={item.name} className="w-14 h-14 object-cover rounded-lg bg-surface-container flex-shrink-0" />
+                <img src={item.imageUrl} alt={item.name} className="w-12 h-12 sm:w-14 sm:h-14 object-cover rounded-lg bg-surface-container flex-shrink-0" />
               ) : (
-                <div className="w-14 h-14 flex items-center justify-center bg-surface-container rounded-lg text-on-surface-variant flex-shrink-0">
-                  <span className="material-symbols-outlined text-[22px]">inventory_2</span>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center bg-surface-container rounded-lg text-on-surface-variant flex-shrink-0">
+                  <span className="material-symbols-outlined text-[20px] sm:text-[22px]">inventory_2</span>
                 </div>
               )}
 
               <div className="flex-1 min-w-0">
-                <h3 className="font-h3 text-h3 text-on-surface truncate" title={item.name}>{item.name}</h3>
-                <div className="flex items-center gap-xs mt-xs flex-wrap">
-                  <span className="text-[11px] font-medium text-on-surface-variant bg-surface-variant/40 px-xs py-0.5 rounded">
+                <h3 className="font-label-lg text-label-lg sm:font-h3 sm:text-h3 text-on-surface truncate" title={item.name}>{item.name}</h3>
+                <div className="flex items-center gap-1 sm:gap-xs mt-1 sm:mt-xs flex-wrap">
+                  <span className="text-[10px] sm:text-[11px] font-medium text-on-surface-variant bg-surface-variant/40 px-xs py-0.5 rounded">
                     {item.variantCount} Varian
                   </span>
-                  <span className="text-[11px] text-on-surface-variant">·</span>
-                  <span className="text-[11px] text-on-surface-variant">
+                  <span className="text-[10px] sm:text-[11px] text-on-surface-variant">·</span>
+                  <span className="text-[10px] sm:text-[11px] text-on-surface-variant">
                     Stok <strong className={item.totalStock === 0 ? 'text-error' : 'text-on-surface'}>{item.totalStock}</strong>
                   </span>
                   {item.supplierNames.length > 0 && (
                     <>
-                      <span className="text-[11px] text-on-surface-variant">·</span>
+                      <span className="text-[10px] sm:text-[11px] text-on-surface-variant">·</span>
                       {item.supplierNames.map(s => (
                         <span
                           key={s}
-                          className="inline-flex items-center gap-0.5 text-[11px] text-on-secondary-container bg-secondary-container px-xs py-0.5 rounded-full leading-none"
+                          className="inline-flex items-center gap-0.5 text-[10px] sm:text-[11px] text-on-secondary-container bg-secondary-container px-xs py-0.5 rounded-full leading-none"
                         >
-                          <span className="material-symbols-outlined text-[11px]">local_shipping</span>
+                          <span className="material-symbols-outlined text-[10px] sm:text-[11px]">local_shipping</span>
                           {s}
                         </span>
                       ))}

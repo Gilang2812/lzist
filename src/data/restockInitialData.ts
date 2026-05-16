@@ -3256,7 +3256,7 @@ export const INITIAL_DATA: Category[] = [
   },
   {
     "id": "54059922940",
-    "name": "Lazoulé - Khiban || Khimar Bandana Segi Empat Tali Ceruty Babydoll Premium",
+    "name": "Khiban || Khimar Bandana Segi Empat Tali Ceruty Babydoll Premium",
     "uniqueKeyword": "khimar bandana",
     "variants": [
       {

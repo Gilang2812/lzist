@@ -18,6 +18,8 @@ const BarangDetailPage: React.FC = () => {
   const [editVariant, setEditVariant] = useState<SubBarang | null>(null);
   const [deleteVariant, setDeleteVariant] = useState<SubBarang | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Form states
   const [formData, setFormData] = useState({ name: '', stock: 0, image: '' });
 
@@ -27,6 +29,7 @@ const BarangDetailPage: React.FC = () => {
     if (!barang) return null;
 
     const subBarangs = await db.subBarang.where('barangId').equals(id).toArray();
+    subBarangs.sort((a, b) => a.name.localeCompare(b.name));
 
     // fetch linked suppliers
     const links = await db.barangSupplier.where('barangId').equals(id).toArray();
@@ -65,6 +68,8 @@ const BarangDetailPage: React.FC = () => {
 
   const { barang, subBarangs, supplierNames } = data;
   const totalStock = subBarangs.reduce((sum, v) => sum + (v.stock || 0), 0);
+  
+  const filteredSubBarangs = subBarangs.filter(variant => variant.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,17 +173,29 @@ const BarangDetailPage: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-4">
-        <h2 className="font-h2 text-h2 text-on-surface border-b border-surface-variant pb-xs">Daftar Varian</h2>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-surface-variant pb-xs gap-3">
+          <h2 className="font-h2 text-h2 text-on-surface">Daftar Varian</h2>
+          <div className="relative w-full sm:w-64">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+            <input
+              type="text"
+              placeholder="Cari varian..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-surface-container pl-10 pr-4 py-1.5 rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary text-body-sm"
+            />
+          </div>
+        </div>
 
-        {subBarangs.length === 0 ? (
+        {filteredSubBarangs.length === 0 ? (
           <EmptyState
-            icon="inventory_2"
-            title="Belum ada varian"
-            description="Barang ini belum memiliki varian. Silakan tambah varian baru."
+            icon={subBarangs.length === 0 ? "inventory_2" : "search_off"}
+            title={subBarangs.length === 0 ? "Belum ada varian" : "Varian tidak ditemukan"}
+            description={subBarangs.length === 0 ? "Barang ini belum memiliki varian. Silakan tambah varian baru." : "Coba gunakan kata kunci pencarian yang lain."}
           />
         ) : (
           <div className="flex flex-col gap-sm">
-            {subBarangs.map(variant => (
+            {filteredSubBarangs.map(variant => (
               <div key={variant.id} className="bg-surface-container-lowest border border-surface-variant rounded-lg p-sm flex items-center gap-sm hover:bg-surface-container-low transition-colors">
                 {variant.images && variant.images.length > 0 ? (
                   <img
