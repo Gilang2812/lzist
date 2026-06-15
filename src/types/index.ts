@@ -9,6 +9,7 @@ export interface Variant {
   stores?: string[];
   images?: string[];
   checked?: boolean;
+  price?: number;
 }
 
 export interface Category {

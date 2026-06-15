@@ -7,17 +7,21 @@ import AddItemsForm from '../components/restock/AddItemsForm';
 import { db } from '../db/database';
 import type { RestockList } from '../types';
 import { useUndoableState } from '../hooks/useUndoableState';
+import { formatRupiah } from '../utils/formatCurrency';
 
 interface UnmatchedRow {
   productName: string;
   variantName: string;
   reason: string;
+  filename?: string;
 }
 
 interface ImportSummary {
   isOpen: boolean;
   matched: Category[];
   unmatched: UnmatchedRow[];
+  filenames?: string[];
+  fileRecords?: Array<{ filename: string; categories: Category[] }>;
   filename?: string;
 }
 
@@ -70,6 +74,24 @@ const NewRestockEntryPage: React.FC = () => {
       if (!aDone && bDone) return -1;
       return 0;
     });
+  }, [checklist]);
+
+  const { totalUncheckedPrice, totalCheckedPrice, totalAllPrice } = React.useMemo(() => {
+    let unchecked = 0;
+    let checked = 0;
+    let total = 0;
+    checklist.forEach(cat => {
+      cat.variants.forEach(v => {
+        const itemCost = (v.price || 0) * (v.targetQuantity || 0);
+        total += itemCost;
+        if (v.checked) {
+          checked += itemCost;
+        } else {
+          unchecked += itemCost;
+        }
+      });
+    });
+    return { totalUncheckedPrice: unchecked, totalCheckedPrice: checked, totalAllPrice: total };
   }, [checklist]);
 
 
@@ -364,30 +386,50 @@ const NewRestockEntryPage: React.FC = () => {
     });
   };
 
-  const handleExcelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      try {
-        const catalogData = await fetchCatalogAsCategories();
-        const bstr = evt.target?.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
-        const wsname = wb.SheetNames[0];
-        const ws = wb.Sheets[wsname];
+    try {
+      const catalogData = await fetchCatalogAsCategories();
+
+      const filePromises = Array.from(files).map((file) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const data = XLSX.utils.sheet_to_json<any>(ws);
-        
-        const categoriesMap = new Map<string, Category>();
-        const unmatchedRows: UnmatchedRow[] = [];
-        
-        data.forEach((row) => {
+        return new Promise<{ filename: string; rawData: any[] }>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            try {
+              const bstr = evt.target?.result;
+              const wb = XLSX.read(bstr, { type: 'binary' });
+              const wsname = wb.SheetNames[0];
+              const ws = wb.Sheets[wsname];
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const data = XLSX.utils.sheet_to_json<any>(ws);
+              resolve({ filename: file.name, rawData: data });
+            } catch (err) {
+              reject(err);
+            }
+          };
+          reader.onerror = (err) => reject(err);
+          reader.readAsBinaryString(file);
+        });
+      });
+
+      const parsedFiles = await Promise.all(filePromises);
+
+      const fileRecords: Array<{ filename: string; categories: Category[] }> = [];
+      const allUnmatchedRows: UnmatchedRow[] = [];
+      const globalCategoriesMap = new Map<string, Category>();
+
+      parsedFiles.forEach(({ filename, rawData }) => {
+        const fileCategoriesMap = new Map<string, Category>();
+
+        rawData.forEach((row) => {
           const productInfoStr = row['product_info'] || row['Product Info'] || row['Product_Info'] || row['Info Produk'];
           if (!productInfoStr || typeof productInfoStr !== 'string') return;
-          
+
           const itemsStr = productInfoStr.split(/\r?\n/).filter(line => line.trim().startsWith('['));
-          
+
           itemsStr.forEach(itemStr => {
             const productNameMatch = itemStr.match(/Nama Produk:\s*([^;]+);/);
             const variantNameMatch = itemStr.match(/Nama Variasi:\s*([^;]+);/);
@@ -408,7 +450,7 @@ const NewRestockEntryPage: React.FC = () => {
             const keywordMatch = catalogData.find(cat => {
               if (!cat.uniqueKeyword) return false;
               const nKeyword = normalize(cat.uniqueKeyword);
-              return nProduct.includes(nKeyword) && 
+              return nProduct.includes(nKeyword) &&
                      cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase());
             });
 
@@ -416,11 +458,10 @@ const NewRestockEntryPage: React.FC = () => {
               bestCategoryMatch = keywordMatch;
             } else {
               // 2. Fallback: Nama Barang (Strict Match)
-              // Cari yang namanya paling panjang yang cocok agar lebih spesifik
               let longestMatchLen = 0;
               for (const cat of catalogData) {
                 const nName = normalize(cat.name);
-                if (nProduct.includes(nName) && 
+                if (nProduct.includes(nName) &&
                     cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase())) {
                   if (nName.length > longestMatchLen) {
                     longestMatchLen = nName.length;
@@ -430,33 +471,52 @@ const NewRestockEntryPage: React.FC = () => {
               }
             }
 
-
             if (!bestCategoryMatch) {
-              unmatchedRows.push({ productName, variantName, reason: 'Produk tidak ditemukan di master data' });
+              allUnmatchedRows.push({ productName, variantName, reason: 'Produk tidak ditemukan di master data', filename });
               return;
             }
 
             const initialVariant = bestCategoryMatch.variants.find(v => v.name.toLowerCase() === variantName.toLowerCase());
             if (!initialVariant) {
-               unmatchedRows.push({ productName, variantName, reason: `Varian '${variantName}' tidak ditemukan di produk ${bestCategoryMatch.name}` });
+               allUnmatchedRows.push({ productName, variantName, reason: `Varian '${variantName}' tidak ditemukan di produk ${bestCategoryMatch.name}`, filename });
                return;
             }
 
             const itemId = bestCategoryMatch.id;
 
-            if (!categoriesMap.has(itemId)) {
-              categoriesMap.set(itemId, {
+            // Add to file-specific map
+            if (!fileCategoriesMap.has(itemId)) {
+              fileCategoriesMap.set(itemId, {
                 ...bestCategoryMatch,
                 variants: []
               });
             }
-            
-            const category = categoriesMap.get(itemId)!;
-            const existingVar = category.variants.find(v => v.id === initialVariant.id);
-            if (existingVar) {
-              existingVar.targetQuantity = (existingVar.targetQuantity || 0) + quantity;
+
+            const fileCategory = fileCategoriesMap.get(itemId)!;
+            const existingFileVar = fileCategory.variants.find(v => v.id === initialVariant.id);
+            if (existingFileVar) {
+              existingFileVar.targetQuantity = (existingFileVar.targetQuantity || 0) + quantity;
             } else {
-              category.variants.push({
+              fileCategory.variants.push({
+                ...initialVariant,
+                targetQuantity: quantity
+              });
+            }
+
+            // Add to global aggregated map
+            if (!globalCategoriesMap.has(itemId)) {
+              globalCategoriesMap.set(itemId, {
+                ...bestCategoryMatch,
+                variants: []
+              });
+            }
+
+            const globalCategory = globalCategoriesMap.get(itemId)!;
+            const existingGlobalVar = globalCategory.variants.find(v => v.id === initialVariant.id);
+            if (existingGlobalVar) {
+              existingGlobalVar.targetQuantity = (existingGlobalVar.targetQuantity || 0) + quantity;
+            } else {
+              globalCategory.variants.push({
                 ...initialVariant,
                 targetQuantity: quantity
               });
@@ -464,24 +524,33 @@ const NewRestockEntryPage: React.FC = () => {
           });
         });
 
-        const matchedItems = Array.from(categoriesMap.values());
-        
-        setImportSummary({
-          isOpen: true,
-          matched: matchedItems,
-          unmatched: unmatchedRows,
-          filename: file.name
-        });
-        
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+        const fileMatchedItems = Array.from(fileCategoriesMap.values());
+        if (fileMatchedItems.length > 0) {
+          fileRecords.push({
+            filename,
+            categories: fileMatchedItems
+          });
         }
-      } catch (err) {
-        console.error("Failed to parse Excel file", err);
-        alert("Gagal membaca file Excel. Pastikan format file sesuai.");
+      });
+
+      const matchedItems = Array.from(globalCategoriesMap.values());
+      const filenames = Array.from(files).map(f => f.name);
+
+      setImportSummary({
+        isOpen: true,
+        matched: matchedItems,
+        unmatched: allUnmatchedRows,
+        filenames,
+        fileRecords
+      });
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
-    };
-    reader.readAsBinaryString(file);
+    } catch (err) {
+      console.error("Failed to parse Excel file", err);
+      alert("Gagal membaca file Excel. Pastikan format file sesuai.");
+    }
   };
 
   const triggerSaveSuccess = () => {
@@ -562,8 +631,13 @@ const NewRestockEntryPage: React.FC = () => {
       <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl overflow-x-hidden">
         {/* Action Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border-y border-surface-variant p-md rounded-lg shadow-sm gap-sm">
-          <div className="flex flex-col gap-1 flex-1">
-            <p className="font-body-md text-body-md text-on-surface-variant">List entry baru untuk restock barang.</p>
+          <div className="flex-1 min-w-0">
+            <p className="font-body-md text-body-md text-on-surface-variant font-medium">List entry baru untuk restock barang.</p>
+            {checklist.length > 0 && (
+              <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">
+                {checklist.reduce((acc, cat) => acc + cat.variants.length, 0)} item · Kelola daftar belanja restock.
+              </p>
+            )}
           </div>
             {/* Autosave status indicator */}
             {autoSaveStatus !== 'idle' && (
@@ -649,6 +723,7 @@ const NewRestockEntryPage: React.FC = () => {
               type="file" 
               ref={fileInputRef} 
               accept=".xlsx, .xls" 
+              multiple={true}
               className="hidden" 
               onChange={handleExcelUpload} 
             />
@@ -776,6 +851,41 @@ const NewRestockEntryPage: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Estimasi Dana Section */}
+        {checklist.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-md bg-surface-container-lowest border border-surface-variant p-md rounded-xl shadow-sm">
+            <div className="bg-surface-container-low p-sm rounded-lg flex items-center gap-sm">
+              <div className="w-10 h-10 rounded-full bg-outline-variant/30 flex items-center justify-center text-on-surface-variant">
+                <span className="material-symbols-outlined text-[24px]">payments</span>
+              </div>
+              <div>
+                <p className="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-wider">Estimasi Seluruh Barang</p>
+                <p className="font-h3 text-h3 text-on-surface mt-xs">{formatRupiah(totalAllPrice)}</p>
+              </div>
+            </div>
+            
+            <div className="bg-success-container/10 border border-success/10 p-sm rounded-lg flex items-center gap-sm">
+              <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center text-success">
+                <span className="material-symbols-outlined text-[24px]">check_circle</span>
+              </div>
+              <div>
+                <p className="font-label-sm text-[11px] text-success uppercase tracking-wider">Barang Sudah Diceklis</p>
+                <p className="font-h3 text-h3 text-success mt-xs">{formatRupiah(totalCheckedPrice)}</p>
+              </div>
+            </div>
+
+            <div className="bg-primary-container/20 border border-primary/10 p-sm rounded-lg flex items-center gap-sm">
+              <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined text-[24px]">pending</span>
+              </div>
+              <div>
+                <p className="font-label-sm text-[11px] text-primary uppercase tracking-wider">Barang Belum Diceklis</p>
+                <p className="font-h3 text-h3 text-primary mt-xs">{formatRupiah(totalUncheckedPrice)}</p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -914,6 +1024,20 @@ const NewRestockEntryPage: React.FC = () => {
               <span className="material-symbols-outlined text-primary">analytics</span>
               Ringkasan Import Excel
             </h3>
+
+            {importSummary.filenames && importSummary.filenames.length > 0 && (
+              <div className="text-xs text-on-surface-variant bg-surface-container-low px-3 py-2 rounded-lg flex flex-col gap-1 border border-surface-variant/50">
+                <span className="font-medium text-[11px] text-on-surface-variant/85">File yang diimpor:</span>
+                <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto pr-1">
+                  {importSummary.filenames.map((name, i) => (
+                    <span key={i} className="bg-surface px-2 py-0.5 rounded text-[11px] font-mono flex items-center gap-1 border border-surface-variant/30 shadow-xs">
+                      <span className="material-symbols-outlined text-[12px] text-primary">description</span>
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-md">
               <div className="bg-surface-container-low p-sm rounded-lg flex gap-4 text-center">
@@ -957,7 +1081,15 @@ const NewRestockEntryPage: React.FC = () => {
                   <ul className="text-sm text-on-surface flex flex-col gap-2 max-h-40 overflow-y-auto border border-surface-variant rounded-md p-2">
                     {importSummary.unmatched.map((row, idx) => (
                       <li key={idx} className="flex flex-col border-b border-surface-variant/50 last:border-0 pb-1 last:pb-0">
-                        <span className="font-medium">{row.productName || 'Tanpa Nama'} - {row.variantName || 'Tanpa Varian'}</span>
+                        <div className="flex justify-between items-start gap-sm">
+                          <span className="font-medium text-xs">{row.productName || 'Tanpa Nama'} - {row.variantName || 'Tanpa Varian'}</span>
+                          {row.filename && (
+                            <span className="text-[9px] bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-surface-variant/30 flex items-center gap-0.5 whitespace-nowrap">
+                              <span className="material-symbols-outlined text-[10px]">description</span>
+                              {row.filename}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-error text-xs">{row.reason}</span>
                       </li>
                     ))}
@@ -976,24 +1108,26 @@ const NewRestockEntryPage: React.FC = () => {
               <button 
                 onClick={() => {
                   setState(prev => {
-                    const newFiles = importSummary.filename 
-                      ? Array.from(new Set([...prev.importedFiles, importSummary.filename]))
+                    const nextFiles = importSummary.filenames 
+                      ? Array.from(new Set([...prev.importedFiles, ...importSummary.filenames]))
                       : prev.importedFiles;
                     
-                    const newHistory = importSummary.filename ? [
-                      ...prev.importHistory,
-                      {
-                        id: Date.now().toString(),
-                        filename: importSummary.filename,
-                        categories: importSummary.matched,
-                        importedAt: new Date()
-                      }
-                    ] : prev.importHistory;
+                    const newRecords: ImportRecord[] = [];
+                    if (importSummary.fileRecords) {
+                      importSummary.fileRecords.forEach((record, index) => {
+                        newRecords.push({
+                          id: `${Date.now()}-${index}-${Math.random()}`,
+                          filename: record.filename,
+                          categories: record.categories,
+                          importedAt: new Date()
+                        });
+                      });
+                    }
 
                     return {
                       categories: importSummary.matched,
-                      importedFiles: newFiles,
-                      importHistory: newHistory
+                      importedFiles: nextFiles,
+                      importHistory: [...prev.importHistory, ...newRecords]
                     };
                   });
                   setImportSummary({ ...importSummary, isOpen: false });
@@ -1005,11 +1139,8 @@ const NewRestockEntryPage: React.FC = () => {
               </button>
               <button 
                 onClick={() => {
-                  const newFilename = importSummary.filename;
-                  
                   setImportSummary({ ...importSummary, isOpen: false });
                   
-                  // We need to update both categories and importedFiles atomically to history
                   setState(prev => {
                     const updated = [...prev.categories];
                     importSummary.matched.forEach(newCat => {
@@ -1037,24 +1168,26 @@ const NewRestockEntryPage: React.FC = () => {
                       }
                     });
 
-                    const nextFiles = newFilename 
-                      ? Array.from(new Set([...prev.importedFiles, newFilename]))
+                    const nextFiles = importSummary.filenames 
+                      ? Array.from(new Set([...prev.importedFiles, ...importSummary.filenames]))
                       : prev.importedFiles;
 
-                    const nextHistory = newFilename ? [
-                      ...prev.importHistory,
-                      {
-                        id: Date.now().toString(),
-                        filename: newFilename,
-                        categories: importSummary.matched,
-                        importedAt: new Date()
-                      }
-                    ] : prev.importHistory;
+                    const newRecords: ImportRecord[] = [];
+                    if (importSummary.fileRecords) {
+                      importSummary.fileRecords.forEach((record, index) => {
+                        newRecords.push({
+                          id: `${Date.now()}-${index}-${Math.random()}`,
+                          filename: record.filename,
+                          categories: record.categories,
+                          importedAt: new Date()
+                        });
+                      });
+                    }
 
                     return {
                       categories: updated,
                       importedFiles: nextFiles,
-                      importHistory: nextHistory
+                      importHistory: [...prev.importHistory, ...newRecords]
                     };
                   });
                 }}

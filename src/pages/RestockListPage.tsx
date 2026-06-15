@@ -4,6 +4,7 @@ import EmptyState from '../components/ui/EmptyState';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { db } from '../db/database';
 import type { RestockList } from '../types';
+import { formatRupiah } from '../utils/formatCurrency';
 
 const RestockListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -94,6 +95,15 @@ const RestockListPage: React.FC = () => {
             const renderCard = (list: RestockList, today: boolean) => {
               const itemCount = list.categories.reduce((acc, cat) => acc + cat.variants.length, 0);
               const dateStr = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' }).format(list.createdAt);
+              
+              const uncheckedTotal = list.categories.reduce((acc, cat) => {
+                return acc + cat.variants.reduce((vAcc, v) => {
+                  if (!v.checked) {
+                    return vAcc + (v.price || 0) * (v.targetQuantity || 0);
+                  }
+                  return vAcc;
+                }, 0);
+              }, 0);
 
               return (
                 <div
@@ -114,8 +124,16 @@ const RestockListPage: React.FC = () => {
                         </span>
                       )}
                     </div>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">
-                      {itemCount} item · {dateStr}
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs flex items-center gap-xs flex-wrap">
+                      <span>{itemCount} item</span>
+                      <span>·</span>
+                      <span>{dateStr}</span>
+                      {uncheckedTotal > 0 && (
+                        <>
+                          <span>·</span>
+                          <span className="text-primary font-medium">Dana Belum Diceklis: {formatRupiah(uncheckedTotal)}</span>
+                        </>
+                      )}
                     </p>
                   </div>
                   <div className="flex items-center gap-md">

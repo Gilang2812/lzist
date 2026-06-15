@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Variant } from '../../types';
 import ImageGalleryRow from './ImageGalleryRow';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import { formatRupiah } from '../../utils/formatCurrency';
 
 interface InlineItemInfoProps {
   variant: Variant;
@@ -81,6 +82,17 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
               >
                 <span className="material-symbols-outlined text-[16px]">add</span>
               </button>
+            )}
+          </div>
+        )}
+
+        {variant.price !== undefined && (
+          <div className="flex items-center gap-xs ml-sm text-body-sm text-on-surface-variant flex-wrap">
+            <span className="font-medium text-on-surface">{formatRupiah(variant.price)}</span>
+            {variant.targetQuantity !== undefined && variant.targetQuantity > 0 && (
+              <span className="text-xs text-on-surface-variant/70">
+                × {variant.targetQuantity} = <span className="font-semibold text-primary">{formatRupiah(variant.price * variant.targetQuantity)}</span>
+              </span>
             )}
           </div>
         )}

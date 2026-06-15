@@ -2,6 +2,7 @@ import React from 'react';
 import type { Category } from '../../types';
 import InlineItemInfo from './InlineItemInfo';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatRupiah } from '../../utils/formatCurrency';
 
 interface RestockListCardProps {
   category: Category;
@@ -38,6 +39,13 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
   const checkedCount = availableVariants.filter(variant => variant.checked).length;
   const checkedQty = availableVariants.filter(v => v.checked).reduce((acc, v) => acc + (v.targetQuantity || 0), 0);
   const totalQty = availableVariants.reduce((acc, v) => acc + (v.targetQuantity || 0), 0);
+  
+  const uncheckedCategoryPrice = availableVariants
+    .filter(v => !v.checked)
+    .reduce((acc, v) => acc + (v.price || 0) * (v.targetQuantity || 0), 0);
+  
+  const totalCategoryPrice = availableVariants
+    .reduce((acc, v) => acc + (v.price || 0) * (v.targetQuantity || 0), 0);
   
   const isAllChecked = availableVariants.length > 0 && checkedCount === availableVariants.length;
   const isIndeterminate = checkedCount > 0 && checkedCount < availableVariants.length;
@@ -88,6 +96,11 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
           <span className="font-label-sm text-[11px] text-on-surface-variant opacity-70 px-sm">
             {checkedQty}/{totalQty} qty
           </span>
+          {totalCategoryPrice > 0 && (
+            <span className="font-label-sm text-[11px] text-primary px-sm font-medium">
+              Sisa: {formatRupiah(uncheckedCategoryPrice)}
+            </span>
+          )}
         </div>
         {onDelete && !readOnly && (
           <button

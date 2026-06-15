@@ -29,7 +29,8 @@ export const syncDatabaseWithMaster = async () => {
           barangId: category.id,
           name: variant.name,
           stock: variant.stock,
-          images: variant.images
+          images: variant.images,
+          price: variant.price
         });
       }
     }
