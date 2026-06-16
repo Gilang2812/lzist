@@ -39,8 +39,6 @@ const VariantRow: React.FC<{
           className="flex items-center gap-xs pl-sm pr-xs py-xs rounded-full mr-sm bg-secondary-container"
           onClick={e => e.stopPropagation()}
         >
-          <span className="material-symbols-outlined text-[14px] text-on-secondary-container">shopping_cart</span>
-          <span className="font-label-md text-label-md text-on-secondary-container mr-xs hidden sm:inline">Dicari:</span>
           <button 
             className="flex items-center justify-center w-5 h-5 rounded-full hover:bg-on-secondary-container/10 text-on-secondary-container transition-colors active:bg-on-secondary-container/20"
             onClick={() => onTargetQuantityChange(variant.id, Math.max(1, (targetQuantity || 1) - 1))}
@@ -65,10 +63,7 @@ const VariantRow: React.FC<{
         </div>
       )}
 
-      <div className={`flex items-center gap-xs px-sm py-xs rounded-full ${variant.stock === 0 ? 'bg-error-container' : 'bg-surface-container'}`}>
-        <span className={`font-label-md text-label-md ${variant.stock === 0 ? 'text-on-error-container' : 'text-on-surface-variant'}`}>Stok: {variant.stock}</span>
-        {variant.stock === 0 && <span className="material-symbols-outlined text-[14px] text-on-error-container">warning</span>}
-      </div>
+
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { Variant } from '../../types';
 import ImageGalleryRow from './ImageGalleryRow';
 import ConfirmDialog from '../ui/ConfirmDialog';
-import { formatRupiah } from '../../utils/formatCurrency';
+
 
 interface InlineItemInfoProps {
   variant: Variant;
@@ -40,20 +40,13 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
         )}
         <h3 className={`text-xs sm:text-sm text-on-surface ${isExpanded ? 'font-medium' : ''}`}>{variant.name}</h3>
         
-        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full sm:ml-2 w-fit ${variant.outOfStock ? 'bg-error-container border border-error/20' : 'bg-surface-container'}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${variant.color || 'bg-primary-fixed-dim'}`}></span>
-          <span className={`text-[10px] sm:text-xs font-medium ${variant.outOfStock ? 'text-on-error-container' : 'text-on-surface-variant'}`}>
-            {variant.outOfStock ? 'Habis' : `Stok: ${variant.stock}`}
-          </span>
-        </div>
+
         
         {variant.targetQuantity !== undefined && (
           <div 
             className="flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full ml-1 bg-secondary-container"
             onClick={e => e.stopPropagation()}
           >
-            <span className="material-symbols-outlined text-[12px] sm:text-[14px] text-on-secondary-container">shopping_cart</span>
-            <span className="text-[10px] sm:text-xs font-semibold text-on-secondary-container mr-0.5">Dicari:</span>
             {!readOnly && (
               <button 
                 className="flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full hover:bg-on-secondary-container/10 text-on-secondary-container transition-colors active:bg-on-secondary-container/20"
@@ -86,16 +79,7 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
           </div>
         )}
 
-        {variant.price !== undefined && (
-          <div className="flex items-center gap-1 ml-1.5 text-[11px] sm:text-xs text-on-surface-variant flex-wrap">
-            <span className="font-semibold text-on-surface">{formatRupiah(variant.price)}</span>
-            {variant.targetQuantity !== undefined && variant.targetQuantity > 0 && (
-              <span className="text-[10px] sm:text-[11px] text-on-surface-variant/70">
-                × {variant.targetQuantity} = <span className="font-bold text-primary">{formatRupiah(variant.price * variant.targetQuantity)}</span>
-              </span>
-            )}
-          </div>
-        )}
+
         
         <div className="flex items-center gap-sm ml-auto">
           {onDelete && !readOnly && (
