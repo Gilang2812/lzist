@@ -20,11 +20,22 @@ export interface Category {
   supplierNames?: string[];
 }
 
+export interface UnmatchedRow {
+  productName: string;
+  variantName: string;
+  reason: string;
+  quantity?: number;
+  price?: number;
+  checked?: boolean;
+  filename?: string;
+}
+
 export interface ImportRecord {
   id: string;
   filename: string;
   categories: Category[];
   importedAt: Date;
+  unmatchedRows?: UnmatchedRow[];
 }
 
 export interface RestockList {

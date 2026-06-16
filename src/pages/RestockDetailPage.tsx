@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import * as XLSX from 'xlsx';
-import type { Category, RestockList, ImportRecord } from '../types';
+import type { Category, RestockList, ImportRecord, UnmatchedRow } from '../types';
 import RestockListCard from '../components/restock/RestockListCard';
 import AddItemsForm from '../components/restock/AddItemsForm';
 import { db } from '../db/database';
@@ -9,19 +9,12 @@ import { formatRupiah } from '../utils/formatCurrency';
 import { fetchCatalogAsCategories } from '../utils/dbHelpers';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface UnmatchedRow {
-  productName: string;
-  variantName: string;
-  reason: string;
-  filename?: string;
-}
-
 interface ImportSummaryData {
   isOpen: boolean;
   matched: Category[];
   unmatched: UnmatchedRow[];
   filenames?: string[];
-  fileRecords?: Array<{ filename: string; categories: Category[] }>;
+  fileRecords?: Array<{ filename: string; categories: Category[]; unmatchedRows: UnmatchedRow[] }>;
   filename?: string;
 }
 
@@ -70,6 +63,37 @@ const RestockDetailPage: React.FC = () => {
     });
     return { totalUncheckedPrice: unchecked, totalCheckedPrice: checked, totalAllPrice: total };
   }, [checklist]);
+
+  const unregisteredItems = React.useMemo(() => {
+    const listItems: UnmatchedRow[] = [];
+    list?.importHistory?.forEach(record => {
+      if (record.unmatchedRows) {
+        listItems.push(...record.unmatchedRows);
+      }
+    });
+    return listItems;
+  }, [list?.importHistory]);
+
+  const { totalUnregisteredPrice, totalCheckedUnregisteredPrice, totalUncheckedUnregisteredPrice } = React.useMemo(() => {
+    let total = 0;
+    let checkedTotal = 0;
+    let uncheckedTotal = 0;
+    unregisteredItems.forEach(item => {
+      const cost = (item.price || 0) * (item.quantity || 0);
+      total += cost;
+      if (item.checked) {
+        checkedTotal += cost;
+      } else {
+        uncheckedTotal += cost;
+      }
+    });
+    return { 
+      totalUnregisteredPrice: total, 
+      totalCheckedUnregisteredPrice: checkedTotal,
+      totalUncheckedUnregisteredPrice: uncheckedTotal
+    };
+  }, [unregisteredItems]);
+
   const [copySuccess, setCopySuccess] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isImportListOpen, setIsImportListOpen] = useState(true);
@@ -137,6 +161,26 @@ const RestockDetailPage: React.FC = () => {
       updateListInDb(next);
       return next;
     });
+  };
+
+  const toggleUnregisteredItemCheck = (filename: string, productName: string, variantName: string) => {
+    if (!list || !id) return;
+    const newHistory = list.importHistory?.map(record => {
+      if (record.filename === filename && record.unmatchedRows) {
+        return {
+          ...record,
+          unmatchedRows: record.unmatchedRows.map(row => {
+            if (row.productName === productName && row.variantName === variantName) {
+              return { ...row, checked: !row.checked };
+            }
+            return row;
+          })
+        };
+      }
+      return record;
+    }) || [];
+    
+    updateListInDb(checklist, list.importedFiles, newHistory);
   };
 
   const toggleCategoryCheck = (category: Category) => {
@@ -414,12 +458,13 @@ const RestockDetailPage: React.FC = () => {
 
       const parsedFiles = await Promise.all(filePromises);
 
-      const fileRecords: Array<{ filename: string; categories: Category[] }> = [];
+      const fileRecords: Array<{ filename: string; categories: Category[]; unmatchedRows: UnmatchedRow[] }> = [];
       const allUnmatchedRows: UnmatchedRow[] = [];
       const globalCategoriesMap = new Map<string, Category>();
 
       parsedFiles.forEach(({ filename, rawData }) => {
         const fileCategoriesMap = new Map<string, Category>();
+        const fileUnmatchedRows: UnmatchedRow[] = [];
 
         rawData.forEach((row) => {
           const productInfoStr = row['product_info'] || row['Product Info'] || row['Product_Info'] || row['Info Produk'];
@@ -469,13 +514,70 @@ const RestockDetailPage: React.FC = () => {
             }
 
             if (!bestCategoryMatch) {
-              allUnmatchedRows.push({ productName, variantName, reason: 'Produk/Varian tidak ditemukan di master data', filename });
+              let matchedPrice = 0;
+              // 1. Try matching by uniqueKeyword (consecutive words)
+              let matchingCat = catalogData.find(cat => {
+                if (!cat.uniqueKeyword) return false;
+                const nKeyword = normalize(cat.uniqueKeyword);
+                return nProduct.includes(nKeyword);
+              });
+              
+              // 2. Fallback: Try matching by product name (consecutive words, longest match)
+              if (!matchingCat) {
+                let longestMatchLen = 0;
+                for (const cat of catalogData) {
+                  const nName = normalize(cat.name);
+                  if (nProduct.includes(nName)) {
+                    if (nName.length > longestMatchLen) {
+                      longestMatchLen = nName.length;
+                      matchingCat = cat;
+                    }
+                  }
+                }
+              }
+
+              if (matchingCat && matchingCat.variants.length > 0) {
+                const matchingVar = matchingCat.variants.find(v => v.name.toLowerCase() === variantName.toLowerCase()) || matchingCat.variants[0];
+                if (matchingVar && matchingVar.price) {
+                  matchedPrice = matchingVar.price;
+                }
+              }
+
+              const unmatched: UnmatchedRow = { 
+                productName, 
+                variantName, 
+                quantity, 
+                price: matchedPrice,
+                checked: false,
+                reason: 'Produk/Varian tidak ditemukan di master data', 
+                filename 
+              };
+              allUnmatchedRows.push(unmatched);
+              fileUnmatchedRows.push(unmatched);
               return;
             }
 
             const initialVariant = bestCategoryMatch.variants.find(v => v.name.toLowerCase() === variantName.toLowerCase());
             if (!initialVariant) {
-              allUnmatchedRows.push({ productName, variantName, reason: 'Varian tidak ditemukan di master data', filename });
+              let matchedPrice = 0;
+              if (bestCategoryMatch.variants.length > 0) {
+                const firstVarWithPrice = bestCategoryMatch.variants.find(v => v.price && v.price > 0) || bestCategoryMatch.variants[0];
+                if (firstVarWithPrice && firstVarWithPrice.price) {
+                  matchedPrice = firstVarWithPrice.price;
+                }
+              }
+
+              const unmatched: UnmatchedRow = { 
+                productName, 
+                variantName, 
+                quantity, 
+                price: matchedPrice,
+                checked: false,
+                reason: 'Varian tidak ditemukan di master data', 
+                filename 
+              };
+              allUnmatchedRows.push(unmatched);
+              fileUnmatchedRows.push(unmatched);
               return;
             }
 
@@ -510,10 +612,11 @@ const RestockDetailPage: React.FC = () => {
         });
 
         const fileMatchedItems = Array.from(fileCategoriesMap.values());
-        if (fileMatchedItems.length > 0) {
+        if (fileMatchedItems.length > 0 || fileUnmatchedRows.length > 0) {
           fileRecords.push({
             filename,
-            categories: fileMatchedItems
+            categories: fileMatchedItems,
+            unmatchedRows: fileUnmatchedRows
           });
         }
       });
@@ -753,6 +856,17 @@ const RestockDetailPage: React.FC = () => {
           </div>
         )}
 
+        {/* Add Button */}
+        {isEditing && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="mt-xs w-full py-md border-2 border-dashed border-primary-fixed-dim rounded-xl text-primary font-body-lg text-body-lg font-medium flex items-center justify-center gap-sm hover:bg-surface-container-low hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-container cursor-pointer"
+          >
+            <span className="material-symbols-outlined">add</span>
+            Tambah Barang
+          </button>
+        )}
+
         {/* Checklist Canvas */}
         <div className="flex flex-col gap-0 bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden">
           {isLoading ? (
@@ -796,15 +910,101 @@ const RestockDetailPage: React.FC = () => {
           )}
         </div>
 
-        {/* Add Button */}
-        {isEditing && (
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="mt-md w-full py-md border-2 border-dashed border-primary-fixed-dim rounded-xl text-primary font-body-lg text-body-lg font-medium flex items-center justify-center gap-sm hover:bg-surface-container-low hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-container cursor-pointer"
-          >
-            <span className="material-symbols-outlined">add</span>
-            Tambah Barang
-          </button>
+        {/* Section Barang Tidak Terdaftar */}
+        {unregisteredItems.length > 0 && (
+          <div className="bg-surface-container-lowest rounded-xl border border-error/30 overflow-hidden shadow-sm mt-md">
+            <div className="p-md bg-error-container/10 border-b border-error/20 flex items-center justify-between">
+              <div className="flex items-center gap-sm">
+                <span className="material-symbols-outlined text-error">warning</span>
+                <div>
+                  <h3 className="font-h3 text-body-lg text-on-surface font-semibold">
+                    Barang Tidak Terdaftar ({unregisteredItems.length})
+                  </h3>
+                  <p className="text-xs text-on-surface-variant font-body-sm">
+                    Barang dari file Excel berikut tidak ditemukan di master data (katalog) dan diabaikan saat import.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="divide-y divide-surface-variant max-h-80 overflow-y-auto">
+              {unregisteredItems.map((item, index) => (
+                <div key={index} className="p-sm flex items-center gap-sm hover:bg-surface-container-low/50 transition-colors">
+                  <input 
+                    type="checkbox" 
+                    checked={!!item.checked}
+                    onChange={() => toggleUnregisteredItemCheck(item.filename || '', item.productName, item.variantName)}
+                    className="w-4 h-4 rounded border-outline text-primary focus:ring-primary cursor-pointer accent-primary"
+                  />
+                  
+                  <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex-grow min-w-0">
+                      <div className={`font-medium text-body-md text-on-surface truncate ${item.checked ? 'line-through opacity-60' : ''}`}>
+                        {item.productName || 'Tanpa Nama'}
+                      </div>
+                      <div className="text-xs text-on-surface-variant mt-xs flex flex-wrap gap-x-3 gap-y-1 items-center">
+                        {item.variantName && (
+                          <span className="bg-surface-container px-2 py-0.5 rounded text-[11px] font-medium text-secondary">
+                            Variasi: {item.variantName}
+                          </span>
+                        )}
+                        {item.quantity !== undefined && (
+                          <span className="bg-primary-container/20 text-primary px-2 py-0.5 rounded text-[11px] font-medium">
+                            Jumlah: {item.quantity} pcs
+                          </span>
+                        )}
+                        {item.price ? (
+                          <span className="bg-success-container/20 text-success px-2 py-0.5 rounded text-[11px] font-medium">
+                            Harga: {formatRupiah(item.price)}
+                          </span>
+                        ) : null}
+                        {item.price && item.quantity ? (
+                          <span className="bg-outline-variant/30 text-on-surface-variant px-2 py-0.5 rounded text-[11px] font-medium">
+                            Subtotal: {formatRupiah(item.price * item.quantity)}
+                          </span>
+                        ) : null}
+                        {item.reason && !item.reason.toLowerCase().includes('tidak ditemukan di master data') && (
+                          <span className="text-error font-medium">
+                            {item.reason}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {item.filename && (
+                      <div className="flex items-center self-start sm:self-auto">
+                        <span className="bg-surface px-2 py-1 rounded text-[11px] font-mono border border-surface-variant flex items-center gap-1 text-on-surface-variant">
+                          <span className="material-symbols-outlined text-[12px] text-primary">description</span>
+                          {item.filename}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Summary Banner */}
+            <div className="p-md bg-surface-container flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-surface-variant gap-4 text-sm text-on-surface font-medium">
+              <div>
+                Total Barang Tidak Terdaftar: <span className="text-primary font-bold">{unregisteredItems.length} item</span>
+              </div>
+              <div className="flex-1 max-w-gl grid grid-cols-1 sm:grid-cols-3 gap-sm w-full">
+                <div className="bg-surface-container-low/50 p-xs px-sm rounded border border-surface-variant/20 flex flex-col justify-center">
+                  <p className="text-[10px] text-on-surface-variant uppercase font-medium leading-none">Estimasi Seluruhnya</p>
+                  <p className="text-xs font-bold text-on-surface mt-1">{formatRupiah(totalUnregisteredPrice)}</p>
+                </div>
+                <div className="bg-success-container/5 p-xs px-sm rounded border border-success/10 flex flex-col justify-center">
+                  <p className="text-[10px] text-success uppercase font-medium leading-none">Sudah Diceklis</p>
+                  <p className="text-xs font-bold text-success mt-1">{formatRupiah(totalCheckedUnregisteredPrice)}</p>
+                </div>
+                <div className="bg-primary-container/10 p-xs px-sm rounded border border-primary/10 flex flex-col justify-center">
+                  <p className="text-[10px] text-primary uppercase font-medium leading-none">Belum Diceklis</p>
+                  <p className="text-xs font-bold text-primary mt-1">{formatRupiah(totalUncheckedUnregisteredPrice)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </main>
 
@@ -1001,6 +1201,7 @@ const RestockDetailPage: React.FC = () => {
                         id: `${Date.now()}-${index}-${Math.random()}`,
                         filename: record.filename,
                         categories: record.categories,
+                        unmatchedRows: record.unmatchedRows,
                         importedAt: new Date()
                       });
                     });
@@ -1031,6 +1232,7 @@ const RestockDetailPage: React.FC = () => {
                         id: `${Date.now()}-${index}-${Math.random()}`,
                         filename: record.filename,
                         categories: record.categories,
+                        unmatchedRows: record.unmatchedRows,
                         importedAt: new Date()
                       });
                     });
