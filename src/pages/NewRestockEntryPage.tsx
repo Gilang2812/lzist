@@ -967,7 +967,7 @@ const NewRestockEntryPage: React.FC = () => {
         )}
 
         {/* Estimasi Dana Section */}
-        {checklist.length > 0 && (
+        {(checklist.length > 0 || unregisteredItems.length > 0) && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-surface-container-lowest border border-surface-variant p-2 sm:p-3 rounded-xl shadow-sm">
             <div className="bg-surface-container-low p-2 rounded-lg flex items-center gap-2">
               <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-outline-variant/30 flex items-center justify-center text-on-surface-variant shrink-0">
@@ -975,7 +975,7 @@ const NewRestockEntryPage: React.FC = () => {
               </div>
               <div>
                 <p className="font-label-sm text-[8px] sm:text-[9px] text-on-surface-variant uppercase tracking-wider">Estimasi Seluruh Barang</p>
-                <p className="text-[10px] sm:text-xs text-on-surface font-semibold mt-0.5">{formatRupiah(totalAllPrice)}</p>
+                <p className="text-[10px] sm:text-xs text-on-surface font-semibold mt-0.5">{formatRupiah(totalAllPrice + totalUnregisteredPrice)}</p>
               </div>
             </div>
             
@@ -985,7 +985,7 @@ const NewRestockEntryPage: React.FC = () => {
               </div>
               <div>
                 <p className="font-label-sm text-[8px] sm:text-[9px] text-success uppercase tracking-wider">Barang Sudah Diceklis</p>
-                <p className="text-[10px] sm:text-xs text-success font-semibold mt-0.5">{formatRupiah(totalCheckedPrice)}</p>
+                <p className="text-[10px] sm:text-xs text-success font-semibold mt-0.5">{formatRupiah(totalCheckedPrice + totalCheckedUnregisteredPrice)}</p>
               </div>
             </div>
 
@@ -995,7 +995,7 @@ const NewRestockEntryPage: React.FC = () => {
               </div>
               <div>
                 <p className="font-label-sm text-[8px] sm:text-[9px] text-primary uppercase tracking-wider">Barang Belum Diceklis</p>
-                <p className="text-[10px] sm:text-xs text-primary font-semibold mt-0.5">{formatRupiah(totalUncheckedPrice)}</p>
+                <p className="text-[10px] sm:text-xs text-primary font-semibold mt-0.5">{formatRupiah(totalUncheckedPrice + totalUncheckedUnregisteredPrice)}</p>
               </div>
             </div>
           </div>
@@ -1105,26 +1105,7 @@ const NewRestockEntryPage: React.FC = () => {
               ))}
             </div>
 
-            {/* Summary Banner */}
-            <div className="p-md bg-surface-container flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-surface-variant gap-4 text-xs text-on-surface font-medium">
-              <div>
-                Total Barang Tidak Terdaftar: <span className="text-primary font-bold">{unregisteredItems.length} item</span>
-              </div>
-              <div className="flex-1 max-w-gl grid grid-cols-1 sm:grid-cols-3 gap-sm w-full">
-                <div className="bg-surface-container-low/50 p-xs px-sm rounded border border-surface-variant/20 flex flex-col justify-center">
-                  <p className="text-[10px] text-on-surface-variant uppercase font-medium leading-none">Estimasi Seluruhnya</p>
-                  <p className="text-xs font-bold text-on-surface mt-1">{formatRupiah(totalUnregisteredPrice)}</p>
-                </div>
-                <div className="bg-success-container/5 p-xs px-sm rounded border border-success/10 flex flex-col justify-center">
-                  <p className="text-[10px] text-success uppercase font-medium leading-none">Sudah Diceklis</p>
-                  <p className="text-xs font-bold text-success mt-1">{formatRupiah(totalCheckedUnregisteredPrice)}</p>
-                </div>
-                <div className="bg-primary-container/10 p-xs px-sm rounded border border-primary/10 flex flex-col justify-center">
-                  <p className="text-[10px] text-primary uppercase font-medium leading-none">Belum Diceklis</p>
-                  <p className="text-xs font-bold text-primary mt-1">{formatRupiah(totalUncheckedUnregisteredPrice)}</p>
-                </div>
-              </div>
-            </div>
+
           </div>
         )}
       </main>
