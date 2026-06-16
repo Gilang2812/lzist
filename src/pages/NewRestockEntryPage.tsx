@@ -733,96 +733,106 @@ const NewRestockEntryPage: React.FC = () => {
 
   return (
     <>
-      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl overflow-x-hidden">
-        {/* Action Bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border-y border-surface-variant p-md rounded-lg shadow-sm gap-sm">
-          <div className="flex-1 min-w-0">
-            <p className="font-body-md text-body-md text-on-surface-variant font-medium">List entry baru untuk restock barang.</p>
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-4 sm:py-6 w-full flex flex-col gap-4 sm:gap-6 overflow-x-hidden">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-sm pb-xs border-b border-surface-variant/30">
+          <div>
+            <h1 className="text-base sm:text-xl text-on-surface font-semibold">Entry Restock Baru</h1>
+            <p className="text-[11px] sm:text-xs text-on-surface-variant mt-xs">
+              List entry baru untuk restock barang.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto mt-2 sm:mt-0">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-1 px-3 py-1.5 bg-primary text-on-primary rounded-lg text-xs font-semibold hover:bg-primary/90 transition-colors cursor-pointer shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[16px]">add</span>
+              Tambah Barang
+            </button>
             {checklist.length > 0 && (
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">
-                {checklist.reduce((acc, cat) => acc + cat.variants.length, 0)} item · Kelola daftar belanja restock.
-              </p>
+              <div className="flex items-center gap-xs bg-surface-container-high px-2.5 py-[2px] rounded-full border border-surface-variant/40">
+                <span className="material-symbols-outlined text-[14px] sm:text-[16px] text-primary">inventory_2</span>
+                <span className="text-[10px] sm:text-[11px] text-on-surface font-semibold">
+                  {checklist.reduce((acc, cat) => acc + cat.variants.length, 0)} Item
+                </span>
+              </div>
             )}
           </div>
-            {/* Autosave status indicator */}
-            {autoSaveStatus !== 'idle' && (
-              <span className={`flex items-center gap-[3px] text-[11px] font-medium px-sm py-[2px] rounded-full transition-all ${
-                autoSaveStatus === 'saving'
-                  ? 'text-on-surface-variant bg-surface-container animate-pulse'
-                  : 'text-primary bg-primary-container/50'
-              }`}>
-                <span className="material-symbols-outlined text-[14px]">
-                  {autoSaveStatus === 'saving' ? 'sync' : 'cloud_done'}
-                </span>
-                {autoSaveStatus === 'saving' ? 'Menyimpan...' : 'Tersimpan'}
-              </span>
-            )}
-          <div className="flex gap-sm self-end sm:self-auto flex-wrap">
+        </div>
+
+        {/* Action Bar */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border border-surface-variant p-2 rounded-xl shadow-sm gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
             {/* Undo / Redo */}
-            <div className="flex items-center border border-surface-variant rounded-md overflow-hidden">
+            <div className="flex items-center border border-surface-variant rounded-md overflow-hidden bg-surface-container-low">
               <button
                 onClick={undo}
                 disabled={!canUndo}
                 title="Undo (Ctrl+Z)"
-                className={`flex items-center justify-center w-8 h-8 transition-colors cursor-pointer ${
+                className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 transition-colors cursor-pointer ${
                   canUndo
                     ? 'text-primary hover:bg-surface-container'
                     : 'text-on-surface-variant/30 cursor-not-allowed'
                 }`}
               >
-                <span className="material-symbols-outlined text-[18px]">undo</span>
+                <span className="material-symbols-outlined text-[16px] sm:text-[18px]">undo</span>
               </button>
-              <div className="w-px h-4 bg-surface-variant"></div>
+              <div className="w-px h-3 sm:h-4 bg-surface-variant"></div>
               <button
                 onClick={redo}
                 disabled={!canRedo}
                 title="Redo (Ctrl+Y)"
-                className={`flex items-center justify-center w-8 h-8 transition-colors cursor-pointer ${
+                className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 transition-colors cursor-pointer ${
                   canRedo
                     ? 'text-primary hover:bg-surface-container'
                     : 'text-on-surface-variant/30 cursor-not-allowed'
                 }`}
               >
-                <span className="material-symbols-outlined text-[18px]">redo</span>
+                <span className="material-symbols-outlined text-[16px] sm:text-[18px]">redo</span>
               </button>
             </div>
             {checkedVariants.size > 0 && (
               <button 
                 onClick={handleBulkDelete}
-                className="flex items-center gap-xs px-sm py-xs rounded-md transition-colors border cursor-pointer text-error hover:bg-error/10 border-transparent hover:border-error/20"
+                className="flex items-center gap-1 px-2 py-1 rounded-md transition-colors border cursor-pointer text-error hover:bg-error/10 border-transparent hover:border-error/20"
               >
-                <span className="material-symbols-outlined text-[18px]">delete</span>
-                <span className="font-label-md text-label-md">Hapus ({checkedVariants.size})</span>
+                <span className="material-symbols-outlined text-[16px] sm:text-[18px]">delete</span>
+                <span className="text-[11px] sm:text-xs font-semibold">Hapus ({checkedVariants.size})</span>
               </button>
             )}
-            <button 
-              onClick={() => setDeleteModal({ isOpen: true, idToClear: 'all' })}
-              className="flex items-center gap-xs text-error hover:bg-error/10 px-sm py-xs rounded-md transition-colors border border-transparent hover:border-error/20 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
-              <span className="font-label-md text-label-md">Clear All</span>
-            </button>
+            {checklist.length > 0 && (
+              <button 
+                onClick={() => setDeleteModal({ isOpen: true, idToClear: 'all' })}
+                className="flex items-center gap-1 px-2 py-1 rounded-md transition-colors border border-transparent hover:border-error/20 cursor-pointer text-error hover:bg-error/10"
+              >
+                <span className="material-symbols-outlined text-[16px] sm:text-[18px]">delete_sweep</span>
+                <span className="text-[11px] sm:text-xs font-semibold">Clear All</span>
+              </button>
+            )}
+          </div>
+          <div className="flex gap-1.5 self-end sm:self-auto flex-wrap items-center">
             <button 
               onClick={handleCopy}
-              className="flex items-center gap-xs text-primary hover:bg-surface-container px-sm py-xs rounded-md transition-colors border border-transparent hover:border-surface-variant cursor-pointer"
+              className="flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border border-transparent hover:border-surface-variant cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[18px]">
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">
                 {copySuccess ? 'check' : 'content_copy'}
               </span>
-              <span className="font-label-md text-label-md">
+              <span className="text-[11px] sm:text-xs font-semibold">
                 {copySuccess ? 'Copied!' : 'Copy'}
               </span>
             </button>
             <button 
               onClick={() => setIsPasting(!isPasting)}
-              className={`flex items-center gap-xs px-sm py-xs rounded-md transition-colors border cursor-pointer ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors border cursor-pointer ${
                 isPasting 
                   ? 'bg-primary-container text-on-primary-container border-primary-container' 
                   : 'text-primary hover:bg-surface-container border-transparent hover:border-surface-variant'
               }`}
             >
-              <span className="material-symbols-outlined text-[18px]">content_paste</span>
-              <span className="font-label-md text-label-md">Paste</span>
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">content_paste</span>
+              <span className="text-[11px] sm:text-xs font-semibold">Paste</span>
             </button>
             <input 
               type="file" 
@@ -834,15 +844,15 @@ const NewRestockEntryPage: React.FC = () => {
             />
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-xs text-primary hover:bg-surface-container px-sm py-xs rounded-md transition-colors border border-transparent hover:border-surface-variant cursor-pointer"
+              className="flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border border-transparent hover:border-surface-variant cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[18px]">upload_file</span>
-              <span className="font-label-md text-label-md">Import Excel</span>
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">upload_file</span>
+              <span className="text-[11px] sm:text-xs font-semibold">Import Excel</span>
             </button>
             <button 
               onClick={handleSave}
               disabled={checklist.length === 0}
-              className={`flex items-center gap-xs px-sm py-xs rounded-md transition-colors border ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-colors border ${
                 checklist.length === 0
                   ? 'text-on-surface-variant/40 cursor-not-allowed border-transparent'
                   : saveSuccess
@@ -850,10 +860,10 @@ const NewRestockEntryPage: React.FC = () => {
                     : 'bg-primary text-on-primary hover:bg-primary/90 border-transparent shadow-sm cursor-pointer'
               }`}
             >
-              <span className="material-symbols-outlined text-[18px]">
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">
                 {saveSuccess ? 'check_circle' : 'save'}
               </span>
-              <span className="font-label-md text-label-md">
+              <span className="text-[11px] sm:text-xs font-semibold">
                 {saveSuccess ? 'Tersimpan' : 'Simpan'}
               </span>
             </button>
@@ -912,7 +922,7 @@ const NewRestockEntryPage: React.FC = () => {
             >
               <div className="flex items-center gap-sm">
                 <span className="material-symbols-outlined text-primary">history</span>
-                <h3 className="font-label-lg text-on-surface">File yang Diimpor ({importHistory.length})</h3>
+                <h3 className="text-xs font-semibold text-on-surface">File yang Diimpor ({importHistory.length})</h3>
               </div>
               <span className={`material-symbols-outlined transition-transform ${isImportListOpen ? 'rotate-180' : ''}`}>expand_more</span>
             </button>
@@ -928,11 +938,11 @@ const NewRestockEntryPage: React.FC = () => {
                       onClick={() => setImportDetailsModal({ isOpen: true, record: h })}
                     >
                       <div className="flex flex-col">
-                        <span className="font-label-md text-on-surface flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[16px] text-primary">description</span>
+                        <span className="text-xs font-medium text-on-surface flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[14px] text-primary">description</span>
                           {h.filename}
                         </span>
-                        <span className="text-[10px] text-on-surface-variant opacity-60">
+                        <span className="text-[9px] text-on-surface-variant opacity-60">
                           {new Date(h.importedAt).toLocaleString('id-ID')}
                         </span>
                       </div>
@@ -961,47 +971,39 @@ const NewRestockEntryPage: React.FC = () => {
 
         {/* Estimasi Dana Section */}
         {checklist.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-md bg-surface-container-lowest border border-surface-variant p-md rounded-xl shadow-sm">
-            <div className="bg-surface-container-low p-sm rounded-lg flex items-center gap-sm">
-              <div className="w-10 h-10 rounded-full bg-outline-variant/30 flex items-center justify-center text-on-surface-variant">
-                <span className="material-symbols-outlined text-[24px]">payments</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-surface-container-lowest border border-surface-variant p-2 sm:p-3 rounded-xl shadow-sm">
+            <div className="bg-surface-container-low p-2 rounded-lg flex items-center gap-2">
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-outline-variant/30 flex items-center justify-center text-on-surface-variant shrink-0">
+                <span className="material-symbols-outlined text-[16px] sm:text-[20px]">payments</span>
               </div>
               <div>
-                <p className="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-wider">Estimasi Seluruh Barang</p>
-                <p className="font-h3 text-h3 text-on-surface mt-xs">{formatRupiah(totalAllPrice)}</p>
+                <p className="font-label-sm text-[8px] sm:text-[9px] text-on-surface-variant uppercase tracking-wider">Estimasi Seluruh Barang</p>
+                <p className="text-[10px] sm:text-xs text-on-surface font-semibold mt-0.5">{formatRupiah(totalAllPrice)}</p>
               </div>
             </div>
             
-            <div className="bg-success-container/10 border border-success/10 p-sm rounded-lg flex items-center gap-sm">
-              <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center text-success">
-                <span className="material-symbols-outlined text-[24px]">check_circle</span>
+            <div className="bg-success-container/10 border border-success/10 p-2 rounded-lg flex items-center gap-2">
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-success/10 flex items-center justify-center text-success shrink-0">
+                <span className="material-symbols-outlined text-[16px] sm:text-[20px]">check_circle</span>
               </div>
               <div>
-                <p className="font-label-sm text-[11px] text-success uppercase tracking-wider">Barang Sudah Diceklis</p>
-                <p className="font-h3 text-h3 text-success mt-xs">{formatRupiah(totalCheckedPrice)}</p>
+                <p className="font-label-sm text-[8px] sm:text-[9px] text-success uppercase tracking-wider">Barang Sudah Diceklis</p>
+                <p className="text-[10px] sm:text-xs text-success font-semibold mt-0.5">{formatRupiah(totalCheckedPrice)}</p>
               </div>
             </div>
 
-            <div className="bg-primary-container/20 border border-primary/10 p-sm rounded-lg flex items-center gap-sm">
-              <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined text-[24px]">pending</span>
+            <div className="bg-primary-container/20 border border-primary/10 p-2 rounded-lg flex items-center gap-2">
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-primary/15 flex items-center justify-center text-primary shrink-0">
+                <span className="material-symbols-outlined text-[16px] sm:text-[20px]">pending</span>
               </div>
               <div>
-                <p className="font-label-sm text-[11px] text-primary uppercase tracking-wider">Barang Belum Diceklis</p>
-                <p className="font-h3 text-h3 text-primary mt-xs">{formatRupiah(totalUncheckedPrice)}</p>
+                <p className="font-label-sm text-[8px] sm:text-[9px] text-primary uppercase tracking-wider">Barang Belum Diceklis</p>
+                <p className="text-[10px] sm:text-xs text-primary font-semibold mt-0.5">{formatRupiah(totalUncheckedPrice)}</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Add Button */}
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="mt-xs w-full py-md border-2 border-dashed border-primary-fixed-dim rounded-xl text-primary font-body-lg text-body-lg font-medium flex items-center justify-center gap-sm hover:bg-surface-container-low hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-container cursor-pointer"
-        >
-          <span className="material-symbols-outlined">add</span>
-          Tambah Barang
-        </button>
         {isModalOpen && <AddItemsForm onClose={() => setIsModalOpen(false)} onAddItems={handleAddItems} />}
 
         {/* Checklist Canvas */}
@@ -1039,10 +1041,10 @@ const NewRestockEntryPage: React.FC = () => {
               <div className="flex items-center gap-sm">
                 <span className="material-symbols-outlined text-error">warning</span>
                 <div>
-                  <h3 className="font-h3 text-body-lg text-on-surface font-semibold">
+                  <h3 className="text-xs text-on-surface font-semibold">
                     Barang Tidak Terdaftar ({unregisteredItems.length})
                   </h3>
-                  <p className="text-xs text-on-surface-variant font-body-sm">
+                  <p className="text-[9px] text-on-surface-variant font-body-sm">
                     Barang dari file Excel berikut tidak ditemukan di master data (katalog) dan diabaikan saat import.
                   </p>
                 </div>
@@ -1061,27 +1063,27 @@ const NewRestockEntryPage: React.FC = () => {
                   
                   <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex-grow min-w-0">
-                      <div className={`font-medium text-body-md text-on-surface truncate ${item.checked ? 'line-through opacity-60' : ''}`}>
+                      <div className={`text-xs font-medium text-on-surface truncate ${item.checked ? 'line-through opacity-60' : ''}`}>
                         {item.productName || 'Tanpa Nama'}
                       </div>
-                      <div className="text-xs text-on-surface-variant mt-xs flex flex-wrap gap-x-3 gap-y-1 items-center">
+                      <div className="text-[10px] text-on-surface-variant mt-0.5 flex flex-wrap gap-x-2 gap-y-1 items-center">
                         {item.variantName && (
-                          <span className="bg-surface-container px-2 py-0.5 rounded text-[11px] font-medium text-secondary">
+                          <span className="bg-surface-container px-1.5 py-0.5 rounded text-[9px] font-medium text-secondary">
                             Variasi: {item.variantName}
                           </span>
                         )}
                         {item.quantity !== undefined && (
-                          <span className="bg-primary-container/20 text-primary px-2 py-0.5 rounded text-[11px] font-medium">
+                          <span className="bg-primary-container/20 text-primary px-1.5 py-0.5 rounded text-[9px] font-medium">
                             Jumlah: {item.quantity} pcs
                           </span>
                         )}
                         {item.price ? (
-                          <span className="bg-success-container/20 text-success px-2 py-0.5 rounded text-[11px] font-medium">
+                          <span className="bg-success-container/20 text-success px-1.5 py-0.5 rounded text-[9px] font-medium">
                             Harga: {formatRupiah(item.price)}
                           </span>
                         ) : null}
                         {item.price && item.quantity ? (
-                          <span className="bg-outline-variant/30 text-on-surface-variant px-2 py-0.5 rounded text-[11px] font-medium">
+                          <span className="bg-outline-variant/30 text-on-surface-variant px-1.5 py-0.5 rounded text-[9px] font-medium">
                             Subtotal: {formatRupiah(item.price * item.quantity)}
                           </span>
                         ) : null}
@@ -1095,8 +1097,8 @@ const NewRestockEntryPage: React.FC = () => {
                     
                     {item.filename && (
                       <div className="flex items-center self-start sm:self-auto">
-                        <span className="bg-surface px-2 py-1 rounded text-[11px] font-mono border border-surface-variant flex items-center gap-1 text-on-surface-variant">
-                          <span className="material-symbols-outlined text-[12px] text-primary">description</span>
+                        <span className="bg-surface px-1.5 py-0.5 rounded text-[9px] font-mono border border-surface-variant flex items-center gap-1 text-on-surface-variant">
+                          <span className="material-symbols-outlined text-[10px] text-primary">description</span>
                           {item.filename}
                         </span>
                       </div>
@@ -1107,7 +1109,7 @@ const NewRestockEntryPage: React.FC = () => {
             </div>
 
             {/* Summary Banner */}
-            <div className="p-md bg-surface-container flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-surface-variant gap-4 text-sm text-on-surface font-medium">
+            <div className="p-md bg-surface-container flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-surface-variant gap-4 text-xs text-on-surface font-medium">
               <div>
                 Total Barang Tidak Terdaftar: <span className="text-primary font-bold">{unregisteredItems.length} item</span>
               </div>
@@ -1442,6 +1444,23 @@ const NewRestockEntryPage: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Floating Autosave indicator */}
+      <div className={`fixed top-[72px] right-4 sm:right-6 z-[100] flex items-center gap-1.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full shadow-md border transition-all duration-300 transform ${
+        autoSaveStatus !== 'idle'
+          ? 'opacity-100 translate-y-0 scale-100'
+          : 'opacity-0 -translate-y-4 scale-95 pointer-events-none'
+      } ${
+        autoSaveStatus === 'saving'
+          ? 'bg-surface-container text-on-surface border-surface-variant'
+          : 'bg-primary-container text-on-primary-container border-primary/20 shadow-md'
+      }`}>
+        <span className={`material-symbols-outlined text-[14px] sm:text-[16px] ${autoSaveStatus === 'saving' ? 'animate-spin' : ''}`}>
+          {autoSaveStatus === 'saving' ? 'sync' : 'check_circle'}
+        </span>
+        <span className="text-[10px] sm:text-xs font-semibold tracking-wide">
+          {autoSaveStatus === 'saving' ? 'Menyimpan...' : 'Perubahan tersimpan'}
+        </span>
+      </div>
     </>
   );
 };

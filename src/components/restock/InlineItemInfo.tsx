@@ -26,49 +26,49 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
   };
 
   return (
-    <div className="py-md border-b border-surface-variant last:border-b-0 pr-md">
-      <div className="flex flex-wrap items-center mb-md cursor-pointer gap-y-sm" onClick={onToggleExpand}>
-        <span className={`material-symbols-outlined text-on-surface-variant mr-sm transition-transform text-[20px] ${isExpanded ? 'rotate-90' : ''}`}>arrow_right</span>
+    <div className="py-2 sm:py-3 border-b border-surface-variant last:border-b-0 pr-2 sm:pr-md">
+      <div className="flex flex-wrap items-center mb-2 sm:mb-3 cursor-pointer gap-y-1 gap-x-2" onClick={onToggleExpand}>
+        <span className={`material-symbols-outlined text-on-surface-variant mr-1 transition-transform text-[16px] sm:text-[20px] ${isExpanded ? 'rotate-90' : ''}`}>arrow_right</span>
         {showCheckboxes && (
           <input 
-            className="w-4 h-4 rounded border-outline text-primary focus:ring-primary-container mr-sm bg-surface-container-lowest cursor-pointer" 
+            className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-outline text-primary focus:ring-primary-container mr-1 bg-surface-container-lowest cursor-pointer" 
             type="checkbox" 
             checked={isChecked}
             onChange={() => onToggleCheck && onToggleCheck()}
             onClick={e => e.stopPropagation()} 
           />
         )}
-        <h3 className={`font-label-sm sm:font-body-lg text-label-sm sm:text-body-lg text-on-surface ${isExpanded ? 'font-medium' : ''}`}>{variant.name}</h3>
+        <h3 className={`text-xs sm:text-sm text-on-surface ${isExpanded ? 'font-medium' : ''}`}>{variant.name}</h3>
         
-        <div className={`flex items-center gap-xs px-sm py-xs rounded-full sm:ml-md w-fit ${variant.outOfStock ? 'bg-error-container border border-error/20' : 'bg-surface-container'}`}>
-          <span className={`w-2 h-2 rounded-full ${variant.color || 'bg-primary-fixed-dim'}`}></span>
-          <span className={`font-label-md text-label-md ${variant.outOfStock ? 'text-on-error-container' : 'text-on-surface-variant'}`}>
+        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full sm:ml-2 w-fit ${variant.outOfStock ? 'bg-error-container border border-error/20' : 'bg-surface-container'}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${variant.color || 'bg-primary-fixed-dim'}`}></span>
+          <span className={`text-[10px] sm:text-xs font-medium ${variant.outOfStock ? 'text-on-error-container' : 'text-on-surface-variant'}`}>
             {variant.outOfStock ? 'Habis' : `Stok: ${variant.stock}`}
           </span>
         </div>
         
         {variant.targetQuantity !== undefined && (
           <div 
-            className="flex items-center gap-xs pl-sm pr-xs py-xs rounded-full ml-sm bg-secondary-container"
+            className="flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full ml-1 bg-secondary-container"
             onClick={e => e.stopPropagation()}
           >
-            <span className="material-symbols-outlined text-[14px] text-on-secondary-container">shopping_cart</span>
-            <span className="font-label-md text-label-md text-on-secondary-container mr-xs">Dicari:</span>
+            <span className="material-symbols-outlined text-[12px] sm:text-[14px] text-on-secondary-container">shopping_cart</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-on-secondary-container mr-0.5">Dicari:</span>
             {!readOnly && (
               <button 
-                className="flex items-center justify-center w-5 h-5 rounded-full hover:bg-on-secondary-container/10 text-on-secondary-container transition-colors active:bg-on-secondary-container/20"
+                className="flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full hover:bg-on-secondary-container/10 text-on-secondary-container transition-colors active:bg-on-secondary-container/20"
                 onClick={() => onChangeTargetQuantity?.(Math.max(0, (variant.targetQuantity || 0) - 1))}
                 type="button"
               >
-                <span className="material-symbols-outlined text-[16px]">remove</span>
+                <span className="material-symbols-outlined text-[14px] sm:text-[16px]">remove</span>
               </button>
             )}
             {readOnly ? (
-              <span className="w-8 text-on-secondary-container font-label-md text-label-md text-center">{variant.targetQuantity}</span>
+              <span className="w-6 sm:w-8 text-on-secondary-container text-[10px] sm:text-xs font-semibold text-center">{variant.targetQuantity}</span>
             ) : (
               <input 
                 type="number" 
-                className="w-8 bg-transparent text-on-secondary-container font-label-md text-label-md outline-none border-b border-transparent focus:border-on-secondary-container/50 text-center custom-number-input"
+                className="w-6 sm:w-8 bg-transparent text-on-secondary-container text-[10px] sm:text-xs font-semibold outline-none border-b border-transparent focus:border-on-secondary-container/50 text-center custom-number-input"
                 value={variant.targetQuantity}
                 onChange={e => onChangeTargetQuantity?.(Number(e.target.value))}
                 min="0"
@@ -76,22 +76,22 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
             )}
             {!readOnly && (
               <button 
-                className="flex items-center justify-center w-5 h-5 rounded-full hover:bg-on-secondary-container/10 text-on-secondary-container transition-colors active:bg-on-secondary-container/20"
+                className="flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full hover:bg-on-secondary-container/10 text-on-secondary-container transition-colors active:bg-on-secondary-container/20"
                 onClick={() => onChangeTargetQuantity?.((variant.targetQuantity || 0) + 1)}
                 type="button"
               >
-                <span className="material-symbols-outlined text-[16px]">add</span>
+                <span className="material-symbols-outlined text-[14px] sm:text-[16px]">add</span>
               </button>
             )}
           </div>
         )}
 
         {variant.price !== undefined && (
-          <div className="flex items-center gap-xs ml-sm text-body-sm text-on-surface-variant flex-wrap">
-            <span className="font-medium text-on-surface">{formatRupiah(variant.price)}</span>
+          <div className="flex items-center gap-1 ml-1.5 text-[11px] sm:text-xs text-on-surface-variant flex-wrap">
+            <span className="font-semibold text-on-surface">{formatRupiah(variant.price)}</span>
             {variant.targetQuantity !== undefined && variant.targetQuantity > 0 && (
-              <span className="text-xs text-on-surface-variant/70">
-                × {variant.targetQuantity} = <span className="font-semibold text-primary">{formatRupiah(variant.price * variant.targetQuantity)}</span>
+              <span className="text-[10px] sm:text-[11px] text-on-surface-variant/70">
+                × {variant.targetQuantity} = <span className="font-bold text-primary">{formatRupiah(variant.price * variant.targetQuantity)}</span>
               </span>
             )}
           </div>
@@ -101,11 +101,11 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
           {onDelete && !readOnly && (
             <button
               onClick={handleDeleteClick}
-              className="flex items-center justify-center w-8 h-8 rounded-full text-on-surface-variant hover:bg-error-container hover:text-on-error-container transition-colors"
+              className="flex items-center justify-center w-7 h-7 rounded-full text-on-surface-variant hover:bg-error-container hover:text-on-error-container transition-colors"
               title="Hapus Varian"
               type="button"
             >
-              <span className="material-symbols-outlined text-[18px]">delete</span>
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">delete</span>
             </button>
           )}
         </div>

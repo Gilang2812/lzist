@@ -3,6 +3,10 @@
 
 @import "tailwindcss";
 
+html {
+  scrollbar-gutter: stable;
+}
+
 @theme {
   --color-tertiary-fixed-dim: #6bd8cb;
   --color-surface-container-high: #e7e8e9;

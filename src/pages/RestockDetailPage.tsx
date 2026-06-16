@@ -642,7 +642,7 @@ const RestockDetailPage: React.FC = () => {
 
   return (
     <>
-      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl overflow-x-hidden">
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-4 sm:py-6 w-full flex flex-col gap-4 sm:gap-6 overflow-x-hidden">
         {/* Action Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border-y border-surface-variant p-md rounded-lg shadow-sm gap-sm">
           <div className="flex-grow min-w-0">
@@ -650,9 +650,20 @@ const RestockDetailPage: React.FC = () => {
               {list ? list.title : "Daftar restock"}
             </h2>
             {list && (
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">
-                {list.categories.reduce((acc, cat) => acc + cat.variants.length, 0)} item · Kelola daftar belanja restock.
-              </p>
+              <div className="flex items-center gap-2 mt-xs flex-wrap">
+                <p className="font-body-sm text-body-sm text-on-surface-variant">
+                  {list.categories.reduce((acc, cat) => acc + cat.variants.length, 0)} item · Kelola daftar belanja restock.
+                </p>
+                {isEditing && (
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary rounded-lg text-xs font-semibold hover:bg-primary/90 transition-colors cursor-pointer shadow-sm"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">add</span>
+                    Tambah Barang
+                  </button>
+                )}
+              </div>
             )}
           </div>
           <div className="flex gap-sm self-end sm:self-auto flex-wrap">
@@ -772,7 +783,7 @@ const RestockDetailPage: React.FC = () => {
             >
               <div className="flex items-center gap-sm">
                 <span className="material-symbols-outlined text-primary">history</span>
-                <h3 className="font-label-lg text-on-surface">File yang Diimpor ({list.importHistory.length})</h3>
+                <h3 className="text-xs font-semibold text-on-surface">File yang Diimpor ({list.importHistory.length})</h3>
               </div>
               <span className={`material-symbols-outlined transition-transform ${isImportListOpen ? 'rotate-180' : ''}`}>expand_more</span>
             </button>
@@ -788,11 +799,11 @@ const RestockDetailPage: React.FC = () => {
                       onClick={() => setImportDetailsModal({ isOpen: true, record: h })}
                     >
                       <div className="flex flex-col">
-                        <span className="font-label-md text-on-surface flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[16px] text-primary">description</span>
+                        <span className="text-xs font-medium text-on-surface flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[14px] text-primary">description</span>
                           {h.filename}
                         </span>
-                        <span className="text-[10px] text-on-surface-variant opacity-60">
+                        <span className="text-[9px] text-on-surface-variant opacity-60">
                           {new Date(h.importedAt).toLocaleString('id-ID')}
                         </span>
                       </div>
@@ -829,8 +840,8 @@ const RestockDetailPage: React.FC = () => {
                 <span className="material-symbols-outlined text-[24px]">payments</span>
               </div>
               <div>
-                <p className="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-wider">Estimasi Seluruh Barang</p>
-                <p className="font-h3 text-h3 text-on-surface mt-xs">{formatRupiah(totalAllPrice)}</p>
+                <p className="font-label-sm text-[9px] text-on-surface-variant uppercase tracking-wider">Estimasi Seluruh Barang</p>
+                <p className="text-xs font-semibold text-on-surface mt-xs">{formatRupiah(totalAllPrice)}</p>
               </div>
             </div>
             
@@ -839,8 +850,8 @@ const RestockDetailPage: React.FC = () => {
                 <span className="material-symbols-outlined text-[24px]">check_circle</span>
               </div>
               <div>
-                <p className="font-label-sm text-[11px] text-success uppercase tracking-wider">Barang Sudah Diceklis</p>
-                <p className="font-h3 text-h3 text-success mt-xs">{formatRupiah(totalCheckedPrice)}</p>
+                <p className="font-label-sm text-[9px] text-success uppercase tracking-wider">Barang Sudah Diceklis</p>
+                <p className="text-xs font-semibold text-success mt-xs">{formatRupiah(totalCheckedPrice)}</p>
               </div>
             </div>
 
@@ -849,22 +860,11 @@ const RestockDetailPage: React.FC = () => {
                 <span className="material-symbols-outlined text-[24px]">pending</span>
               </div>
               <div>
-                <p className="font-label-sm text-[11px] text-primary uppercase tracking-wider">Barang Belum Diceklis</p>
-                <p className="font-h3 text-h3 text-primary mt-xs">{formatRupiah(totalUncheckedPrice)}</p>
+                <p className="font-label-sm text-[9px] text-primary uppercase tracking-wider">Barang Belum Diceklis</p>
+                <p className="text-xs font-semibold text-primary mt-xs">{formatRupiah(totalUncheckedPrice)}</p>
               </div>
             </div>
           </div>
-        )}
-
-        {/* Add Button */}
-        {isEditing && (
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="mt-xs w-full py-md border-2 border-dashed border-primary-fixed-dim rounded-xl text-primary font-body-lg text-body-lg font-medium flex items-center justify-center gap-sm hover:bg-surface-container-low hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-container cursor-pointer"
-          >
-            <span className="material-symbols-outlined">add</span>
-            Tambah Barang
-          </button>
         )}
 
         {/* Checklist Canvas */}
@@ -917,10 +917,10 @@ const RestockDetailPage: React.FC = () => {
               <div className="flex items-center gap-sm">
                 <span className="material-symbols-outlined text-error">warning</span>
                 <div>
-                  <h3 className="font-h3 text-body-lg text-on-surface font-semibold">
+                  <h3 className="text-xs text-on-surface font-semibold">
                     Barang Tidak Terdaftar ({unregisteredItems.length})
                   </h3>
-                  <p className="text-xs text-on-surface-variant font-body-sm">
+                  <p className="text-[9px] text-on-surface-variant font-body-sm">
                     Barang dari file Excel berikut tidak ditemukan di master data (katalog) dan diabaikan saat import.
                   </p>
                 </div>
@@ -939,27 +939,27 @@ const RestockDetailPage: React.FC = () => {
                   
                   <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex-grow min-w-0">
-                      <div className={`font-medium text-body-md text-on-surface truncate ${item.checked ? 'line-through opacity-60' : ''}`}>
+                      <div className={`text-xs font-medium text-on-surface truncate ${item.checked ? 'line-through opacity-60' : ''}`}>
                         {item.productName || 'Tanpa Nama'}
                       </div>
-                      <div className="text-xs text-on-surface-variant mt-xs flex flex-wrap gap-x-3 gap-y-1 items-center">
+                      <div className="text-[10px] text-on-surface-variant mt-0.5 flex flex-wrap gap-x-2 gap-y-1 items-center">
                         {item.variantName && (
-                          <span className="bg-surface-container px-2 py-0.5 rounded text-[11px] font-medium text-secondary">
+                          <span className="bg-surface-container px-1.5 py-0.5 rounded text-[9px] font-medium text-secondary">
                             Variasi: {item.variantName}
                           </span>
                         )}
                         {item.quantity !== undefined && (
-                          <span className="bg-primary-container/20 text-primary px-2 py-0.5 rounded text-[11px] font-medium">
+                          <span className="bg-primary-container/20 text-primary px-1.5 py-0.5 rounded text-[9px] font-medium">
                             Jumlah: {item.quantity} pcs
                           </span>
                         )}
                         {item.price ? (
-                          <span className="bg-success-container/20 text-success px-2 py-0.5 rounded text-[11px] font-medium">
+                          <span className="bg-success-container/20 text-success px-1.5 py-0.5 rounded text-[9px] font-medium">
                             Harga: {formatRupiah(item.price)}
                           </span>
                         ) : null}
                         {item.price && item.quantity ? (
-                          <span className="bg-outline-variant/30 text-on-surface-variant px-2 py-0.5 rounded text-[11px] font-medium">
+                          <span className="bg-outline-variant/30 text-on-surface-variant px-1.5 py-0.5 rounded text-[9px] font-medium">
                             Subtotal: {formatRupiah(item.price * item.quantity)}
                           </span>
                         ) : null}
@@ -973,8 +973,8 @@ const RestockDetailPage: React.FC = () => {
                     
                     {item.filename && (
                       <div className="flex items-center self-start sm:self-auto">
-                        <span className="bg-surface px-2 py-1 rounded text-[11px] font-mono border border-surface-variant flex items-center gap-1 text-on-surface-variant">
-                          <span className="material-symbols-outlined text-[12px] text-primary">description</span>
+                        <span className="bg-surface px-1.5 py-0.5 rounded text-[9px] font-mono border border-surface-variant flex items-center gap-1 text-on-surface-variant">
+                          <span className="material-symbols-outlined text-[10px] text-primary">description</span>
                           {item.filename}
                         </span>
                       </div>
@@ -985,7 +985,7 @@ const RestockDetailPage: React.FC = () => {
             </div>
 
             {/* Summary Banner */}
-            <div className="p-md bg-surface-container flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-surface-variant gap-4 text-sm text-on-surface font-medium">
+            <div className="p-md bg-surface-container flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-surface-variant gap-4 text-xs text-on-surface font-medium">
               <div>
                 Total Barang Tidak Terdaftar: <span className="text-primary font-bold">{unregisteredItems.length} item</span>
               </div>
