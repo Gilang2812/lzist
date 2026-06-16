@@ -942,9 +942,6 @@ const NewRestockEntryPage: React.FC = () => {
                           <span className="material-symbols-outlined text-[14px] text-primary">description</span>
                           {h.filename}
                         </span>
-                        <span className="text-[9px] text-on-surface-variant opacity-60">
-                          {new Date(h.importedAt).toLocaleString('id-ID')}
-                        </span>
                       </div>
                       <button 
                         onClick={(e) => {
