@@ -19,7 +19,7 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen = false, onClose }) => {
           onClick={onClose} 
         />
       )}
-      <aside className={`fixed left-0 top-0 flex flex-col h-full py-6 px-4 w-64 border-r bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 shadow-sm dark:shadow-none z-50 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+      <aside className={`fixed left-0 top-0 flex flex-col h-full py-6 px-4 w-64  bg-white rounded dark:shadow-none z-50 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
       <div className="flex items-center gap-3 px-2 mb-8">
         <div className="w-10 h-10 rounded-lg bg-teal-500 flex items-center justify-center text-white">
           <span className="material-symbols-outlined">inventory_2</span>
@@ -64,7 +64,7 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen = false, onClose }) => {
           <div className="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
             <span className="material-symbols-outlined text-teal-600">person</span>
           </div>
-          <div className="flex-grow overflow-hidden">
+          <div className="grow overflow-hidden">
             <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">Admin User</p>
             <p className="text-xs text-gray-500 truncate">admin@lzist.com</p>
           </div>

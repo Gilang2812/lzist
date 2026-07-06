@@ -94,9 +94,8 @@ const RestockDetailPage: React.FC = () => {
     };
   }, [unregisteredItems]);
 
-  const [copySuccess, setCopySuccess] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isImportListOpen, setIsImportListOpen] = useState(true);
+  const [isImportListOpen, setIsImportListOpen] = useState(false);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPasting, setIsPasting] = useState(false);
@@ -206,18 +205,20 @@ const RestockDetailPage: React.FC = () => {
     });
   };
 
-  const handleCopy = () => {
-    const dataToCopy = {
+  const handleExportTxt = () => {
+    const dataToExport = {
       categories: checklist,
       importedFiles: list?.importedFiles || [],
       importHistory: list?.importHistory || []
     };
-    navigator.clipboard.writeText(JSON.stringify(dataToCopy, null, 2))
-      .then(() => {
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
-      })
-      .catch(err => console.error("Failed to copy", err));
+    const jsonString = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([jsonString], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `restock_backup_${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const updateListInDb = async (newCategories: Category[], newImportedFiles?: string[], newImportHistory?: ImportRecord[]) => {
@@ -718,14 +719,14 @@ const RestockDetailPage: React.FC = () => {
               </span>
             </button>
             <button 
-              onClick={handleCopy}
+              onClick={handleExportTxt}
               className="flex items-center gap-xs text-primary hover:bg-surface-container px-sm py-xs rounded-md transition-colors border border-transparent hover:border-surface-variant cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">
-                {copySuccess ? 'check' : 'content_copy'}
+                download
               </span>
               <span className="font-label-md text-label-md">
-                {copySuccess ? 'Copied!' : 'Copy'}
+                Export TXT
               </span>
             </button>
           </div>
@@ -738,12 +739,29 @@ const RestockDetailPage: React.FC = () => {
               Paste JSON Data
               <span className="text-xs font-normal text-on-surface-variant border border-surface-variant px-2 py-0.5 rounded-full">Format Array of Category</span>
             </label>
-            <textarea 
-              className="w-full h-40 p-sm bg-surface rounded-md border border-outline focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow font-mono text-sm text-on-surface resize-y"
-              value={pasteContent}
-              onChange={e => setPasteContent(e.target.value)}
-              placeholder="[\n  {\n    &#34;id&#34;: &#34;c1&#34;,\n    &#34;name&#34;: &#34;Category Name&#34;,\n    &#34;variants&#34;: []\n  }\n]"
-            />
+            <div className="relative">
+              <textarea 
+                className="w-full h-40 p-sm bg-surface rounded-md border border-outline focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow font-mono text-sm text-on-surface resize-y"
+                value={pasteContent}
+                onChange={e => setPasteContent(e.target.value)}
+                placeholder="input json here"
+              />
+              <button
+                onClick={async () => {
+                  try {
+                    const text = await navigator.clipboard.readText();
+                    setPasteContent(text);
+                  } catch (err) {
+                    console.error("Failed to read clipboard contents: ", err);
+                    alert("Gagal membaca clipboard. Pastikan browser memberikan izin.");
+                  }
+                }}
+                className="absolute top-2 right-2 p-1.5 bg-surface-container hover:bg-surface-variant text-on-surface rounded-md border border-outline/50 shadow-sm flex items-center justify-center transition-colors cursor-pointer"
+                title="Paste from Clipboard"
+              >
+                <span className="material-symbols-outlined text-[18px]">content_paste_go</span>
+              </button>
+            </div>
             {pasteError && (
               <p className="text-error text-sm font-medium">{pasteError}</p>
             )}

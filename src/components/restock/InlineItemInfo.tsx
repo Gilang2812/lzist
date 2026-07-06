@@ -26,25 +26,24 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
   };
 
   return (
-    <div className="py-2 sm:py-3 border-b border-surface-variant last:border-b-0 pr-2 sm:pr-md">
-      <div className="flex flex-wrap items-center mb-2 sm:mb-3 cursor-pointer gap-y-1 gap-x-2" onClick={onToggleExpand}>
-        <span className={`material-symbols-outlined text-on-surface-variant mr-1 transition-transform text-[16px] sm:text-[20px] ${isExpanded ? 'rotate-90' : ''}`}>arrow_right</span>
-        {showCheckboxes && (
+    <div className="py-1 sm:py-1 border-b border-surface-variant last:border-b-0 pr-2 sm:pr-md">
+      <div className="flex flex-wrap items-center mb-1 sm:mb-1 cursor-pointer gap-y-1 gap-x-2" onClick={onToggleExpand}>
+         {showCheckboxes && (
           <input 
-            className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-outline text-primary focus:ring-primary-container mr-1 bg-surface-container-lowest cursor-pointer" 
+            className="w-4 h-4   sm:w-5 sm:h-5 rounded border-outline text-primary focus:ring-primary-container  bg-surface-container-lowest cursor-pointer" 
             type="checkbox" 
             checked={isChecked}
             onChange={() => onToggleCheck && onToggleCheck()}
             onClick={e => e.stopPropagation()} 
           />
         )}
-        <h3 className={`text-xs sm:text-sm text-on-surface ${isExpanded ? 'font-medium' : ''}`}>{variant.name}</h3>
+        <h3 className={`text-xs    text-on-surface ${isExpanded ? 'font-medium' : ''}`}>{variant.name}</h3>
         
 
         
         {variant.targetQuantity !== undefined && (
           <div 
-            className="flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-full ml-1 bg-secondary-container"
+            className="flex items-center gap-1   pr-1.5 py-0.5 rounded-full ml-1 bg-secondary-container"
             onClick={e => e.stopPropagation()}
           >
             {!readOnly && (
@@ -97,7 +96,7 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
       
       {/* Expanded Content */}
       {isExpanded && variant.images && (
-        <div className="pl-[28px] sm:pl-[44px]">
+        <div className="">
           <ImageGalleryRow images={variant.images} altPrefix={variant.name} onImageClick={onImageClick} />
         </div>
       )}

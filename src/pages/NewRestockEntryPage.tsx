@@ -19,7 +19,7 @@ interface ImportSummary {
 }
 
 const AUTOSAVE_DEBOUNCE_MS = 1500;
- 
+
 interface RestockState {
   categories: Category[];
   importedFiles: string[];
@@ -27,13 +27,15 @@ interface RestockState {
 }
 
 const NewRestockEntryPage: React.FC = () => {
-  const { 
-    state: { categories: checklist, importedFiles, importHistory }, 
-    setState, 
-    undo, 
-    redo, 
-    canUndo, 
-    canRedo 
+  const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  const {
+    state: { categories: checklist, importedFiles, importHistory },
+    setState,
+    undo,
+    redo,
+    canUndo,
+    canRedo
   } = useUndoableState<RestockState>({ categories: [], importedFiles: [], importHistory: [] });
 
   const setChecklist = useCallback((updater: Category[] | ((prev: Category[]) => Category[])) => {
@@ -44,7 +46,7 @@ const NewRestockEntryPage: React.FC = () => {
   }, [setState]);
 
 
-  const [isImportListOpen, setIsImportListOpen] = useState(true);
+  const [isImportListOpen, setIsImportListOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
@@ -110,8 +112,8 @@ const NewRestockEntryPage: React.FC = () => {
         uncheckedTotal += cost;
       }
     });
-    return { 
-      totalUnregisteredPrice: total, 
+    return {
+      totalUnregisteredPrice: total,
       totalCheckedUnregisteredPrice: checkedTotal,
       totalUncheckedUnregisteredPrice: uncheckedTotal
     };
@@ -121,21 +123,20 @@ const NewRestockEntryPage: React.FC = () => {
   const [isPasting, setIsPasting] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
   const [pasteError, setPasteError] = useState<string | null>(null);
-  const [copySuccess, setCopySuccess] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   // remove saveConflictModal state
   const [deleteModal, setDeleteModal] = useState<{
-    isOpen: boolean, 
+    isOpen: boolean,
     idToClear: string | 'all' | 'bulk' | 'import' | null,
     importId?: string,
     filename?: string
-  }>({isOpen: false, idToClear: null});
+  }>({ isOpen: false, idToClear: null });
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   const [importSummary, setImportSummary] = useState<ImportSummary>({ isOpen: false, matched: [], unmatched: [] });
   const [importDetailsModal, setImportDetailsModal] = useState<{ isOpen: boolean, record: ImportRecord | null }>({ isOpen: false, record: null });
   const [currentListId, setCurrentListId] = useState<string | null>(null);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstRender = useRef(true);
@@ -146,13 +147,12 @@ const NewRestockEntryPage: React.FC = () => {
     try {
       const id = currentListId || `restock-${Date.now()}`;
       if (!currentListId) setCurrentListId(id);
-
       const existing = await db.restockLists.get(id);
 
       setAutoSaveStatus('saving');
       const newList: RestockList = {
         id,
-        title: existing?.title || `Restock List`,
+        title: existing?.title || `Restock List ${today}`,
         categories: data,
         importedFiles,
         importHistory,
@@ -232,7 +232,7 @@ const NewRestockEntryPage: React.FC = () => {
       if (c.id === categoryId) {
         return {
           ...c,
-          variants: c.variants.map(v => 
+          variants: c.variants.map(v =>
             v.id === variantId ? { ...v, targetQuantity: quantity } : v
           )
         };
@@ -303,7 +303,7 @@ const NewRestockEntryPage: React.FC = () => {
     if (availableVariants.length === 0) return;
 
     setChecklist(prev => {
-      const isAllChecked = availableVariants.every(variant => 
+      const isAllChecked = availableVariants.every(variant =>
         prev.find(c => c.id === category.id)?.variants.find(v => v.id === variant.id)?.checked
       );
 
@@ -324,18 +324,20 @@ const NewRestockEntryPage: React.FC = () => {
     setDeleteModal({ isOpen: true, idToClear: 'bulk' });
   };
 
-  const handleCopy = () => {
-    const dataToCopy = {
+  const handleExportTxt = () => {
+    const dataToExport = {
       categories: checklist,
       importedFiles: importedFiles || [],
       importHistory: importHistory || []
     };
-    navigator.clipboard.writeText(JSON.stringify(dataToCopy, null, 2))
-      .then(() => {
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
-      })
-      .catch(err => console.error("Failed to copy", err));
+    const jsonString = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([jsonString], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `restock_backup_${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleReplace = () => {
@@ -373,7 +375,7 @@ const NewRestockEntryPage: React.FC = () => {
         setPasteContent('');
       } else if (parsed && Array.isArray(parsed.categories)) {
         handleAddItems(parsed.categories);
-        
+
         if (parsed.importHistory) {
           setState(prev => {
             const existingIds = new Set(prev.importHistory.map(h => h.id));
@@ -409,7 +411,7 @@ const NewRestockEntryPage: React.FC = () => {
         if (existingCatIndex >= 0) {
           const existingCat = { ...updated[existingCatIndex] };
           const existingVariants = [...existingCat.variants];
-          
+
           newCat.variants.forEach(newVar => {
             const existingVarIndex = existingVariants.findIndex(v => v.id === newVar.id);
             if (existingVarIndex >= 0) {
@@ -498,7 +500,7 @@ const NewRestockEntryPage: React.FC = () => {
               if (!cat.uniqueKeyword) return false;
               const nKeyword = normalize(cat.uniqueKeyword);
               return nProduct.includes(nKeyword) &&
-                     cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase());
+                cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase());
             });
 
             if (keywordMatch) {
@@ -509,7 +511,7 @@ const NewRestockEntryPage: React.FC = () => {
               for (const cat of catalogData) {
                 const nName = normalize(cat.name);
                 if (nProduct.includes(nName) &&
-                    cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase())) {
+                  cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase())) {
                   if (nName.length > longestMatchLen) {
                     longestMatchLen = nName.length;
                     bestCategoryMatch = cat;
@@ -526,7 +528,7 @@ const NewRestockEntryPage: React.FC = () => {
                 const nKeyword = normalize(cat.uniqueKeyword);
                 return nProduct.includes(nKeyword);
               });
-              
+
               // 2. Fallback: Try matching by product name (consecutive words, longest match)
               if (!matchingCat) {
                 let longestMatchLen = 0;
@@ -548,14 +550,14 @@ const NewRestockEntryPage: React.FC = () => {
                 }
               }
 
-              const unmatched: UnmatchedRow = { 
-                productName, 
-                variantName, 
-                quantity, 
+              const unmatched: UnmatchedRow = {
+                productName,
+                variantName,
+                quantity,
                 price: matchedPrice,
                 checked: false,
-                reason: 'Produk tidak ditemukan di master data', 
-                filename 
+                reason: 'Produk tidak ditemukan di master data',
+                filename
               };
               allUnmatchedRows.push(unmatched);
               fileUnmatchedRows.push(unmatched);
@@ -564,26 +566,26 @@ const NewRestockEntryPage: React.FC = () => {
 
             const initialVariant = bestCategoryMatch.variants.find(v => v.name.toLowerCase() === variantName.toLowerCase());
             if (!initialVariant) {
-               let matchedPrice = 0;
-               if (bestCategoryMatch.variants.length > 0) {
-                 const firstVarWithPrice = bestCategoryMatch.variants.find(v => v.price && v.price > 0) || bestCategoryMatch.variants[0];
-                 if (firstVarWithPrice && firstVarWithPrice.price) {
-                   matchedPrice = firstVarWithPrice.price;
-                 }
-               }
+              let matchedPrice = 0;
+              if (bestCategoryMatch.variants.length > 0) {
+                const firstVarWithPrice = bestCategoryMatch.variants.find(v => v.price && v.price > 0) || bestCategoryMatch.variants[0];
+                if (firstVarWithPrice && firstVarWithPrice.price) {
+                  matchedPrice = firstVarWithPrice.price;
+                }
+              }
 
-               const unmatched: UnmatchedRow = { 
-                 productName, 
-                 variantName, 
-                 quantity, 
-                 price: matchedPrice,
-                 checked: false,
-                 reason: `Varian '${variantName}' tidak ditemukan di produk ${bestCategoryMatch.name}`, 
-                 filename 
-               };
-               allUnmatchedRows.push(unmatched);
-               fileUnmatchedRows.push(unmatched);
-               return;
+              const unmatched: UnmatchedRow = {
+                productName,
+                variantName,
+                quantity,
+                price: matchedPrice,
+                checked: false,
+                reason: `Varian '${variantName}' tidak ditemukan di produk ${bestCategoryMatch.name}`,
+                filename
+              };
+              allUnmatchedRows.push(unmatched);
+              fileUnmatchedRows.push(unmatched);
+              return;
             }
 
             const itemId = bestCategoryMatch.id;
@@ -665,12 +667,12 @@ const NewRestockEntryPage: React.FC = () => {
 
   const handleSave = async () => {
     if (checklist.length === 0) return;
-    
+
     const id = currentListId || `restock-${Date.now()}`;
     if (!currentListId) setCurrentListId(id);
-    
+
     const existing = await db.restockLists.get(id);
-    
+
     const newList: RestockList = {
       id,
       title: existing ? existing.title : `Restock List`,
@@ -691,15 +693,15 @@ const NewRestockEntryPage: React.FC = () => {
       if (!recordToDelete) return prev;
 
       const newHistory = prev.importHistory.filter(r => r.id !== importId);
-      
+
       const newCategories = [...prev.categories];
-      
+
       recordToDelete.categories.forEach((importCat: Category) => {
         const catIndex = newCategories.findIndex(c => c.id === importCat.id);
         if (catIndex >= 0) {
           const category = { ...newCategories[catIndex] };
           const variants = [...category.variants];
-          
+
           importCat.variants.forEach((importVar: Variant) => {
             const varIndex = variants.findIndex(v => v.id === importVar.id);
             if (varIndex >= 0) {
@@ -712,7 +714,7 @@ const NewRestockEntryPage: React.FC = () => {
               }
             }
           });
-          
+
           if (variants.length === 0) {
             newCategories.splice(catIndex, 1);
           } else {
@@ -733,11 +735,11 @@ const NewRestockEntryPage: React.FC = () => {
 
   return (
     <>
-      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-4 sm:py-6 w-full flex flex-col gap-4 sm:gap-6 overflow-x-hidden">
+      <main className="max-w-lx4 mx-auto px-3 sm:px-3 py-1 sm:py-4 w-full flex flex-col gap-2 sm:gap-3 overflow-x-hidden bg-slate-100 rounded-lg">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-sm pb-xs border-b border-surface-variant/30">
           <div>
-            <h1 className="text-base sm:text-xl text-on-surface font-semibold">Entry Restock Baru</h1>
+            <h1 className="text-base sm:text-base text-on-surface font-semibold">Entry Restock {`${today}`}</h1>
             <p className="text-[11px] sm:text-xs text-on-surface-variant mt-xs">
               List entry baru untuk restock barang.
             </p>
@@ -745,13 +747,13 @@ const NewRestockEntryPage: React.FC = () => {
           <div className="flex items-center gap-2 self-start sm:self-auto mt-2 sm:mt-0">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-1 px-3 py-1.5 bg-primary text-on-primary rounded-lg text-xs font-semibold hover:bg-primary/90 transition-colors cursor-pointer shadow-sm"
+              className="flex items-center gap-1 px-3 py-1.5 bg-primary text-on-primary rounded-lg text-xs font-semibold hover:bg-primary/90 transition-colors cursor-pointer "
             >
               <span className="material-symbols-outlined text-[16px]">add</span>
               Tambah Barang
             </button>
             {checklist.length > 0 && (
-              <div className="flex items-center gap-xs bg-surface-container-high px-2.5 py-[2px] rounded-full border border-surface-variant/40">
+              <div className="flex items-center gap-xs bg-surface-container-high px-2.5 py-[2px] rounded-full border-surface-variant/40">
                 <span className="material-symbols-outlined text-[14px] sm:text-[16px] text-primary">inventory_2</span>
                 <span className="text-[10px] sm:text-[11px] text-on-surface font-semibold">
                   {checklist.reduce((acc, cat) => acc + cat.variants.length, 0)} Item
@@ -762,19 +764,18 @@ const NewRestockEntryPage: React.FC = () => {
         </div>
 
         {/* Action Bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border border-surface-variant p-2 rounded-xl shadow-sm gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white  p-2 rounded-xl  gap-2">
           <div className="flex items-center gap-1.5 flex-wrap">
             {/* Undo / Redo */}
-            <div className="flex items-center border border-surface-variant rounded-md overflow-hidden bg-surface-container-low">
+            <div className="flex items-center rounded-md overflow-hidden bg-white">
               <button
                 onClick={undo}
                 disabled={!canUndo}
                 title="Undo (Ctrl+Z)"
-                className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 transition-colors cursor-pointer ${
-                  canUndo
-                    ? 'text-primary hover:bg-surface-container'
-                    : 'text-on-surface-variant/30 cursor-not-allowed'
-                }`}
+                className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 transition-colors cursor-pointer ${canUndo
+                  ? 'text-primary hover:bg-surface-container'
+                  : 'text-on-surface-variant/30 cursor-not-allowed'
+                  }`}
               >
                 <span className="material-symbols-outlined text-[16px] sm:text-[18px]">undo</span>
               </button>
@@ -783,28 +784,27 @@ const NewRestockEntryPage: React.FC = () => {
                 onClick={redo}
                 disabled={!canRedo}
                 title="Redo (Ctrl+Y)"
-                className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 transition-colors cursor-pointer ${
-                  canRedo
-                    ? 'text-primary hover:bg-surface-container'
-                    : 'text-on-surface-variant/30 cursor-not-allowed'
-                }`}
+                className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 transition-colors cursor-pointer ${canRedo
+                  ? 'text-primary hover:bg-surface-container'
+                  : 'text-on-surface-variant/30 cursor-not-allowed'
+                  }`}
               >
                 <span className="material-symbols-outlined text-[16px] sm:text-[18px]">redo</span>
               </button>
             </div>
             {checkedVariants.size > 0 && (
-              <button 
+              <button
                 onClick={handleBulkDelete}
-                className="flex items-center gap-1 px-2 py-1 rounded-md transition-colors border cursor-pointer text-error hover:bg-error/10 border-transparent hover:border-error/20"
+                className="flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer text-error hover:bg-error/10 border-transparent hover:border-error/20"
               >
                 <span className="material-symbols-outlined text-[16px] sm:text-[18px]">delete</span>
                 <span className="text-[11px] sm:text-xs font-semibold">Hapus ({checkedVariants.size})</span>
               </button>
             )}
             {checklist.length > 0 && (
-              <button 
+              <button
                 onClick={() => setDeleteModal({ isOpen: true, idToClear: 'all' })}
-                className="flex items-center gap-1 px-2 py-1 rounded-md transition-colors border border-transparent hover:border-error/20 cursor-pointer text-error hover:bg-error/10"
+                className="flex items-center gap-1 px-2 py-1 rounded-md transition-colors border-transparent hover:border-error/20 cursor-pointer text-error hover:bg-error/10"
               >
                 <span className="material-symbols-outlined text-[16px] sm:text-[18px]">delete_sweep</span>
                 <span className="text-[11px] sm:text-xs font-semibold">Clear All</span>
@@ -812,53 +812,51 @@ const NewRestockEntryPage: React.FC = () => {
             )}
           </div>
           <div className="flex gap-1.5 self-end sm:self-auto flex-wrap items-center">
-            <button 
-              onClick={handleCopy}
-              className="flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border border-transparent hover:border-surface-variant cursor-pointer"
+            <button
+              onClick={handleExportTxt}
+              className="flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border-transparent hover:border-surface-variant cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px] sm:text-[18px]">
-                {copySuccess ? 'check' : 'content_copy'}
+                download
               </span>
               <span className="text-[11px] sm:text-xs font-semibold">
-                {copySuccess ? 'Copied!' : 'Copy'}
+                Export TXT
               </span>
             </button>
-            <button 
+            <button
               onClick={() => setIsPasting(!isPasting)}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors border cursor-pointer ${
-                isPasting 
-                  ? 'bg-primary-container text-on-primary-container border-primary-container' 
-                  : 'text-primary hover:bg-surface-container border-transparent hover:border-surface-variant'
-              }`}
+              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer ${isPasting
+                ? 'bg-primary-container text-on-primary-container border-primary-container'
+                : 'text-primary hover:bg-surface-container border-transparent hover:border-surface-variant'
+                }`}
             >
               <span className="material-symbols-outlined text-[16px] sm:text-[18px]">content_paste</span>
               <span className="text-[11px] sm:text-xs font-semibold">Paste</span>
             </button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              accept=".xlsx, .xls" 
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".xlsx, .xls"
               multiple={true}
-              className="hidden" 
-              onChange={handleExcelUpload} 
+              className="hidden"
+              onChange={handleExcelUpload}
             />
-            <button 
+            <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border border-transparent hover:border-surface-variant cursor-pointer"
+              className="flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border-transparent hover:border-surface-variant cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px] sm:text-[18px]">upload_file</span>
               <span className="text-[11px] sm:text-xs font-semibold">Import Excel</span>
             </button>
-            <button 
+            <button
               onClick={handleSave}
               disabled={checklist.length === 0}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-colors border ${
-                checklist.length === 0
-                  ? 'text-on-surface-variant/40 cursor-not-allowed border-transparent'
-                  : saveSuccess
-                    ? 'bg-primary-container text-on-primary-container border-primary-container cursor-default'
-                    : 'bg-primary text-on-primary hover:bg-primary/90 border-transparent shadow-sm cursor-pointer'
-              }`}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-colors ${checklist.length === 0
+                ? 'text-on-surface-variant/40 cursor-not-allowed border-transparent'
+                : saveSuccess
+                  ? 'bg-primary-container text-on-primary-container border-primary-container cursor-default'
+                  : 'bg-primary text-on-primary hover:bg-primary/90 border-transparent  cursor-pointer'
+                }`}
             >
               <span className="material-symbols-outlined text-[16px] sm:text-[18px]">
                 {saveSuccess ? 'check_circle' : 'save'}
@@ -872,40 +870,57 @@ const NewRestockEntryPage: React.FC = () => {
 
         {/* Paste Area */}
         {isPasting && (
-          <div className="bg-surface-container-lowest border border-surface-variant p-md rounded-lg flex flex-col gap-sm shadow-sm transition-all animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="bg-surface-container-lowest border-surface-variant p-2 rounded-lg flex flex-col gap-sm  transition-all animate-in fade-in slide-in-from-top-2 duration-200">
             <label className="font-label-lg text-on-surface font-medium flex justify-between items-center">
               Paste JSON Data
-              <span className="text-xs font-normal text-on-surface-variant border border-surface-variant px-2 py-0.5 rounded-full">Format Array of Category</span>
+              <span className="text-xs font-normal text-on-surface-variant border-surface-variant px-2 py-0.5 rounded-full">Format Array of Category</span>
             </label>
-            <textarea 
-              className="w-full h-40 p-sm bg-surface rounded-md border border-outline focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow font-mono text-sm text-on-surface resize-y"
-              value={pasteContent}
-              onChange={e => setPasteContent(e.target.value)}
-              placeholder="[\n  {\n    &#34;id&#34;: &#34;c1&#34;,\n    &#34;name&#34;: &#34;Category Name&#34;,\n    &#34;variants&#34;: []\n  }\n]"
-            />
+            <div className="relative">
+              <textarea
+                className="w-full h-40 p-sm bg-surface rounded-md border-outline focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow font-mono text-sm text-on-surface resize-y"
+                value={pasteContent}
+                onChange={e => setPasteContent(e.target.value)}
+                placeholder="input json here"
+              />
+              <button
+                onClick={async () => {
+                  try {
+                    const text = await navigator.clipboard.readText();
+                    setPasteContent(text);
+                  } catch (err) {
+                    console.error("Failed to read clipboard contents: ", err);
+                    alert("Gagal membaca clipboard. Pastikan browser memberikan izin.");
+                  }
+                }}
+                className="absolute top-2 right-2 p-1.5 bg-surface-container hover:bg-surface-variant text-on-surface rounded-md border-outline/50  flex items-center justify-center transition-colors cursor-pointer"
+                title="Paste from Clipboard"
+              >
+                <span className="material-symbols-outlined text-[18px]">content_paste_go</span>
+              </button>
+            </div>
             {pasteError && (
               <p className="text-error text-sm font-medium">{pasteError}</p>
             )}
             <div className="flex gap-sm justify-end mt-xs">
-              <button 
+              <button
                 onClick={() => {
                   setIsPasting(false);
                   setPasteContent('');
                   setPasteError(null);
                 }}
-                className="px-md py-xs rounded-full border border-outline text-on-surface hover:bg-surface-variant transition-colors font-label-md cursor-pointer"
+                className="px-md py-xs rounded-full border-outline text-on-surface hover:bg-surface-variant transition-colors font-label-md cursor-pointer"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleAppend}
                 className="px-md py-xs rounded-full bg-secondary-container text-on-secondary-container hover:bg-secondary-container/80 transition-colors font-label-md cursor-pointer"
               >
                 Append Data
               </button>
-              <button 
+              <button
                 onClick={handleReplace}
-                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md shadow-sm cursor-pointer"
+                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md  cursor-pointer"
               >
                 Replace Data
               </button>
@@ -915,10 +930,10 @@ const NewRestockEntryPage: React.FC = () => {
 
         {/* Imported Files Section */}
         {importHistory.length > 0 && (
-          <div className="bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden shadow-sm">
-            <button 
+          <div className="bg-surface-container-lowest rounded-xl border-surface-variant overflow-hidden ">
+            <button
               onClick={() => setIsImportListOpen(!isImportListOpen)}
-              className="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors"
+              className="w-full flex items-center justify-between p-sm hover:bg-surface-container-low transition-colors"
             >
               <div className="flex items-center gap-sm">
                 <span className="material-symbols-outlined text-primary">history</span>
@@ -926,24 +941,23 @@ const NewRestockEntryPage: React.FC = () => {
               </div>
               <span className={`material-symbols-outlined transition-transform ${isImportListOpen ? 'rotate-180' : ''}`}>expand_more</span>
             </button>
-            
+
             {isImportListOpen && (
-              <div className="px-md pb-md flex flex-col gap-sm">
+              <div className="px-sm pb-md flex flex-col gap-sm">
                 <div className="h-px bg-surface-variant mb-xs"></div>
-                <div className="flex flex-wrap gap-sm">
+                <div className="flex flex-wrap gap-xs">
                   {importHistory.map((h) => (
-                    <div 
-                      key={h.id} 
-                      className="flex items-center gap-2 bg-surface-container px-sm py-xs rounded-lg border border-surface-variant/30 group hover:border-primary/30 transition-colors cursor-pointer"
+                    <div
+                      key={h.id}
+                      className="flex items-center gap-2 bg-surface-container px-sm py-xs border rounded-lg border-surface-variant/30 group hover:border-primary/30 transition-colors cursor-pointer"
                       onClick={() => setImportDetailsModal({ isOpen: true, record: h })}
                     >
                       <div className="flex flex-col">
-                        <span className="text-xs font-medium text-on-surface flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px] text-primary">description</span>
+                        <span className="text-[0.5rem] font-medium text-on-surface flex items-center gap-1">
                           {h.filename}
                         </span>
                       </div>
-                      <button 
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setDeleteModal({
@@ -953,10 +967,10 @@ const NewRestockEntryPage: React.FC = () => {
                             filename: h.filename
                           });
                         }}
-                        className="w-7 h-7 flex items-center justify-center rounded-full text-error opacity-0 group-hover:opacity-100 hover:bg-error/10 transition-all cursor-pointer"
+                        className="w-2 h-2 flex items-center justify-center rounded-full text-error   group-hover:opacity-100 hover:bg-error/10 transition-all cursor-pointer"
                         title="Hapus Import & Batalkan Perubahan"
                       >
-                        <span className="material-symbols-outlined text-[18px]">close</span>
+                        <span className="material-symbols-outlined text-[1px]">close</span>
                       </button>
                     </div>
                   ))}
@@ -968,7 +982,7 @@ const NewRestockEntryPage: React.FC = () => {
 
         {/* Estimasi Dana Section */}
         {(checklist.length > 0 || unregisteredItems.length > 0) && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-surface-container-lowest border border-surface-variant p-2 sm:p-3 rounded-xl shadow-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-surface-container-lowest border-surface-variant p-2 sm:p-3 rounded-xl ">
             <div className="bg-surface-container-low p-2 rounded-lg flex items-center gap-2">
               <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-outline-variant/30 flex items-center justify-center text-on-surface-variant shrink-0">
                 <span className="material-symbols-outlined text-[16px] sm:text-[20px]">payments</span>
@@ -978,8 +992,8 @@ const NewRestockEntryPage: React.FC = () => {
                 <p className="text-[10px] sm:text-xs text-on-surface font-semibold mt-0.5">{formatRupiah(totalAllPrice + totalUnregisteredPrice)}</p>
               </div>
             </div>
-            
-            <div className="bg-success-container/10 border border-success/10 p-2 rounded-lg flex items-center gap-2">
+
+            <div className="bg-success-container/10 border-success/10 p-2 rounded-lg flex items-center gap-2">
               <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-success/10 flex items-center justify-center text-success shrink-0">
                 <span className="material-symbols-outlined text-[16px] sm:text-[20px]">check_circle</span>
               </div>
@@ -989,7 +1003,7 @@ const NewRestockEntryPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-primary-container/20 border border-primary/10 p-2 rounded-lg flex items-center gap-2">
+            <div className="bg-primary-container/20 border-primary/10 p-2 rounded-lg flex items-center gap-2">
               <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-primary/15 flex items-center justify-center text-primary shrink-0">
                 <span className="material-symbols-outlined text-[16px] sm:text-[20px]">pending</span>
               </div>
@@ -1004,7 +1018,7 @@ const NewRestockEntryPage: React.FC = () => {
         {isModalOpen && <AddItemsForm onClose={() => setIsModalOpen(false)} onAddItems={handleAddItems} />}
 
         {/* Checklist Canvas */}
-        <div className="flex flex-col gap-0 bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden">
+        <div className="flex flex-col gap-0 bg-surface-container-lowest rounded-xl border-surface-variant overflow-hidden">
           {checklist.length === 0 ? (
             <div className="py-xl text-center flex flex-col items-center justify-center">
               <span className="material-symbols-outlined text-4xl text-surface-variant mb-sm">inventory_2</span>
@@ -1013,7 +1027,7 @@ const NewRestockEntryPage: React.FC = () => {
             </div>
           ) : (
             sortedChecklist.map(category => (
-              <RestockListCard 
+              <RestockListCard
                 key={category.id}
                 category={category}
                 isExpanded={expandedCategories.has(category.id)}
@@ -1033,7 +1047,7 @@ const NewRestockEntryPage: React.FC = () => {
 
         {/* Section Barang Tidak Terdaftar */}
         {unregisteredItems.length > 0 && (
-          <div className="bg-surface-container-lowest rounded-xl border border-error/30 overflow-hidden shadow-sm mt-md">
+          <div className="bg-surface-container-lowest rounded-xl border-error/30 overflow-hidden  mt-md">
             <div className="p-md bg-error-container/10 border-b border-error/20 flex items-center justify-between">
               <div className="flex items-center gap-sm">
                 <span className="material-symbols-outlined text-error">warning</span>
@@ -1047,17 +1061,17 @@ const NewRestockEntryPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="divide-y divide-surface-variant max-h-80 overflow-y-auto">
               {unregisteredItems.map((item, index) => (
                 <div key={index} className="p-sm flex items-center gap-sm hover:bg-surface-container-low/50 transition-colors">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={!!item.checked}
                     onChange={() => toggleUnregisteredItemCheck(item.filename || '', item.productName, item.variantName)}
                     className="w-4 h-4 rounded border-outline text-primary focus:ring-primary cursor-pointer accent-primary"
                   />
-                  
+
                   <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex-grow min-w-0">
                       <div className={`text-xs font-medium text-on-surface truncate ${item.checked ? 'line-through opacity-60' : ''}`}>
@@ -1091,10 +1105,10 @@ const NewRestockEntryPage: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     {item.filename && (
                       <div className="flex items-center self-start sm:self-auto">
-                        <span className="bg-surface px-1.5 py-0.5 rounded text-[9px] font-mono border border-surface-variant flex items-center gap-1 text-on-surface-variant">
+                        <span className="bg-surface px-1.5 py-0.5 rounded text-[9px] font-mono border-surface-variant flex items-center gap-1 text-on-surface-variant">
                           <span className="material-symbols-outlined text-[10px] text-primary">description</span>
                           {item.filename}
                         </span>
@@ -1112,11 +1126,11 @@ const NewRestockEntryPage: React.FC = () => {
 
       {/* Delete Validation Modal */}
       {deleteModal.isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-on-surface/50 z-50 flex items-center justify-center p-md backdrop-blur-sm"
           onClick={() => setDeleteModal({ isOpen: false, idToClear: null })}
         >
-          <div 
+          <div
             className="bg-surface p-xl rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200"
             onClick={e => e.stopPropagation()}
           >
@@ -1125,15 +1139,15 @@ const NewRestockEntryPage: React.FC = () => {
               Konfirmasi Hapus
             </h3>
             <div className="text-body-md text-on-surface-variant font-body-md">
-              {deleteModal.idToClear === 'all' 
-                ? <p>Apakah Anda yakin ingin menghapus semua list restock ini?</p> 
+              {deleteModal.idToClear === 'all'
+                ? <p>Apakah Anda yakin ingin menghapus semua list restock ini?</p>
                 : deleteModal.idToClear === 'bulk'
                   ? <p>Apakah Anda yakin ingin menghapus {checkedVariants.size} varian yang dipilih?</p>
                   : deleteModal.idToClear === 'import'
                     ? (
                       <>
                         <p className="mb-2">Apakah Anda yakin ingin menghapus import file "{deleteModal.filename}"? Ini akan mengurangi jumlah barang yang diimpor dari file ini.</p>
-                        <div className="bg-surface-container-low text-sm p-3 rounded-md max-h-40 overflow-y-auto border border-surface-variant">
+                        <div className="bg-surface-container-low text-sm p-3 rounded-md max-h-40 overflow-y-auto border-surface-variant">
                           {importHistory.find(r => r.id === deleteModal.importId)?.categories?.map(cat => (
                             <div key={cat.id} className="mb-2 last:mb-0">
                               <strong className="text-on-surface block mb-1">{cat.name}</strong>
@@ -1150,15 +1164,15 @@ const NewRestockEntryPage: React.FC = () => {
                     : <p>Apakah Anda yakin ingin menghapus kategori beserta semua isinya?</p>}
             </div>
             <div className="flex gap-sm justify-end mt-sm">
-              <button 
+              <button
                 onClick={() => setDeleteModal({ isOpen: false, idToClear: null })}
-                className="px-md py-xs rounded-full border border-outline text-on-surface hover:bg-surface-variant transition-colors font-label-md cursor-pointer"
+                className="px-md py-xs rounded-full border-outline text-on-surface hover:bg-surface-variant transition-colors font-label-md cursor-pointer"
               >
                 Batal
               </button>
-              <button 
+              <button
                 onClick={confirmDelete}
-                className="px-md py-xs rounded-full bg-error text-on-error hover:bg-error/90 transition-colors font-label-md cursor-pointer shadow-sm"
+                className="px-md py-xs rounded-full bg-error text-on-error hover:bg-error/90 transition-colors font-label-md cursor-pointer "
               >
                 Hapus
               </button>
@@ -1171,22 +1185,22 @@ const NewRestockEntryPage: React.FC = () => {
 
       {/* Image Lightbox Modal */}
       {selectedImage && (
-        <div 
-          className="fixed inset-0 bg-on-surface/80 z-50 flex items-center justify-center p-md backdrop-blur-sm" 
+        <div
+          className="fixed inset-0 bg-on-surface/80 z-50 flex items-center justify-center p-md backdrop-blur-sm"
           onClick={() => setSelectedImage(null)}
         >
           <div className="relative max-w-lx4 w-full h-full max-h-[80vh] flex flex-col items-center justify-center pointer-events-none">
             <div className="relative bg-surface p-sm rounded-xl shadow-lg pointer-events-auto max-h-full flex flex-col" onClick={e => e.stopPropagation()}>
-              <button 
+              <button
                 className="absolute -top-3 -right-3 w-8 h-8 bg-error text-on-error rounded-full flex items-center justify-center shadow-md hover:bg-error/90 transition-colors z-10"
                 onClick={() => setSelectedImage(null)}
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
-              <img 
-                src={selectedImage} 
-                alt="Enlarged Reference" 
-                className="max-w-full max-h-[75vh] object-contain rounded-lg" 
+              <img
+                src={selectedImage}
+                alt="Enlarged Reference"
+                className="max-w-full max-h-[75vh] object-contain rounded-lg"
               />
             </div>
           </div>
@@ -1194,11 +1208,11 @@ const NewRestockEntryPage: React.FC = () => {
       )}
       {/* Import Summary Modal */}
       {importSummary.isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-on-surface/50 z-50 flex items-center justify-center p-md backdrop-blur-sm"
           onClick={() => setImportSummary({ ...importSummary, isOpen: false })}
         >
-          <div 
+          <div
             className="bg-surface p-lg rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200 max-w-lx2 w-full max-h-[80vh] overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
@@ -1208,11 +1222,11 @@ const NewRestockEntryPage: React.FC = () => {
             </h3>
 
             {importSummary.filenames && importSummary.filenames.length > 0 && (
-              <div className="text-xs text-on-surface-variant bg-surface-container-low px-3 py-2 rounded-lg flex flex-col gap-1 border border-surface-variant/50">
+              <div className="text-xs text-on-surface-variant bg-surface-container-low px-2 py-2 rounded-lg flex flex-col gap-1 border-surface-variant/50">
                 <span className="font-medium text-[11px] text-on-surface-variant/85">File yang diimpor:</span>
                 <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto pr-1">
                   {importSummary.filenames.map((name, i) => (
-                    <span key={i} className="bg-surface px-2 py-0.5 rounded text-[11px] font-mono flex items-center gap-1 border border-surface-variant/30 shadow-xs">
+                    <span key={i} className="bg-surface px-2 py-0.5 rounded text-[11px] font-mono flex items-center gap-1 border-surface-variant/30 shadow-xs">
                       <span className="material-symbols-outlined text-[12px] text-primary">description</span>
                       {name}
                     </span>
@@ -1220,7 +1234,7 @@ const NewRestockEntryPage: React.FC = () => {
                 </div>
               </div>
             )}
-            
+
             <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-md">
               <div className="bg-surface-container-low p-sm rounded-lg flex gap-4 text-center">
                 <div className="flex-1">
@@ -1260,13 +1274,13 @@ const NewRestockEntryPage: React.FC = () => {
                   <div className="bg-error-container text-on-error-container text-xs p-2 rounded-md mb-2">
                     Data berikut tidak ditemukan di master data sistem sehingga diabaikan.
                   </div>
-                  <ul className="text-sm text-on-surface flex flex-col gap-2 max-h-40 overflow-y-auto border border-surface-variant rounded-md p-2">
+                  <ul className="text-sm text-on-surface flex flex-col gap-2 max-h-40 overflow-y-auto border-surface-variant rounded-md p-2">
                     {importSummary.unmatched.map((row, idx) => (
                       <li key={idx} className="flex flex-col border-b border-surface-variant/50 last:border-0 pb-1 last:pb-0">
                         <div className="flex justify-between items-start gap-sm">
                           <span className="font-medium text-xs">{row.productName || 'Tanpa Nama'} - {row.variantName || 'Tanpa Varian'}</span>
                           {row.filename && (
-                            <span className="text-[9px] bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-surface-variant/30 flex items-center gap-0.5 whitespace-nowrap">
+                            <span className="text-[9px] bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border-surface-variant/30 flex items-center gap-0.5 whitespace-nowrap">
                               <span className="material-symbols-outlined text-[10px]">description</span>
                               {row.filename}
                             </span>
@@ -1281,19 +1295,19 @@ const NewRestockEntryPage: React.FC = () => {
             </div>
 
             <div className="flex gap-sm justify-end mt-2 pt-4 border-t border-surface-variant flex-wrap">
-              <button 
+              <button
                 onClick={() => setImportSummary({ ...importSummary, isOpen: false })}
-                className="px-md py-xs rounded-full border border-outline text-on-surface hover:bg-surface-variant transition-colors font-label-md cursor-pointer"
+                className="px-md py-xs rounded-full border-outline text-on-surface hover:bg-surface-variant transition-colors font-label-md cursor-pointer"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={() => {
                   setState(prev => {
-                    const nextFiles = importSummary.filenames 
+                    const nextFiles = importSummary.filenames
                       ? Array.from(new Set([...prev.importedFiles, ...importSummary.filenames]))
                       : prev.importedFiles;
-                    
+
                     const newRecords: ImportRecord[] = [];
                     if (importSummary.fileRecords) {
                       importSummary.fileRecords.forEach((record, index) => {
@@ -1316,14 +1330,14 @@ const NewRestockEntryPage: React.FC = () => {
                   setImportSummary({ ...importSummary, isOpen: false });
                 }}
                 disabled={importSummary.matched.length === 0}
-                className="px-md py-xs rounded-full bg-error text-on-error hover:bg-error/90 transition-colors font-label-md cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-md py-xs rounded-full bg-error text-on-error hover:bg-error/90 transition-colors font-label-md cursor-pointer  disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Replace
               </button>
-              <button 
+              <button
                 onClick={() => {
                   setImportSummary({ ...importSummary, isOpen: false });
-                  
+
                   setState(prev => {
                     const updated = [...prev.categories];
                     importSummary.matched.forEach(newCat => {
@@ -1331,7 +1345,7 @@ const NewRestockEntryPage: React.FC = () => {
                       if (existingCatIndex >= 0) {
                         const existingCat = { ...updated[existingCatIndex] };
                         const existingVariants = [...existingCat.variants];
-                        
+
                         newCat.variants.forEach(newVar => {
                           const existingVarIndex = existingVariants.findIndex(v => v.id === newVar.id);
                           if (existingVarIndex >= 0) {
@@ -1351,7 +1365,7 @@ const NewRestockEntryPage: React.FC = () => {
                       }
                     });
 
-                    const nextFiles = importSummary.filenames 
+                    const nextFiles = importSummary.filenames
                       ? Array.from(new Set([...prev.importedFiles, ...importSummary.filenames]))
                       : prev.importedFiles;
 
@@ -1376,7 +1390,7 @@ const NewRestockEntryPage: React.FC = () => {
                   });
                 }}
                 disabled={importSummary.matched.length === 0}
-                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer  disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Append
               </button>
@@ -1386,11 +1400,11 @@ const NewRestockEntryPage: React.FC = () => {
       )}
       {/* Import Details Modal */}
       {importDetailsModal.isOpen && importDetailsModal.record && (
-        <div 
+        <div
           className="fixed inset-0 bg-on-surface/50 z-50 flex items-center justify-center p-md backdrop-blur-sm"
           onClick={() => setImportDetailsModal({ isOpen: false, record: null })}
         >
-          <div 
+          <div
             className="bg-surface p-lg rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200 max-w-gl w-full max-h-[80vh] overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
@@ -1401,7 +1415,7 @@ const NewRestockEntryPage: React.FC = () => {
             <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-sm">
               <p className="text-sm text-on-surface-variant mb-2">Daftar barang yang ditambahkan dari file ini:</p>
               {importDetailsModal.record.categories.map(cat => (
-                <div key={cat.id} className="bg-surface-container-lowest border border-surface-variant rounded-lg p-3">
+                <div key={cat.id} className="bg-surface-container-lowest border-surface-variant rounded-lg p-3">
                   <strong className="text-on-surface block mb-1 text-sm">{cat.name}</strong>
                   <ul className="list-disc pl-5 text-xs text-on-surface-variant flex flex-col gap-1">
                     {cat.variants.map(v => (
@@ -1412,9 +1426,9 @@ const NewRestockEntryPage: React.FC = () => {
               ))}
             </div>
             <div className="flex justify-end mt-2 pt-4 border-t border-surface-variant">
-              <button 
+              <button
                 onClick={() => setImportDetailsModal({ isOpen: false, record: null })}
-                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm"
+                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer "
               >
                 Tutup
               </button>
@@ -1423,15 +1437,13 @@ const NewRestockEntryPage: React.FC = () => {
         </div>
       )}
       {/* Floating Autosave indicator */}
-      <div className={`fixed top-[72px] right-4 sm:right-6 z-[100] flex items-center gap-1.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full shadow-md border transition-all duration-300 transform ${
-        autoSaveStatus !== 'idle'
-          ? 'opacity-100 translate-y-0 scale-100'
-          : 'opacity-0 -translate-y-4 scale-95 pointer-events-none'
-      } ${
-        autoSaveStatus === 'saving'
+      <div className={`fixed top-[72px] right-4 sm:right-6 z-100 flex items-center gap-1.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full shadow-md transition-all duration-300 transform ${autoSaveStatus !== 'idle'
+        ? 'opacity-100 translate-y-0 scale-100'
+        : 'opacity-0 -translate-y-4 scale-95 pointer-events-none'
+        } ${autoSaveStatus === 'saving'
           ? 'bg-surface-container text-on-surface border-surface-variant'
           : 'bg-primary-container text-on-primary-container border-primary/20 shadow-md'
-      }`}>
+        }`}>
         <span className={`material-symbols-outlined text-[14px] sm:text-[16px] ${autoSaveStatus === 'saving' ? 'animate-spin' : ''}`}>
           {autoSaveStatus === 'saving' ? 'sync' : 'check_circle'}
         </span>

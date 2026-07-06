@@ -52,10 +52,10 @@ const RestockListPage: React.FC = () => {
   };
 
   return (
-    <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+    <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-12">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-h1 text-h1 text-on-surface mb-xs">Restock List</h1>
+          <h1 className="font-medium text-h1 text-on-surface mb-xs">Restock List</h1>
           <p className="font-body-md text-body-md text-on-surface-variant">Kelola daftar belanja restock.</p>
         </div>
         <button 
@@ -78,7 +78,7 @@ const RestockListPage: React.FC = () => {
           description="Buat restock list pertama kamu untuk mulai mengelola belanja."
         />
       ) : (
-        <div className="flex flex-col gap-lg">
+        <div className="flex flex-col gap-xs">
           {(() => {
             const groupedLists = lists.reduce((acc, list) => {
               const d = list.createdAt;
@@ -109,22 +109,22 @@ const RestockListPage: React.FC = () => {
                 <div
                   key={list.id}
                   onClick={() => navigate(`/restock/${list.id}`)}
-                  className={`rounded-xl p-lg cursor-pointer hover:shadow-md transition-all flex items-center justify-between ${
+                  className={`rounded-xl p-md cursor-pointer hover:shadow-md transition-all flex items-center justify-between ${
                     today
                       ? 'bg-primary-container/40 border-l-4 border-primary border-r border-t border-b border-r-primary/20 border-t-primary/20 border-b-primary/20 hover:border-r-primary/40 hover:border-t-primary/40 hover:border-b-primary/40'
                       : 'bg-surface-container-lowest border border-surface-variant hover:border-primary-fixed-dim'
                   }`}
                 >
                   <div>
-                    <div className="flex items-center gap-sm">
-                      <h3 className="font-h3 text-h3 text-on-surface">{list.title}</h3>
+                    <div className="flex items-center gap-xs">
+                      <h3 className="font-medium text-md text-on-surface">{list.title}</h3>
                       {today && (
                         <span className="bg-primary text-on-primary text-[10px] font-bold px-sm py-[2px] rounded-full uppercase tracking-wide">
                           Hari ini
                         </span>
                       )}
                     </div>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs flex items-center gap-xs flex-wrap">
+                    <p className="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs flex-wrap">
                       <span>{itemCount} item</span>
                       <span>·</span>
                       <span>{dateStr}</span>
@@ -177,7 +177,7 @@ const RestockListPage: React.FC = () => {
                   }
 
                   return (
-                    <div key={dateKey} className="flex flex-col gap-md mb-lg last:mb-0">
+                    <div key={dateKey} className="flex flex-col gap-xs mb-xs last:mb-0">
                       <div className="flex items-center gap-sm">
                         <span className={`material-symbols-outlined ${iconColor} text-[20px]`}>{icon}</span>
                         <h2 className={`font-label-lg text-label-lg ${isToday ? 'text-primary' : 'text-on-surface-variant'}`}>{headerText}</h2>

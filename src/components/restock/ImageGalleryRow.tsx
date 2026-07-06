@@ -8,8 +8,7 @@ interface ImageGalleryRowProps {
 
 const ImageGalleryRow: React.FC<ImageGalleryRowProps> = ({ images, altPrefix = 'Reference', onImageClick }) => {
   return (
-    <div>
-      <p className="font-label-md text-label-md text-on-surface-variant mb-xs">REFERENSI</p>
+    <div> 
       <div className="flex gap-sm">
         {images.map((img, idx) => (
           <div 

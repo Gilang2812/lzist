@@ -46,6 +46,8 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
   
   const totalCategoryPrice = availableVariants
     .reduce((acc, v) => acc + (v.price || 0) * (v.targetQuantity || 0), 0);
+    
+  const checkedCategoryPrice = totalCategoryPrice - uncheckedCategoryPrice;
   
   const isAllChecked = availableVariants.length > 0 && checkedCount === availableVariants.length;
   const isIndeterminate = checkedCount > 0 && checkedCount < availableVariants.length;
@@ -59,13 +61,12 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
     <div className="border-b border-surface-variant last:border-b-0">
       {/* Category Header */}
       <div
-        className="flex items-center py-2 px-3 sm:py-sm sm:px-md cursor-pointer hover:bg-surface-container-low transition-colors group gap-2"
+        className="flex items-center p-1 sm:py-sm sm:px-md cursor-pointer hover:bg-surface-container-low transition-colors group gap-2"
         onClick={onToggleExpand}
       >
-        <span className={`material-symbols-outlined text-on-surface-variant transition-transform flex-shrink-0 text-[18px] sm:text-[22px] ${isExpanded ? 'rotate-90' : ''}`}>chevron_right</span>
-        {showCheckboxes && (
+      {showCheckboxes && (
           <input
-            className={`w-4 h-4 sm:w-5 sm:h-5 rounded border-outline text-primary focus:ring-primary-container bg-surface-container-lowest cursor-pointer flex-shrink-0 ${isIndeterminate ? 'indeterminate' : ''}`}
+            className={`w-4 h-4 sm:w-5 sm:h-5 rounded border-outline text-primary focus:ring-primary-container bg-surface-container-lowest cursor-pointer shrink-0 ${isIndeterminate ? 'indeterminate' : ''}`}
             type="checkbox"
             checked={isAllChecked || isIndeterminate}
             onChange={() => onToggleCategoryCheck && onToggleCategoryCheck()}
@@ -74,7 +75,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
           />
         )}
         <div className="flex-1 min-w-0">
-          <h2 className={`text-xs sm:text-sm text-on-surface font-semibold leading-snug ${isExpanded ? '' : 'truncate'}`}>{category.name}</h2>
+          <p className={`text-xs sm:text-xs text-on-surface font-semibold leading-snug ${isExpanded ? '' : 'truncate'}`}>{category.name}</p>
           {category.supplierNames && category.supplierNames.length > 0 && (
             <div className="flex flex-wrap gap-xs mt-0.5">
               {category.supplierNames.map(s => (
@@ -89,17 +90,19 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
             </div>
           )}
         </div>
-        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-          <span className="bg-surface-container px-1.5 py-[1px] sm:px-2 sm:py-0.5 rounded-full text-[9px] sm:text-[11px] text-on-surface-variant font-medium">
+        <div className="flex flex-col items-end gap-0.5 shrink-0">
+          <span className="bg-surface-container px-1.5 py-px sm:px-2 sm:py-0.5 rounded-full text-[9px] sm:text-[11px] text-on-surface-variant font-medium">
             {checkedCount}/{availableVariants.length} Varian
           </span>
           <span className="text-[9px] sm:text-[10px] text-on-surface-variant opacity-70 px-1 sm:px-1.5">
             {checkedQty}/{totalQty} qty
           </span>
           {totalCategoryPrice > 0 && (
-            <span className="text-[9px] sm:text-[10px] text-primary px-1 sm:px-1.5 font-semibold">
-              Sisa: {formatRupiah(uncheckedCategoryPrice)}
-            </span>
+            <div className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 font-semibold">
+              <span className="text-primary">{formatRupiah(uncheckedCategoryPrice)}</span>
+              <span className="text-on-surface mx-1">/</span>
+              <span className="text-on-surface">{formatRupiah(checkedCategoryPrice)}</span>
+            </div>
           )}
         </div>
         {onDelete && !readOnly && (
@@ -108,7 +111,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
               e.stopPropagation();
               onDelete(category.id);
             }}
-            className="w-7 h-7 flex items-center justify-center text-error hover:bg-error/10 rounded-full transition-all cursor-pointer flex-shrink-0"
+            className="w-7 h-7 flex items-center justify-center text-error hover:bg-error/10 rounded-full transition-all cursor-pointer shrink-0"
             title="Hapus Kategori"
           >
             <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -118,7 +121,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
 
       {/* Category Variants */}
       {isExpanded && category.variants.length > 0 && (
-        <div className="flex flex-col pl-md sm:pl-xl border-l-2 border-primary-fixed-dim ml-[18px] sm:ml-[34px] mb-md">
+        <div className="flex flex-col pl-md sm:pl-md border-l-2 border-primary-fixed-dim ml-[18px]">
           <AnimatePresence>
             {sortedVariants.map(variant => (
               <motion.div

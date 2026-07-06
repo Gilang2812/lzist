@@ -46,7 +46,7 @@ const Header: React.FC<HeaderProps> = ({ title = 'Lzist' }) => {
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-surface-container-lowest border-b border-surface-variant px-4 sm:px-6 h-16 flex items-center justify-between">
+      <header className="sticky top-0 z-30 bg-surface-container-lowest  border-surface-variant px-4 sm:px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-sm sm:gap-md">
           <div className="md:hidden w-9 h-9 rounded-lg bg-teal-500 flex items-center justify-center text-white">
             <span className="material-symbols-outlined text-base">inventory_2</span>
