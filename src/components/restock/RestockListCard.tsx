@@ -18,6 +18,7 @@ interface RestockListCardProps {
   showCheckboxes?: boolean;
   onToggleVariantCheck?: (id: string) => void;
   onToggleCategoryCheck?: () => void;
+  isLast?: boolean;
 }
 
 const RestockListCard: React.FC<RestockListCardProps> = ({
@@ -34,6 +35,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
   showCheckboxes = true,
   onToggleVariantCheck,
   onToggleCategoryCheck,
+  isLast = false,
 }) => {
   const availableVariants = category.variants;
   const checkedCount = availableVariants.filter(variant => variant.checked).length;
@@ -58,10 +60,10 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
   });
 
   return (
-    <div className="border-b border-surface-variant last:border-b-0">
+    <div className={`border-b border-surface-variant ${isLast ? 'border-b-0' : ''}`}>
       {/* Category Header */}
       <div
-        className="flex items-center p-1 sm:py-sm sm:px-md cursor-pointer hover:bg-surface-container-low transition-colors group gap-2"
+        className="flex items-center  border-t  first:border-t-0 p-1 sm:py-sm sm:px-md cursor-pointer hover:bg-surface-container-low transition-colors group gap-2"
         onClick={onToggleExpand}
       >
       {showCheckboxes && (
@@ -133,7 +135,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
                 transition={{ duration: 0.2 }}
               >
                 <InlineItemInfo
-                  variant={variant}
+                  variant={variant} 
                   isExpanded={expandedVariants.has(variant.id)}
                   onToggleExpand={() => onToggleVariant(variant.id)}
                   onImageClick={onImageClick}

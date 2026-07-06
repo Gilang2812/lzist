@@ -1026,10 +1026,11 @@ const NewRestockEntryPage: React.FC = () => {
               <p className="text-on-surface-variant/70 font-body-md mt-xs">Gunakan tombol tambah atau paste data JSON.</p>
             </div>
           ) : (
-            sortedChecklist.map(category => (
+            sortedChecklist.map((category, index) => (
               <RestockListCard
                 key={category.id}
                 category={category}
+                isLast={index === sortedChecklist.length - 1}
                 isExpanded={expandedCategories.has(category.id)}
                 onToggleExpand={() => toggleCategory(category.id)}
                 expandedVariants={expandedVariants}

@@ -899,7 +899,7 @@ const RestockDetailPage: React.FC = () => {
             </div>
           ) : (
             <AnimatePresence>
-              {sortedChecklist.map(category => (
+              {sortedChecklist.map((category, index) => (
                 <motion.div
                   key={category.id}
                   layout="position"
@@ -910,6 +910,7 @@ const RestockDetailPage: React.FC = () => {
                 >
                   <RestockListCard 
                     category={category}
+                    isLast={index === sortedChecklist.length - 1}
                     isExpanded={expandedCategories.has(category.id)}
                     onToggleExpand={() => toggleCategory(category.id)}
                     expandedVariants={expandedVariants}
