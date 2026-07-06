@@ -138,6 +138,7 @@ const NewRestockEntryPage: React.FC = () => {
   const [currentListId, setCurrentListId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const txtFileInputRef = useRef<HTMLInputElement>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstRender = useRef(true);
 
@@ -338,6 +339,41 @@ const NewRestockEntryPage: React.FC = () => {
     a.download = `restock_backup_${new Date().toISOString().slice(0, 10)}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleTxtUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const text = evt.target?.result as string;
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) {
+          setChecklist(parsed);
+        } else if (parsed && Array.isArray(parsed.categories)) {
+          setState(prev => ({
+            ...prev,
+            categories: parsed.categories,
+            importHistory: parsed.importHistory || prev.importHistory,
+            importedFiles: parsed.importedFiles || (parsed.importHistory ? parsed.importHistory.map((h: ImportRecord) => h.filename) : prev.importedFiles)
+          }));
+        } else {
+          alert("Data TXT tidak valid.");
+        }
+      } catch (err) {
+        alert("Gagal membaca atau mem-parsing file TXT. Pastikan format file sesuai.");
+      }
+      if (txtFileInputRef.current) {
+        txtFileInputRef.current.value = '';
+      }
+    };
+    reader.onerror = () => {
+      alert("Gagal membaca file TXT.");
+    };
+    reader.readAsText(file);
   };
 
   const handleReplace = () => {
@@ -812,6 +848,24 @@ const NewRestockEntryPage: React.FC = () => {
             )}
           </div>
           <div className="flex gap-1.5 self-end sm:self-auto flex-wrap items-center">
+            <input
+              type="file"
+              ref={txtFileInputRef}
+              accept=".txt, .json"
+              className="hidden"
+              onChange={handleTxtUpload}
+            />
+            <button
+              onClick={() => txtFileInputRef.current?.click()}
+              className="flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border-transparent hover:border-surface-variant cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">
+                file_open
+              </span>
+              <span className="text-[11px] sm:text-xs font-semibold">
+                Import TXT
+              </span>
+            </button>
             <button
               onClick={handleExportTxt}
               className="flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border-transparent hover:border-surface-variant cursor-pointer"
