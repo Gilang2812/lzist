@@ -28,26 +28,23 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
   return (
     <div className="py-1 sm:py-1 border-b border-surface-variant last:border-b-0 pr-2 sm:pr-md">
       <div className="flex flex-wrap items-center mb-1 sm:mb-1 cursor-pointer gap-y-1 gap-x-2" onClick={onToggleExpand}>
-         {showCheckboxes && (
-          <input 
-            className="w-4 h-4   sm:w-5 sm:h-5 rounded border-outline text-primary focus:ring-primary-container  bg-surface-container-lowest cursor-pointer" 
-            type="checkbox" 
+        {showCheckboxes && (
+          <input
+            className="w-3 h-3   sm:w-4 sm:h-4 rounded border-outline text-primary focus:ring-primary-container  bg-surface-container-lowest cursor-pointer"
+            type="checkbox"
             checked={isChecked}
             onChange={() => onToggleCheck && onToggleCheck()}
-            onClick={e => e.stopPropagation()} 
+            onClick={e => e.stopPropagation()}
           />
         )}
-        <h3 className={`text-xs    text-on-surface ${isExpanded ? 'font-medium' : ''}`}>{variant.name}</h3>
-        
-
-        
+        <p className={`text-xs    text-on-surface ${isExpanded ? 'font-medium' : ''}`}>{variant.name}</p>
         {variant.targetQuantity !== undefined && (
-          <div 
+          <div
             className="flex items-center gap-1   pr-1.5 py-0.5 rounded-full ml-1 bg-secondary-container"
             onClick={e => e.stopPropagation()}
           >
             {!readOnly && (
-              <button 
+              <button
                 className="flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full hover:bg-on-secondary-container/10 text-on-secondary-container transition-colors active:bg-on-secondary-container/20"
                 onClick={() => onChangeTargetQuantity?.(Math.max(0, (variant.targetQuantity || 0) - 1))}
                 type="button"
@@ -58,8 +55,8 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
             {readOnly ? (
               <span className="w-6 sm:w-8 text-on-secondary-container text-[10px] sm:text-xs font-semibold text-center">{variant.targetQuantity}</span>
             ) : (
-              <input 
-                type="number" 
+              <input
+                type="number"
                 className="w-6 sm:w-8 bg-transparent text-on-secondary-container text-[10px] sm:text-xs font-semibold outline-none border-b border-transparent focus:border-on-secondary-container/50 text-center custom-number-input"
                 value={variant.targetQuantity}
                 onChange={e => onChangeTargetQuantity?.(Number(e.target.value))}
@@ -67,7 +64,7 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
               />
             )}
             {!readOnly && (
-              <button 
+              <button
                 className="flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full hover:bg-on-secondary-container/10 text-on-secondary-container transition-colors active:bg-on-secondary-container/20"
                 onClick={() => onChangeTargetQuantity?.((variant.targetQuantity || 0) + 1)}
                 type="button"
@@ -79,7 +76,7 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
         )}
 
 
-        
+
         <div className="flex items-center gap-sm ml-auto">
           {onDelete && !readOnly && (
             <button
@@ -93,7 +90,7 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
           )}
         </div>
       </div>
-      
+
       {/* Expanded Content */}
       {isExpanded && variant.images && (
         <div className="">
