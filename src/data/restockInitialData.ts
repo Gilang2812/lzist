@@ -641,7 +641,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-hitam-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735144011",
@@ -652,7 +652,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-silver-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735144004",
@@ -663,7 +663,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-espresso-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143992",
@@ -674,7 +674,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-maroon-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143988",
@@ -685,7 +685,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-red-wine-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735144001",
@@ -696,7 +696,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-pearl-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735144003",
@@ -707,7 +707,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-wood-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143999",
@@ -718,7 +718,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-navy-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143995",
@@ -729,7 +729,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-light-denim-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143989",
@@ -740,7 +740,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-deep-taupe-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143987",
@@ -751,7 +751,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-vanilla-cream-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143985",
@@ -762,7 +762,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-coffe-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143998",
@@ -773,7 +773,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-oat-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143984",
@@ -784,7 +784,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-ash-grey-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143980",
@@ -795,7 +795,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-frappucino-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735144005",
@@ -806,7 +806,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-choco-plum-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735144006",
@@ -817,7 +817,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-coksu-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735144000",
@@ -828,7 +828,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-bw-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735144007",
@@ -839,7 +839,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-ivory-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143996",
@@ -850,7 +850,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-baby-pink-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143997",
@@ -861,7 +861,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-deep-mahogany-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735144002",
@@ -872,7 +872,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-butter-cream-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143986",
@@ -883,7 +883,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-burgundy-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143990",
@@ -894,7 +894,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-grey-latte-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143993",
@@ -905,7 +905,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-sky-blue-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143981",
@@ -916,7 +916,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-milo-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143982",
@@ -927,7 +927,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-soft-lilac-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143983",
@@ -938,7 +938,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-choco-milk-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735144008",
@@ -949,7 +949,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-mauve-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143994",
@@ -960,7 +960,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-rose-pink-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735143991",
@@ -971,7 +971,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-wine-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         },
         {
           "id": "410735144009",
@@ -982,7 +982,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/voal-sand-01.jpg"
           ],
-          "price": 25000
+          "price": 23000
         }
       ]
     },
