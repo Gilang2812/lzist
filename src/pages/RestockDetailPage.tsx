@@ -99,6 +99,7 @@ const RestockDetailPage: React.FC = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPasting, setIsPasting] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<{
@@ -109,7 +110,9 @@ const RestockDetailPage: React.FC = () => {
   }>({isOpen: false, idToClear: null});
   const [importSummary, setImportSummary] = useState<ImportSummaryData>({ isOpen: false, matched: [], unmatched: [] });
   const [importDetailsModal, setImportDetailsModal] = useState<{ isOpen: boolean, record: ImportRecord | null }>({ isOpen: false, record: null });
+  const [txtImportModal, setTxtImportModal] = useState<{isOpen: boolean, data: any | null}>({ isOpen: false, data: null });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const txtFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchList = async () => {
@@ -221,6 +224,23 @@ const RestockDetailPage: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleCopyJson = async () => {
+    const dataToExport = {
+      categories: checklist,
+      importedFiles: list?.importedFiles || [],
+      importHistory: list?.importHistory || []
+    };
+    const jsonString = JSON.stringify(dataToExport, null, 2);
+    try {
+      await navigator.clipboard.writeText(jsonString);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      alert('Gagal menyalin data ke clipboard.');
+    }
+  };
+
   const updateListInDb = async (newCategories: Category[], newImportedFiles?: string[], newImportHistory?: ImportRecord[]) => {
     if (!list || !id) return;
     const updatedList: RestockList = { 
@@ -296,23 +316,25 @@ const RestockDetailPage: React.FC = () => {
     setDeleteModal({ isOpen: false, idToClear: null });
   };
 
+  const processReplaceData = (parsed: any) => {
+    if (Array.isArray(parsed)) {
+      setChecklist(parsed);
+      updateListInDb(parsed);
+    } else if (parsed && Array.isArray(parsed.categories)) {
+      setChecklist(parsed.categories);
+      updateListInDb(parsed.categories, parsed.importedFiles || list?.importedFiles, parsed.importHistory || list?.importHistory);
+    } else {
+      throw new Error("Data JSON harus berupa array of category atau object dengan properties categories.");
+    }
+  };
+
   const handleReplace = () => {
     setPasteError(null);
     try {
       const parsed = JSON.parse(pasteContent);
-      if (Array.isArray(parsed)) {
-        setChecklist(parsed);
-        updateListInDb(parsed);
-        setIsPasting(false);
-        setPasteContent('');
-      } else if (parsed && Array.isArray(parsed.categories)) {
-        setChecklist(parsed.categories);
-        updateListInDb(parsed.categories, parsed.importedFiles, parsed.importHistory);
-        setIsPasting(false);
-        setPasteContent('');
-      } else {
-        setPasteError("Data JSON harus berupa array of category atau object dengan properties categories.");
-      }
+      processReplaceData(parsed);
+      setIsPasting(false);
+      setPasteContent('');
     } catch {
       setPasteError("Format JSON tidak valid.");
     }
@@ -359,38 +381,35 @@ const RestockDetailPage: React.FC = () => {
     updateListInDb(newCategories, newHistory.map(h => h.filename), newHistory);
   };
 
+  const processAppendData = (parsed: any) => {
+    if (Array.isArray(parsed)) {
+      handleAddItems(parsed);
+    } else if (parsed && Array.isArray(parsed.categories)) {
+      let nextImportedFiles = list?.importedFiles;
+      let nextImportHistory = list?.importHistory;
+
+      if (parsed.importHistory) {
+        const existingIds = new Set((list?.importHistory || []).map(h => h.id));
+        const newRecordsToAdd = (parsed.importHistory as ImportRecord[]).filter((h: ImportRecord) => !existingIds.has(h.id));
+        nextImportHistory = [...(list?.importHistory || []), ...newRecordsToAdd];
+        nextImportedFiles = [...new Set(nextImportHistory.map(h => h.filename))];
+      } else if (parsed.importedFiles) {
+        nextImportedFiles = [...new Set([...(list?.importedFiles || []), ...parsed.importedFiles])];
+      }
+
+      handleAddItems(parsed.categories, nextImportedFiles, nextImportHistory);
+    } else {
+      throw new Error("Data JSON harus berupa array of category atau object dengan properties categories.");
+    }
+  };
+
   const handleAppend = () => {
     setPasteError(null);
     try {
       const parsed = JSON.parse(pasteContent);
-      if (Array.isArray(parsed)) {
-        const next = [...checklist, ...parsed];
-        setChecklist(next);
-        updateListInDb(next);
-        setIsPasting(false);
-        setPasteContent('');
-      } else if (parsed && Array.isArray(parsed.categories)) {
-        const next = [...checklist, ...parsed.categories];
-        setChecklist(next);
-        
-        let nextImportedFiles = list?.importedFiles || [];
-        let nextImportHistory = list?.importHistory || [];
-
-        if (parsed.importHistory) {
-          const existingIds = new Set(nextImportHistory.map(h => h.id));
-          const newRecordsToAdd = (parsed.importHistory as ImportRecord[]).filter(h => !existingIds.has(h.id));
-          nextImportHistory = [...nextImportHistory, ...newRecordsToAdd];
-          nextImportedFiles = [...new Set(nextImportHistory.map(h => h.filename))];
-        } else if (parsed.importedFiles) {
-          nextImportedFiles = [...new Set([...nextImportedFiles, ...parsed.importedFiles])];
-        }
-        
-        updateListInDb(next, nextImportedFiles, nextImportHistory);
-        setIsPasting(false);
-        setPasteContent('');
-      } else {
-        setPasteError("Data JSON harus berupa array of category atau object dengan properties categories.");
-      }
+      processAppendData(parsed);
+      setIsPasting(false);
+      setPasteContent('');
     } catch {
       setPasteError("Format JSON tidak valid.");
     }
@@ -636,6 +655,50 @@ const RestockDetailPage: React.FC = () => {
     }
   };
 
+  const handleTxtUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const text = evt.target?.result as string;
+        const parsed = JSON.parse(text);
+        setTxtImportModal({ isOpen: true, data: parsed });
+      } catch (err) {
+        alert("Gagal membaca atau mem-parsing file TXT. Pastikan format file sesuai.");
+      }
+      if (txtFileInputRef.current) {
+        txtFileInputRef.current.value = '';
+      }
+    };
+    reader.onerror = () => {
+      alert("Gagal membaca file TXT.");
+    };
+    reader.readAsText(file);
+  };
+
+  const handleTxtReplace = () => {
+    try {
+      processReplaceData(txtImportModal.data);
+      setTxtImportModal({ isOpen: false, data: null });
+    } catch (err: any) {
+      alert(err.message || "Data TXT tidak valid.");
+      setTxtImportModal({ isOpen: false, data: null });
+    }
+  };
+
+  const handleTxtAppend = () => {
+    try {
+      processAppendData(txtImportModal.data);
+      setTxtImportModal({ isOpen: false, data: null });
+    } catch (err: any) {
+      alert(err.message || "Data TXT tidak valid.");
+      setTxtImportModal({ isOpen: false, data: null });
+    }
+  };
+
   const handleBulkDelete = () => {
     if (checkedVariants.size === 0) return;
     setDeleteModal({ isOpen: true, idToClear: 'bulk' });
@@ -694,6 +757,20 @@ const RestockDetailPage: React.FC = () => {
                   <span className="material-symbols-outlined text-[18px]">upload_file</span>
                   <span className="font-label-md text-label-md">Import Excel</span>
                 </button>
+                <input 
+                  type="file" 
+                  ref={txtFileInputRef} 
+                  accept=".txt, .json"
+                  className="hidden" 
+                  onChange={handleTxtUpload} 
+                />
+                <button 
+                  onClick={() => txtFileInputRef.current?.click()}
+                  className="flex items-center gap-xs text-primary hover:bg-surface-container px-sm py-xs rounded-md transition-colors border border-transparent hover:border-surface-variant cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">note_add</span>
+                  <span className="font-label-md text-label-md">Import TXT</span>
+                </button>
                 <button 
                   onClick={() => setIsPasting(!isPasting)}
                   className={`flex items-center gap-xs px-sm py-xs rounded-md transition-colors border cursor-pointer ${
@@ -727,6 +804,17 @@ const RestockDetailPage: React.FC = () => {
               </span>
               <span className="font-label-md text-label-md">
                 Export TXT
+              </span>
+            </button>
+            <button 
+              onClick={handleCopyJson}
+              className="flex items-center gap-xs text-primary hover:bg-surface-container px-sm py-xs rounded-md transition-colors border border-transparent hover:border-surface-variant cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                {isCopied ? 'check' : 'content_copy'}
+              </span>
+              <span className="font-label-md text-label-md">
+                {isCopied ? 'Copied' : 'Copy'}
               </span>
             </button>
           </div>
@@ -780,13 +868,13 @@ const RestockDetailPage: React.FC = () => {
                 onClick={handleAppend}
                 className="px-md py-xs rounded-full bg-secondary-container text-on-secondary-container hover:bg-secondary-container/80 transition-colors font-label-md cursor-pointer"
               >
-                Append Data
+                Append 
               </button>
               <button 
                 onClick={handleReplace}
                 className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md shadow-sm cursor-pointer"
               >
-                Replace Data
+                Replace 
               </button>
             </div>
           </div>
@@ -1283,6 +1371,59 @@ const RestockDetailPage: React.FC = () => {
                 className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm"
               >
                 Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TXT Import Validation Modal */}
+      {txtImportModal.isOpen && txtImportModal.data && (
+        <div
+          className="fixed inset-0 bg-on-surface/50 z-50 flex items-center justify-center p-md backdrop-blur-sm"
+          onClick={() => setTxtImportModal({ isOpen: false, data: null })}
+        >
+          <div
+            className="bg-surface p-xl rounded-xl shadow-lg flex flex-col gap-md animate-in zoom-in-95 duration-200 max-w-ms w-full max-h-[80vh] overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="font-h3 text-h3 text-on-surface flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">merge</span>
+              Import Data TXT
+            </h3>
+
+            <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-sm">
+              <p className="text-sm text-on-surface-variant mb-2">Daftar barang yang akan diimpor:</p>
+              {(Array.isArray(txtImportModal.data) ? txtImportModal.data : txtImportModal.data?.categories || []).map((cat: Category) => (
+                <div key={cat.id} className="bg-surface-container-lowest border border-surface-variant rounded-lg p-3">
+                  <strong className="text-on-surface block mb-1 text-sm">{cat.name}</strong>
+                  <ul className="list-disc pl-5 text-xs text-on-surface-variant flex flex-col gap-1">
+                    {cat.variants.map((v: any) => (
+                      <li key={v.id}>{v.name} <span className="font-medium text-primary">({v.targetQuantity} qty)</span></li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-sm justify-end mt-sm border-t border-surface-variant pt-3">
+              <button
+                onClick={() => setTxtImportModal({ isOpen: false, data: null })}
+                className="px-md py-xs rounded-full border border-outline text-on-surface hover:bg-surface-variant transition-colors font-label-md cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleTxtReplace}
+                className="px-md py-xs rounded-full bg-error text-on-error hover:bg-error/90 transition-colors font-label-md cursor-pointer shadow-sm"
+              >
+                Replace 
+              </button>
+              <button
+                onClick={handleTxtAppend}
+                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm"
+              >
+                Append 
               </button>
             </div>
           </div>
