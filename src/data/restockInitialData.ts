@@ -235,12 +235,12 @@ export const INITIAL_DATA: Category[] = [
         },
         {
           "id": "345734031214",
-          "name": "Powder",
+          "name": "Powder Puff",
           "stock": 499,
           "targetQuantity": 0,
           "color": "bg-primary-fixed-dim",
           "images": [
-            "/assets/images/modal-viscose-powder-01.jpg"
+            "/assets/images/modal-viscose-powder-puff-01.jpg"
           ],
           "price": 25000
         },
@@ -285,6 +285,61 @@ export const INITIAL_DATA: Category[] = [
           "color": "bg-primary-fixed-dim",
           "images": [
             "/assets/images/modal-viscose-bw-01.jpg"
+          ],
+          "price": 25000
+        },
+        {
+          "id": "345734031225",
+          "name": "Biscuit",
+          "stock": 500,
+          "targetQuantity": 0,
+          "color": "bg-primary-fixed-dim",
+          "images": [
+            "/assets/images/modal-viscose-biscuit-01.jpg"
+          ],
+          "price": 25000
+        },
+        {
+          "id": "345734031226",
+          "name": "Charcoal",
+          "stock": 500,
+          "targetQuantity": 0,
+          "color": "bg-primary-fixed-dim",
+          "images": [
+            "/assets/images/modal-viscose-charcoal-01.jpg"
+          ],
+          "price": 25000
+        },
+        {
+          "id": "345734031227",
+          "name": "Ivory",
+          "stock": 500,
+          "targetQuantity": 0,
+          "color": "bg-primary-fixed-dim",
+          "images": [
+            "/assets/images/modal-viscose-ivory-01.jpg"
+          ],
+          "price": 25000
+        },
+        {
+          "id": "345734031228",
+          "name": "Milky",
+          "stock": 500,
+          "targetQuantity": 0,
+          "color": "bg-primary-fixed-dim",
+          "images": [
+            "/assets/images/modal-viscose-milky-01.jpg"
+          ],
+          "price": 25000
+        },
+        {
+          "id": "345734031229",
+          "name": "Fossil Grey",
+          "stock": 500,
+          "targetQuantity": 0,
+          "color": "bg-primary-fixed-dim",
+          "images": [
+            "/assets/images/modal-viscose-fossil-grey-01.jpg"
           ],
           "price": 25000
         }
@@ -3808,18 +3863,18 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-hitam.jpg"
+                  "/assets/images/banviscose-hitam-01.jpg"
               ],
               "price": 40000
           },
           {
               "id": "386102715739",
-              "name": "Oat",
+              "name": "Milo",
               "stock": 100,
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-oat.jpg"
+                  "/assets/images/banviscose-milo-01.jpg"
               ],
               "price": 40000
           },
@@ -3830,7 +3885,7 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-charcoal.jpg"
+                  "/assets/images/banviscose-charcoal-01.jpg"
               ],
               "price": 40000
           },
@@ -3841,18 +3896,18 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-biscuit.jpg"
+                  "/assets/images/banviscose-biscuit-01.jpg"
               ],
               "price": 40000
           },
           {
               "id": "386102715734",
-              "name": "Rose pink",
+              "name": "Dusty Pink",
               "stock": 100,
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-rose-pink.jpg"
+                  "/assets/images/banviscose-dusty-pink-01.jpg"
               ],
               "price": 40000
           },
@@ -3863,7 +3918,7 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-nude.jpg"
+                  "/assets/images/banviscose-nude-01.jpg"
               ],
               "price": 40000
           },
@@ -3874,7 +3929,7 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-navy.jpg"
+                  "/assets/images/banviscose-navy-01.jpg"
               ],
               "price": 40000
           },
@@ -3885,7 +3940,7 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-maroon.jpg"
+                  "/assets/images/banviscose-maroon-01.jpg"
               ],
               "price": 40000
           },
@@ -3896,18 +3951,18 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-coksu.jpg"
+                  "/assets/images/banviscose-coksu-01.jpg"
               ],
               "price": 40000
           },
           {
               "id": "386102715735",
-              "name": "Taupe",
+              "name": "Silver",
               "stock": 100,
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-taupe.jpg"
+                  "/assets/images/banviscose-silver-01.jpg"
               ],
               "price": 40000
           },
@@ -3918,18 +3973,18 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-coffe.jpg"
+                  "/assets/images/banviscose-coffe-01.jpg"
               ],
               "price": 40000
           },
           {
               "id": "386102715732",
-              "name": "Abu muda",
+              "name": "baby pink",
               "stock": 100,
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-abu-muda.jpg"
+                  "/assets/images/banviscose-baby-pink-01.jpg"
               ],
               "price": 40000
           },
@@ -3940,7 +3995,7 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-latte.jpg"
+                  "/assets/images/banviscose-latte-01.jpg"
               ],
               "price": 40000
           },
@@ -3951,29 +4006,18 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-denim.jpg"
+                  "/assets/images/banviscose-denim-01.jpg"
               ],
               "price": 40000
           },
           {
               "id": "386102715741",
-              "name": "Ocean blue",
+              "name": "Mocca",
               "stock": 99,
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-ocean-blue.jpg"
-              ],
-              "price": 40000
-          },
-          {
-              "id": "386102715747",
-              "name": "Cappucino",
-              "stock": 100,
-              "targetQuantity": 0,
-              "color": "bg-primary-fixed-dim",
-              "images": [
-                  "/assets/images/banviscose-cappucino.jpg"
+                  "/assets/images/banviscose-mocca-01.jpg"
               ],
               "price": 40000
           },
@@ -3984,7 +4028,7 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-burgundy.jpg"
+                  "/assets/images/banviscose-burgundy-01.jpg"
               ],
               "price": 40000
           },
@@ -3995,7 +4039,7 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-butter-yellow.jpg"
+                  "/assets/images/banviscose-butter-yellow-01.jpg"
               ],
               "price": 40000
           },
@@ -4006,7 +4050,7 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-khaky.jpg"
+                  "/assets/images/banviscose-khaky-01.jpg"
               ],
               "price": 40000
           },
@@ -4017,7 +4061,7 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-mauve.jpg"
+                  "/assets/images/banviscose-mauve-01.jpg"
               ],
               "price": 40000
           },
@@ -4028,7 +4072,7 @@ export const INITIAL_DATA: Category[] = [
               "targetQuantity": 0,
               "color": "bg-primary-fixed-dim",
               "images": [
-                  "/assets/images/banviscose-baby-blue.jpg"
+                  "/assets/images/banviscose-baby-blue-01.jpg"
               ],
               "price": 40000
           }
