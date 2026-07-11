@@ -17,7 +17,7 @@ const KatalogPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [formName, setFormName] = useState('');
-  const [formUniqueKeyword, setFormUniqueKeyword] = useState('');
+  const [formSkus, setFormSkus] = useState('');
   const [selectedSupplierIds, setSelectedSupplierIds] = useState<string[]>([]);
 
   const suppliers = useLiveQuery(() => db.suppliers.orderBy('name').toArray());
@@ -53,7 +53,7 @@ const KatalogPage: React.FC = () => {
 
   const resetForm = () => {
     setFormName('');
-    setFormUniqueKeyword('');
+    setFormSkus('');
     setSelectedSupplierIds([]);
   };
 
@@ -72,7 +72,7 @@ const KatalogPage: React.FC = () => {
       await db.barang.add({
         id: barangId,
         name: formName,
-        uniqueKeyword: formUniqueKeyword || undefined,
+        skus: formSkus ? formSkus.split(',').map(s => s.trim()).filter(s => s) : undefined,
         supplierIds: selectedSupplierIds,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -96,7 +96,7 @@ const KatalogPage: React.FC = () => {
       await db.transaction('rw', db.barang, db.barangSupplier, async () => {
         await db.barang.update(editItem.id, {
           name: formName,
-          uniqueKeyword: formUniqueKeyword || undefined,
+          skus: formSkus ? formSkus.split(',').map(s => s.trim()).filter(s => s) : undefined,
           supplierIds: selectedSupplierIds,
           updatedAt: new Date()
         });
@@ -131,7 +131,7 @@ const KatalogPage: React.FC = () => {
     e.stopPropagation();
     setEditItem(item);
     setFormName(item.name);
-    setFormUniqueKeyword(item.uniqueKeyword || '');
+    setFormSkus(item.skus ? item.skus.join(', ') : '');
     setSelectedSupplierIds(item.supplierIds || []);
   };
 
@@ -246,6 +246,14 @@ const KatalogPage: React.FC = () => {
                   <span className="text-[10px] sm:text-[11px] text-on-surface-variant">
                     Stok <strong className={item.totalStock === 0 ? 'text-error' : 'text-on-surface'}>{item.totalStock}</strong>
                   </span>
+                  {item.skus && item.skus.length > 0 && (
+                    <>
+                      <span className="text-[10px] sm:text-[11px] text-on-surface-variant">·</span>
+                      <span className="text-[10px] sm:text-[11px] text-on-surface-variant max-w-xs truncate" title={item.skus.join(', ')}>
+                        SKU: {item.skus.join(', ')}
+                      </span>
+                    </>
+                  )}
                   {item.supplierNames.length > 0 && (
                     <>
                       <span className="text-[10px] sm:text-[11px] text-on-surface-variant">·</span>
@@ -299,13 +307,13 @@ const KatalogPage: React.FC = () => {
             />
           </div>
           <div className="flex flex-col gap-xs">
-            <label className="font-label-md text-on-surface">Kata Kunci Unik (Untuk Impor Excel)</label>
+            <label className="font-label-md text-on-surface">SKU Induk (Pisahkan dengan koma)</label>
             <input
               type="text"
-              value={formUniqueKeyword}
-              onChange={e => setFormUniqueKeyword(e.target.value)}
+              value={formSkus}
+              onChange={e => setFormSkus(e.target.value)}
               className="bg-surface-container px-md py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Contoh: pashmina tencel"
+              placeholder="Contoh: sku1, sku2"
             />
           </div>
           {renderSupplierPicker()}
@@ -334,13 +342,13 @@ const KatalogPage: React.FC = () => {
             />
           </div>
           <div className="flex flex-col gap-xs">
-            <label className="font-label-md text-on-surface">Kata Kunci Unik (Untuk Impor Excel)</label>
+            <label className="font-label-md text-on-surface">SKU Induk (Pisahkan dengan koma)</label>
             <input
               type="text"
-              value={formUniqueKeyword}
-              onChange={e => setFormUniqueKeyword(e.target.value)}
+              value={formSkus}
+              onChange={e => setFormSkus(e.target.value)}
               className="bg-surface-container px-md py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Contoh: pashmina tencel"
+              placeholder="Contoh: sku1, sku2"
             />
           </div>
           {renderSupplierPicker()}

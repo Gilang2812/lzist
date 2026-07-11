@@ -31,4 +31,13 @@ db.version(2).stores({
   restockLists: 'id, status, createdAt',
 });
 
+db.version(3).stores({
+  barang: 'id, name, *skus',
+  subBarang: 'id, barangId, name, sku',
+  suppliers: 'id, name',
+  barangSupplier: 'id, barangId, supplierId',
+  stokLogs: 'id, subBarangId, type, createdAt',
+  restockLists: 'id, status, createdAt',
+});
+
 export { db };

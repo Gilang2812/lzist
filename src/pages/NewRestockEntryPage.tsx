@@ -553,28 +553,33 @@ const NewRestockEntryPage: React.FC = () => {
             const variantNameMatch = itemStr.match(/Nama Variasi:\s*([^;]+);/);
             const quantityMatch = itemStr.match(/Jumlah:\s*(\d+);/);
 
+            const skuIndukMatch = itemStr.match(/SKU Induk:\s*([^;]+);/);
+
             if (!productNameMatch) return;
 
             const productName = productNameMatch[1].trim();
             const variantName = variantNameMatch ? variantNameMatch[1].trim() : '';
             const quantity = quantityMatch ? parseInt(quantityMatch[1], 10) : 1;
+            const skuInduk = skuIndukMatch ? skuIndukMatch[1].trim() : '';
 
             const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
             const nProduct = normalize(productName);
+            const nSkuInduk = skuInduk ? normalize(skuInduk) : '';
 
             let bestCategoryMatch: Category | null = null;
 
-            // 1. Prioritas: uniqueKeyword (Strict Match)
-            const keywordMatch = catalogData.find(cat => {
-              if (!cat.uniqueKeyword) return false;
-              const nKeyword = normalize(cat.uniqueKeyword);
-              return nProduct.includes(nKeyword) &&
-                cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase());
-            });
+            // 1. Prioritas: SKU Induk (Strict Match in array)
+            if (nSkuInduk) {
+              const skuMatch = catalogData.find(cat => {
+                if (!cat.skus || cat.skus.length === 0) return false;
+                const matchSku = cat.skus.some(sku => normalize(sku) === nSkuInduk);
+                return matchSku &&
+                  cat.variants.some(v => v.name.toLowerCase() === variantName.toLowerCase());
+              });
+              if (skuMatch) bestCategoryMatch = skuMatch;
+            }
 
-            if (keywordMatch) {
-              bestCategoryMatch = keywordMatch;
-            } else {
+            if (!bestCategoryMatch) {
               // 2. Fallback: Nama Barang (Strict Match)
               let longestMatchLen = 0;
               for (const cat of catalogData) {
@@ -591,12 +596,14 @@ const NewRestockEntryPage: React.FC = () => {
 
             if (!bestCategoryMatch) {
               let matchedPrice = 0;
-              // 1. Try matching by uniqueKeyword (consecutive words)
-              let matchingCat = catalogData.find(cat => {
-                if (!cat.uniqueKeyword) return false;
-                const nKeyword = normalize(cat.uniqueKeyword);
-                return nProduct.includes(nKeyword);
-              });
+              // 1. Try matching by SKU Induk without variant match
+              let matchingCat: Category | undefined = undefined;
+              if (nSkuInduk) {
+                matchingCat = catalogData.find(cat => {
+                  if (!cat.skus || cat.skus.length === 0) return false;
+                  return cat.skus.some(sku => normalize(sku) === nSkuInduk);
+                });
+              }
 
               // 2. Fallback: Try matching by product name (consecutive words, longest match)
               if (!matchingCat) {

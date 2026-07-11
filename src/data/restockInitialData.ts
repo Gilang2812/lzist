@@ -3,8 +3,8 @@ import type { Category } from '../types';
 export const INITIAL_DATA: Category[] = [
     {
       "id": "47158306682",
-      "name": "Pashmina TENCEL | Basic Tencel Shawl",
-      "uniqueKeyword": "basic tencel",
+      "name": "Pashmina tencel",
+      skus: ["natencel","votcl","bftcl","ntatcl"],
       "variants": [
         {
           "id": "365735307947",
@@ -131,8 +131,8 @@ export const INITIAL_DATA: Category[] = [
     },
     {
       "id": "48308287626",
-      "name": "Pashmina Modal Viscose | Modal Viscose Shawl",
-      "uniqueKeyword": "modal viscose",
+      "name": "Pashmina Modal| Bamboo",
+      skus: ["naviscose","vomdl","mdl","v1"],
       "variants": [
         {
           "id": "345734031211",
@@ -143,7 +143,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-hitam-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031220",
@@ -154,7 +154,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-oat-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031213",
@@ -165,7 +165,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-rain-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031221",
@@ -176,7 +176,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-coffe-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031222",
@@ -187,7 +187,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-navy-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031223",
@@ -198,7 +198,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-red-wine-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031212",
@@ -209,7 +209,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-machiato-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031216",
@@ -220,7 +220,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-maroon-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031224",
@@ -231,7 +231,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-khaki-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031214",
@@ -242,7 +242,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-powder-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031219",
@@ -253,7 +253,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-burgundy-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031217",
@@ -264,7 +264,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-frappucino-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031218",
@@ -275,7 +275,7 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-silver-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         },
         {
           "id": "345734031215",
@@ -286,14 +286,14 @@ export const INITIAL_DATA: Category[] = [
           "images": [
             "/assets/images/modal-viscose-bw-01.jpg"
           ],
-          "price": 26000
+          "price": 25000
         }
       ]
     },
     {
       "id": "52008267608",
-      "name": "Pashmina Kaos Rayon Premium | Turkish Shawl",
-      "uniqueKeyword": "kaos rayon",
+      "name": "Pashmina Kaos ",
+      skus: ["nakaos","vo05","bf05","nta04","r1"],
       "variants": [
         {
           "id": "425734033768",
@@ -629,8 +629,8 @@ export const INITIAL_DATA: Category[] = [
     },
     {
       "id": "53908272713",
-      "name": "Pashmina Voal | Arabian Voal Shawl",
-      "uniqueKeyword": "arabian voal",
+      "name": "Pashmina Arabian Voal",
+      skus: ["navoal","vo10","bf10","nta03","vo"],
       "variants": [
         {
           "id": "410735144010",
@@ -988,8 +988,8 @@ export const INITIAL_DATA: Category[] = [
     },
     {
       "id": "44708292808",
-      "name": "Pashmina Viscose Textured | Viscose Hightlight",
-      "uniqueKeyword": "viscose textured",
+      "name": "Pashmina Viscose Textured | Hightlight",
+      skus: ["natextured","vohl","bfhgl","ntahl"],
       "variants": [
         {
           "id": "272509239716",
@@ -1248,8 +1248,8 @@ export const INITIAL_DATA: Category[] = [
     },
     {
       "id": "47658293044",
-      "name": "Hijab Segi Empat Paris Jadul Varisha | Paris Jadul Azara",
-      "uniqueKeyword": "paris jadul",
+      "name": "Paris Jadul",
+      skus: ["risjadul","vo11","bf03","nta01","pj"],
       "variants": [
         {
           "id": "277509275386",
@@ -2344,8 +2344,8 @@ export const INITIAL_DATA: Category[] = [
     },
     {
       "id": "44129795351",
-      "name": "Inner Basic Turkey | Ciput Tali Kaos Rayon Premium",
-      "uniqueKeyword": "ciput tali",
+      "name": "Ciput Tali ",
+      skus: ["cptl","nta02"],
       "variants": [
         {
           "id": "395735213918",
@@ -2505,8 +2505,8 @@ export const INITIAL_DATA: Category[] = [
     },
     {
       "id": "28944521101",
-      "name": "Paris Square | Hijab Segi Empat Paris Premium",
-      "uniqueKeyword": "paris premium",
+      "name": "Paris Premium",
+      skus: ["risprem"],
       "variants": [
         {
           "id": "430735233219",
@@ -3007,8 +3007,8 @@ export const INITIAL_DATA: Category[] = [
     },
     {
       "id": "52908272964",
-      "name": "Plain Polycotton Square Hijab | Hijab Segiempat Polycotton no",
-      "uniqueKeyword": "segiempat polycotton",
+      "name": "Polycotton",
+      skus: ["lycotton","voplc","nta05"],
       "variants": [
         {
           "id": "395735243275",
@@ -3201,8 +3201,8 @@ export const INITIAL_DATA: Category[] = [
     },
     {
       "id": "46954018421",
-      "name": "Jarum Pentul Stainless Anti Karat || Pentul Hijab Stainless",
-      "uniqueKeyword": "jarum pentul",
+      "name": "Jarum Pentul",
+      skus: ["pent","accj"],
       "variants": [
         {
           "id": "430379414900",
@@ -3244,8 +3244,8 @@ export const INITIAL_DATA: Category[] = [
     },
     {
       "id": "56953998340",
-      "name": "Earrings | Anting Hijab Elegan",
-      "uniqueKeyword": "anting hijab",
+      "name": "Earrings Anting",
+      skus: ["anting hijab"],
       "variants": [
         {
           "id": "282302727453",
@@ -3296,8 +3296,8 @@ export const INITIAL_DATA: Category[] = [
     },
     {
       "id": "25305878196",
-      "name": "Pashmina Jersey Premium | Pashmina Mleyot",
-      "uniqueKeyword": "pashmina mleyot",
+      "name": "Jersey Premium Mleyot",
+      skus: ["pashmina mleyot"],
       "variants": [
         {
           "id": "166552756800",
@@ -3466,7 +3466,7 @@ export const INITIAL_DATA: Category[] = [
     {
       "id": "19695964365",
       "name": "Ciput Kaos / Inner Kaos",
-      "uniqueKeyword": "ciput kaos",
+      skus: ["putkaos"],
       "variants": [
         {
           "id": "187217554580",
@@ -3580,8 +3580,8 @@ export const INITIAL_DATA: Category[] = [
     },
     {
       "id": "54059922940",
-      "name": "Khiban || Khimar Bandana Segi Empat Tali Ceruty Babydoll Premium",
-      "uniqueKeyword": "khimar bandana",
+      "name": "Khiban Ceruty",
+      skus: ["banceruty","vokm","bf11","nta11","kh"],
       "variants": [
         {
           "id": "385876412978",
@@ -3793,5 +3793,246 @@ export const INITIAL_DATA: Category[] = [
           "price": 30000
         }
       ]
-    }
-  ];
+    },
+  {
+      "id": "46112713672",
+      "name": "Khiban Viscose",
+      "skus": [
+          "banviscose","mdlkh"
+      ],
+      "variants": [
+          {
+              "id": "386102715738",
+              "name": "Hitam",
+              "stock": 99,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-hitam.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715739",
+              "name": "Oat",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-oat.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715743",
+              "name": "Charcoal",
+              "stock": 98,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-charcoal.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715729",
+              "name": "Biscuit",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-biscuit.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715734",
+              "name": "Rose pink",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-rose-pink.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715730",
+              "name": "Nude",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-nude.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715740",
+              "name": "Navy",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-navy.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715744",
+              "name": "Maroon",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-maroon.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715745",
+              "name": "Coksu",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-coksu.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715735",
+              "name": "Taupe",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-taupe.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715731",
+              "name": "Coffe",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-coffe.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715732",
+              "name": "Abu muda",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-abu-muda.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715746",
+              "name": "Latte",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-latte.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715736",
+              "name": "Denim",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-denim.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715741",
+              "name": "Ocean blue",
+              "stock": 99,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-ocean-blue.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715747",
+              "name": "Cappucino",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-cappucino.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715742",
+              "name": "Burgundy",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-burgundy.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715748",
+              "name": "Butter yellow",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-butter-yellow.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715733",
+              "name": "Khaky",
+              "stock": 99,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-khaky.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715737",
+              "name": "Mauve",
+              "stock": 99,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-mauve.jpg"
+              ],
+              "price": 40000
+          },
+          {
+              "id": "386102715749",
+              "name": "Baby blue",
+              "stock": 100,
+              "targetQuantity": 0,
+              "color": "bg-primary-fixed-dim",
+              "images": [
+                  "/assets/images/banviscose-baby-blue.jpg"
+              ],
+              "price": 40000
+          }
+      ]
+  }
+];
+

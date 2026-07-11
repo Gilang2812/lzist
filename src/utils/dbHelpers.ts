@@ -27,7 +27,7 @@ export const fetchCatalogAsCategories = async (): Promise<Category[]> => {
     return {
       id: barang.id,
       name: barang.name,
-      uniqueKeyword: barang.uniqueKeyword,
+      skus: barang.skus,
       variants,
       supplierNames,
     };
