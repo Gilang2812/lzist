@@ -9,7 +9,6 @@ export interface Variant {
   stores?: string[];
   images?: string[];
   checked?: boolean;
-  price?: number;
 }
 
 export interface Category {
@@ -18,6 +17,7 @@ export interface Category {
   skus?: string[];
   variants: Variant[];
   supplierNames?: string[];
+  price?: number;
 }
 
 export interface UnmatchedRow {
@@ -58,7 +58,6 @@ export interface SubBarang {
   sku?: string;
   stock: number;
   minStock?: number;
-  price?: number;
   images?: string[];
 }
 
@@ -70,6 +69,7 @@ export interface Barang {
   subBarang?: SubBarang[];
   createdAt: Date;
   updatedAt: Date;
+  price?: number;
 }
 
 // ─── Supplier ───────────────────────────────────────────────

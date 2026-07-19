@@ -44,10 +44,10 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
   
   const uncheckedCategoryPrice = availableVariants
     .filter(v => !v.checked)
-    .reduce((acc, v) => acc + (v.price || 0) * (v.targetQuantity || 0), 0);
+    .reduce((acc, v) => acc + (category.price || 0) * (v.targetQuantity || 0), 0);
   
   const totalCategoryPrice = availableVariants
-    .reduce((acc, v) => acc + (v.price || 0) * (v.targetQuantity || 0), 0);
+    .reduce((acc, v) => acc + (category.price || 0) * (v.targetQuantity || 0), 0);
     
   const checkedCategoryPrice = totalCategoryPrice - uncheckedCategoryPrice;
   
@@ -63,7 +63,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
     <div className={`border-b border-surface-variant ${isLast ? 'border-b-0' : ''}`}>
       {/* Category Header */}
       <div
-        className="flex items-center  border-t  first:border-t-0 p-1 sm:py-sm sm:px-md cursor-pointer hover:bg-surface-container-low transition-colors group gap-2"
+        className="flex items-center border-t first:border-t-0 p-1 sm:py-sm sm:px-md cursor-pointer hover:bg-surface-container-low transition-colors group gap-2"
         onClick={onToggleExpand}
       >
       {showCheckboxes && (
@@ -123,7 +123,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
 
       {/* Category Variants */}
       {isExpanded && category.variants.length > 0 && (
-        <div className="flex flex-col pl-md sm:pl-md border-l-2 border-primary-fixed-dim ml-[18px]">
+        <div className="flex flex-col border-l-2 border-primary-fixed-dim ml-[18px]">
           <AnimatePresence>
             {sortedVariants.map(variant => (
               <motion.div
@@ -133,6 +133,7 @@ const RestockListCard: React.FC<RestockListCardProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
+                className="odd:bg-surface-container-high pl-md "
               >
                 <InlineItemInfo
                   variant={variant} 

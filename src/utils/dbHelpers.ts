@@ -16,7 +16,6 @@ export const fetchCatalogAsCategories = async (): Promise<Category[]> => {
         stock: sub.stock,
         targetQuantity: 0,
         images: sub.images,
-        price: sub.price,
       }));
 
     const links = allLinks.filter(l => l.barangId === barang.id);
@@ -30,6 +29,7 @@ export const fetchCatalogAsCategories = async (): Promise<Category[]> => {
       skus: barang.skus,
       variants,
       supplierNames,
+      price: barang.price,
     };
   });
 

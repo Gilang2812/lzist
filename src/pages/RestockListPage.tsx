@@ -99,7 +99,7 @@ const RestockListPage: React.FC = () => {
               const uncheckedTotal = list.categories.reduce((acc, cat) => {
                 return acc + cat.variants.reduce((vAcc, v) => {
                   if (!v.checked) {
-                    return vAcc + (v.price || 0) * (v.targetQuantity || 0);
+                    return vAcc + (cat.price || 0) * (v.targetQuantity || 0);
                   }
                   return vAcc;
                 }, 0);

@@ -52,7 +52,7 @@ const RestockDetailPage: React.FC = () => {
     let total = 0;
     checklist.forEach(cat => {
       cat.variants.forEach(v => {
-        const itemCost = (v.price || 0) * (v.targetQuantity || 0);
+        const itemCost = (cat.price || 0) * (v.targetQuantity || 0);
         total += itemCost;
         if (v.checked) {
           checked += itemCost;
@@ -564,9 +564,8 @@ const RestockDetailPage: React.FC = () => {
               }
 
               if (matchingCat && matchingCat.variants.length > 0) {
-                const matchingVar = matchingCat.variants.find(v => v.name.toLowerCase() === variantName.toLowerCase()) || matchingCat.variants[0];
-                if (matchingVar && matchingVar.price) {
-                  matchedPrice = matchingVar.price;
+                if (matchingCat.price) {
+                  matchedPrice = matchingCat.price;
                 }
               }
 
@@ -587,11 +586,8 @@ const RestockDetailPage: React.FC = () => {
             const initialVariant = bestCategoryMatch.variants.find(v => v.name.toLowerCase() === variantName.toLowerCase());
             if (!initialVariant) {
               let matchedPrice = 0;
-              if (bestCategoryMatch.variants.length > 0) {
-                const firstVarWithPrice = bestCategoryMatch.variants.find(v => v.price && v.price > 0) || bestCategoryMatch.variants[0];
-                if (firstVarWithPrice && firstVarWithPrice.price) {
-                  matchedPrice = firstVarWithPrice.price;
-                }
+              if (bestCategoryMatch.price) {
+                matchedPrice = bestCategoryMatch.price;
               }
 
               const unmatched: UnmatchedRow = { 
@@ -1306,8 +1302,8 @@ const RestockDetailPage: React.FC = () => {
                   updateListInDb(importSummary.matched, newFiles, newHistory);
                   setImportSummary({ ...importSummary, isOpen: false });
                 }}
-                disabled={importSummary.matched.length === 0}
-                className="px-md py-xs rounded-full bg-error text-on-error hover:bg-error/90 transition-colors font-label-md cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={importSummary.matched.length === 0 && importSummary.unmatched.length === 0}
+                className="px-md py-xs rounded-full bg-error text-on-error hover:bg-error/90 transition-colors font-label-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Replace
               </button>
@@ -1336,8 +1332,8 @@ const RestockDetailPage: React.FC = () => {
                   handleAddItems(importSummary.matched, newFiles, newHistory);
                   setImportSummary({ ...importSummary, isOpen: false });
                 }}
-                disabled={importSummary.matched.length === 0}
-                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={importSummary.matched.length === 0 && importSummary.unmatched.length === 0}
+                className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Append
               </button>

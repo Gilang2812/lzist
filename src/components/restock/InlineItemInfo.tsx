@@ -30,7 +30,7 @@ const InlineItemInfo: React.FC<InlineItemInfoProps> = ({ variant, isExpanded, on
       <div className="flex flex-wrap items-center mb-1 sm:mb-1 cursor-pointer gap-y-1 gap-x-2" onClick={onToggleExpand}>
         {showCheckboxes && (
           <input
-            className="w-3 h-3   sm:w-4 sm:h-4 rounded border-outline text-primary focus:ring-primary-container  bg-surface-container-lowest cursor-pointer"
+            className="w-5 h-5   sm:w-5 sm:h-4 rounded border-outline text-primary focus:ring-primary-container  bg-surface-container-lowest cursor-pointer"
             type="checkbox"
             checked={isChecked}
             onChange={() => onToggleCheck && onToggleCheck()}

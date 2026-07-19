@@ -19,6 +19,7 @@ export const syncDatabaseWithMaster = async () => {
         id: category.id,
         name: category.name,
         skus: category.skus,
+        price: category.price,
         createdAt: new Date(),
         updatedAt: new Date()
       });
@@ -29,8 +30,7 @@ export const syncDatabaseWithMaster = async () => {
           barangId: category.id,
           name: variant.name,
           stock: variant.stock,
-          images: variant.images,
-          price: variant.price
+          images: variant.images
         });
       }
     }
