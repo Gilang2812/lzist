@@ -9,6 +9,8 @@ export const ROUTES = {
   BARANG_DETAIL: '/katalog/:id',
   SUPPLIER_LIST: '/supplier',
   SUPPLIER_DETAIL: '/supplier/:id',
+  PROFIT_HISTORY: '/profit-history',
+  PROFIT_CALCULATOR_ID: '/profit-calculator/:id',
 } as const;
 
 export const NAV_ITEMS = [
@@ -16,6 +18,7 @@ export const NAV_ITEMS = [
   { label: 'Restock', icon: 'inventory_2', path: ROUTES.RESTOCK_LIST },
   { label: 'Katalog', icon: 'menu_book', path: ROUTES.KATALOG },
   { label: 'Supplier', icon: 'local_shipping', path: ROUTES.SUPPLIER_LIST },
+  { label: 'Profit History', icon: 'history', path: ROUTES.PROFIT_HISTORY },
 ] as const;
 
 export const BREAKPOINTS = {

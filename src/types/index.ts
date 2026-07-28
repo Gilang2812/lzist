@@ -101,3 +101,39 @@ export interface StokLog {
   note?: string;
   createdAt: Date;
 }
+
+// ─── Profit Calculator ────────────────────────────────────────
+
+export interface OrderItem {
+  noPesanan: string;
+  namaProduk: string;
+  variasi: string;
+  hargaSetelahDiskon: number;
+  jumlah: number;
+  subtotalBarang: number;
+  itemKey: string;
+}
+
+export interface OrderGroup {
+  noPesanan: string;
+  items: OrderItem[];
+  totalSubtotalBarang: number;
+}
+
+export interface ProfitHistory {
+  id: string;
+  title: string;
+  startDate: { day: string; month: string; year: string };
+  endDate: { day: string; month: string; year: string };
+  orders: OrderGroup[];
+  masterModal: Record<string, number>;
+  overrides: Record<string, number>;
+  adminFeePercent: number;
+  serviceFeePercent: number;
+  orderFeeAmount: number;
+  adsFeeAmount: number;
+  adsTaxPercent: number;
+  affiliateFeeAmount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}

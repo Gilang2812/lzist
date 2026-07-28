@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Barang, SubBarang, Supplier, BarangSupplier, StokLog, RestockList } from '../types';
+import type { Barang, SubBarang, Supplier, BarangSupplier, StokLog, RestockList, ProfitHistory } from '../types';
 
 /**
  * Lzist IndexedDB database via Dexie.js.
@@ -12,6 +12,7 @@ const db = new Dexie('LzistDB') as Dexie & {
   barangSupplier: EntityTable<BarangSupplier, 'id'>;
   stokLogs: EntityTable<StokLog, 'id'>;
   restockLists: EntityTable<RestockList, 'id'>;
+  profitHistories: EntityTable<ProfitHistory, 'id'>;
 };
 
 db.version(1).stores({
@@ -38,6 +39,16 @@ db.version(3).stores({
   barangSupplier: 'id, barangId, supplierId',
   stokLogs: 'id, subBarangId, type, createdAt',
   restockLists: 'id, status, createdAt',
+});
+
+db.version(4).stores({
+  barang: 'id, name, *skus',
+  subBarang: 'id, barangId, name, sku',
+  suppliers: 'id, name',
+  barangSupplier: 'id, barangId, supplierId',
+  stokLogs: 'id, subBarangId, type, createdAt',
+  restockLists: 'id, status, createdAt',
+  profitHistories: 'id, title, createdAt',
 });
 
 export { db };

@@ -9,6 +9,8 @@ import KatalogPage from './pages/KatalogPage';
 import BarangDetailPage from './pages/BarangDetailPage';
 import SupplierListPage from './pages/SupplierListPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
+import ProfitCalculatorPage from './pages/ProfitCalculatorPage';
+import ProfitListPage from './pages/ProfitListPage';
 import { initDb } from './utils/initDb';
 
 function App() {
@@ -29,6 +31,8 @@ function App() {
           <Route path="/katalog/:id" element={<BarangDetailPage />} />
           <Route path="/supplier" element={<SupplierListPage />} />
           <Route path="/supplier/:id" element={<SupplierDetailPage />} />
+          <Route path="/profit-history" element={<ProfitListPage />} />
+          <Route path="/profit-calculator/:id" element={<ProfitCalculatorPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
