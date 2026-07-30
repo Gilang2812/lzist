@@ -28,6 +28,8 @@ const ProfitCalculatorPage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [isLoading, setIsLoading] = useState(true);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [uploadValidationModal, setUploadValidationModal] = useState<{isOpen: boolean, data: OrderGroup[] | null}>({isOpen: false, data: null});
 
   const today = new Date();
   const [startDate, setStartDate] = useState({
@@ -212,11 +214,43 @@ const ProfitCalculatorPage: React.FC = () => {
         };
       });
       
-      setOrders(parsedOrders);
-      clearOverrides();
+      if (orders.length > 0) {
+        setUploadValidationModal({ isOpen: true, data: parsedOrders });
+      } else {
+        setOrders(parsedOrders);
+        clearOverrides();
+      }
     };
     reader.readAsArrayBuffer(file);
     e.target.value = '';
+  };
+
+  const handleCancelUpload = () => {
+    setUploadValidationModal({ isOpen: false, data: null });
+  };
+
+  const handleReplaceUpload = () => {
+    if (uploadValidationModal.data) {
+      setOrders(uploadValidationModal.data);
+      clearOverrides();
+    }
+    setUploadValidationModal({ isOpen: false, data: null });
+  };
+
+  const handleCombineUpload = () => {
+    if (uploadValidationModal.data) {
+      const combined = [...orders];
+      for (const newOrder of uploadValidationModal.data) {
+        const existingIndex = combined.findIndex(o => o.noPesanan === newOrder.noPesanan);
+        if (existingIndex >= 0) {
+          combined[existingIndex] = newOrder;
+        } else {
+          combined.push(newOrder);
+        }
+      }
+      setOrders(combined);
+    }
+    setUploadValidationModal({ isOpen: false, data: null });
   };
 
   const toggleOrder = (orderId: string) => {
@@ -249,7 +283,11 @@ const ProfitCalculatorPage: React.FC = () => {
     return Array.from(products).sort();
   }, [orders]);
 
-  const { totalOmset, totalUntungKotor, totalUntungBersih, totalPlatformFee } = useMemo(() => {
+  const filledMasterModalCount = useMemo(() => {
+    return uniqueProducts.filter(productName => masterModal[productName] !== undefined).length;
+  }, [uniqueProducts, masterModal]);
+
+  const { totalOmset, totalUntungKotor, totalUntungBersih, totalPlatformFee, totalModal } = useMemo(() => {
     let tPenghasilan = 0;
     let tPlatformFee = 0;
     let tModal = 0;
@@ -270,16 +308,16 @@ const ProfitCalculatorPage: React.FC = () => {
     });
 
     const tOmset = tPenghasilan - tPlatformFee;
-    const tUntungKotor = tPenghasilan - tModal;
-    // Untung Bersih = Untung Kotor - Biaya Platform - (Iklan + Affiliate)
     const finalAdsFee = adsFeeAmount + (adsFeeAmount * adsTaxPercent / 100);
-    const tUntungBersih = tUntungKotor - tPlatformFee - (finalAdsFee + affiliateFeeAmount);
+    const tUntungKotor = tOmset - (finalAdsFee + affiliateFeeAmount);
+    const tUntungBersih = tUntungKotor - tModal;
 
     return { 
       totalOmset: tOmset, 
       totalUntungKotor: tUntungKotor, 
       totalUntungBersih: tUntungBersih, 
-      totalPlatformFee: tPlatformFee 
+      totalPlatformFee: tPlatformFee,
+      totalModal: tModal
     };
   }, [orders, masterModal, overrides, adminFeePercent, serviceFeePercent, orderFeeAmount, adsFeeAmount, adsTaxPercent, affiliateFeeAmount]);
 
@@ -347,11 +385,7 @@ const ProfitCalculatorPage: React.FC = () => {
             <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleFileUpload} />
           </label>
           {orders.length > 0 && (
-            <button onClick={() => {
-              if(window.confirm('Hapus semua data pesanan dari perhitungan ini?')) {
-                clearOrders();
-              }
-            }} className="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-md text-xs font-medium transition-colors">
+            <button onClick={() => setIsResetModalOpen(true)} className="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-md text-xs font-medium transition-colors">
               Reset Data
             </button>
           )}
@@ -370,7 +404,7 @@ const ProfitCalculatorPage: React.FC = () => {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden flex flex-col justify-center">
               <div className="absolute top-0 right-0 p-3 opacity-5"><span className="material-symbols-outlined text-4xl">payments</span></div>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium mb-1 relative z-10">Total Omset ({orders.length} Pesanan)</p>
@@ -385,6 +419,11 @@ const ProfitCalculatorPage: React.FC = () => {
               <div className="absolute top-0 right-0 p-3 opacity-5"><span className="material-symbols-outlined text-4xl">trending_up</span></div>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium mb-1 relative z-10">Total Untung Kotor</p>
               <h3 className="text-base font-medium text-teal-600 dark:text-teal-400 relative z-10">{formatCurrency(totalUntungKotor)}</h3>
+            </div>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden flex flex-col justify-center">
+              <div className="absolute top-0 right-0 p-3 opacity-5"><span className="material-symbols-outlined text-4xl">inventory_2</span></div>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium mb-1 relative z-10">Total Modal</p>
+              <h3 className="text-base font-medium text-blue-600 dark:text-blue-400 relative z-10">-{formatCurrency(totalModal)}</h3>
             </div>
             <div className="bg-teal-600 p-4 rounded-xl border border-teal-500 shadow-md relative overflow-hidden text-white flex flex-col justify-center">
               <div className="absolute top-0 right-0 p-3 opacity-20"><span className="material-symbols-outlined text-4xl">account_balance_wallet</span></div>
@@ -452,11 +491,14 @@ const ProfitCalculatorPage: React.FC = () => {
             {/* Left Column: Master Modal */}
             <div className="lg:col-span-1 space-y-4">
               <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col h-[500px]">
-                <div className="p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                <div className="p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center">
                   <h2 className="font-medium text-gray-900 dark:text-white flex items-center gap-1.5 text-xs">
                     <span className="material-symbols-outlined text-teal-600 text-sm">inventory</span>
                     Master Modal
                   </h2>
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400">
+                    {filledMasterModalCount}/{uniqueProducts.length}
+                  </span>
                 </div>
                 <div className="flex-1 overflow-auto p-3 bg-white dark:bg-gray-800">
                   <div className="space-y-2">
@@ -522,8 +564,8 @@ const ProfitCalculatorPage: React.FC = () => {
                         let orderModal = 0;
                         order.items.forEach(it => orderModal += getModal(order.noPesanan, it.itemKey, it.namaProduk) * it.jumlah);
                         
-                        const orderUntungKotor = penghasilan - orderModal;
-                        const orderUntungBersih = orderUntungKotor - totalPlatformOrder; // No ads/affiliate here, those are global
+                        const orderUntungKotor = orderOmset - orderModal;
+                        const orderUntungBersih = orderUntungKotor; // No ads/affiliate here, those are global
                         
                         return (
                           <React.Fragment key={order.noPesanan}>
@@ -595,6 +637,81 @@ const ProfitCalculatorPage: React.FC = () => {
               </div>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Reset Modal */}
+      {isResetModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-ms overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-5">
+              <div className="flex items-center gap-3 text-red-600 mb-3">
+                <span className="material-symbols-outlined text-2xl">warning</span>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Reset Data</h3>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Apakah Anda yakin ingin menghapus semua data pesanan dari perhitungan ini?
+              </p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3 flex justify-end gap-2">
+              <button 
+                onClick={() => setIsResetModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={() => {
+                  clearOrders();
+                  setIsResetModalOpen(false);
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Validation Modal */}
+      {uploadValidationModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-dm overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-5">
+              <div className="flex items-center gap-3 text-teal-600 mb-3">
+                <span className="material-symbols-outlined text-2xl">file_copy</span>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Data Sudah Ada</h3>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                Terdapat data pesanan yang sudah ada. Apa yang ingin Anda lakukan dengan data Excel yang baru diunggah?
+              </p>
+              <ul className="text-xs text-gray-500 dark:text-gray-400 list-disc pl-5 space-y-1">
+                <li><strong>Ganti:</strong> Menghapus data lama dan menggantinya dengan data baru.</li>
+                <li><strong>Gabung:</strong> Menambahkan data baru ke data lama (pesanan dengan nomor yang sama akan diperbarui).</li>
+              </ul>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3 flex justify-end gap-2">
+              <button 
+                onClick={handleCancelUpload}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={handleReplaceUpload}
+                className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-200"
+              >
+                Ganti
+              </button>
+              <button 
+                onClick={handleCombineUpload}
+                className="px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors shadow-sm ring-2 ring-teal-600 ring-offset-2 ring-offset-gray-50 dark:ring-offset-gray-700"
+              >
+                Gabung
+              </button>
+            </div>
           </div>
         </div>
       )}

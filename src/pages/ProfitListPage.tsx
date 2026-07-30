@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
@@ -6,13 +6,42 @@ import { formatRupiah } from '../utils/formatCurrency';
 
 const ProfitListPage: React.FC = () => {
   const navigate = useNavigate();
-  const profitHistories = useLiveQuery(() => db.profitHistories.orderBy('createdAt').reverse().toArray());
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const profitHistories = useLiveQuery(async () => {
+    const records = await db.profitHistories.toArray();
+    return records.sort((a, b) => {
+      const yearA = parseInt(a.startDate.year, 10);
+      const yearB = parseInt(b.startDate.year, 10);
+      if (yearA !== yearB) return yearB - yearA;
 
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
+      const monthA = parseInt(a.startDate.month, 10);
+      const monthB = parseInt(b.startDate.month, 10);
+      if (monthA !== monthB) return monthB - monthA;
+
+      const dayA = parseInt(a.startDate.day, 10);
+      const dayB = parseInt(b.startDate.day, 10);
+      return dayB - dayA;
+    });
+  });
+
+  const handleDeleteClick = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm('Apakah Anda yakin ingin menghapus catatan profit ini?')) {
-      await db.profitHistories.delete(id);
+    setItemToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (itemToDelete) {
+      await db.profitHistories.delete(itemToDelete);
+      setDeleteModalOpen(false);
+      setItemToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalOpen(false);
+    setItemToDelete(null);
   };
 
   return (
@@ -82,9 +111,9 @@ const ProfitListPage: React.FC = () => {
                 onClick={() => navigate(`/profit-calculator/${history.id}`)}
                 className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-0 right-0 p-4 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
                    <button 
-                    onClick={(e) => handleDelete(history.id, e)}
+                    onClick={(e) => handleDeleteClick(history.id, e)}
                     className="p-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
                     title="Hapus"
                   >
@@ -128,6 +157,34 @@ const ProfitListPage: React.FC = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-ms shadow-xl border border-gray-100 dark:border-gray-700 transform transition-all">
+            <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mb-4">
+              <span className="material-symbols-outlined text-2xl">warning</span>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Hapus Catatan Profit?</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+              Apakah Anda yakin ingin menghapus catatan profit ini? Tindakan ini tidak dapat dibatalkan.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={cancelDelete}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm"
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
