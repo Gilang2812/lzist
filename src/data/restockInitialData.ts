@@ -3614,7 +3614,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-charcoal-01.jpg"
+          "/assets/images/banviscose-charcoal-01.jpg",
+          "/assets/images/banviscose-charcoal-02.jpg"
         ]
       },
       {
@@ -3624,7 +3625,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-biscuit-01.jpg"
+          "/assets/images/banviscose-biscuit-01.jpg",
+          "/assets/images/banviscose-biscuit-02.jpg"
         ]
       },
       {
@@ -3644,7 +3646,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-nude-01.jpg"
+          "/assets/images/banviscose-nude-01.jpg",
+          "/assets/images/banviscose-nude-02.jpg"
         ]
       },
       {
@@ -3654,7 +3657,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-navy-01.jpg"
+          "/assets/images/banviscose-navy-01.jpg",
+          "/assets/images/banviscose-navy-02.jpg"
         ]
       },
       {
@@ -3664,7 +3668,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-maroon-01.jpg"
+          "/assets/images/banviscose-maroon-01.jpg",
+          "/assets/images/banviscose-maroon-02.jpg"
         ]
       },
       {
@@ -3674,7 +3679,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-coksu-01.jpg"
+          "/assets/images/banviscose-coksu-01.jpg",
+          "/assets/images/banviscose-coksu-02.jpg"
         ]
       },
       {
@@ -3694,7 +3700,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-coffe-01.jpg"
+          "/assets/images/banviscose-coffe-01.jpg",
+          "/assets/images/banviscose-coffe-02.jpg"
         ]
       },
       {
@@ -3714,7 +3721,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-latte-01.jpg"
+          "/assets/images/banviscose-latte-01.jpg",
+          "/assets/images/banviscose-latte-02.jpg"
         ]
       },
       {
@@ -3724,7 +3732,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-denim-01.jpg"
+          "/assets/images/banviscose-denim-01.jpg",
+          "/assets/images/banviscose-denim-02.jpg"
         ]
       },
       {
@@ -3744,7 +3753,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-burgundy-01.jpg"
+          "/assets/images/banviscose-burgundy-01.jpg",
+          "/assets/images/banviscose-burgundy-02.jpg"
         ]
       },
       {
@@ -3754,7 +3764,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-butter-yellow-01.jpg"
+          "/assets/images/banviscose-butter-yellow-01.jpg",
+          "/assets/images/banviscose-butter-yellow-02.jpg"
         ]
       },
       {
@@ -3764,7 +3775,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-khaky-01.jpg"
+          "/assets/images/banviscose-khaky-01.jpg",
+          "/assets/images/banviscose-khaky-02.jpg"
         ]
       },
       {
@@ -3774,7 +3786,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-mauve-01.jpg"
+          "/assets/images/banviscose-mauve-01.jpg",
+          "/assets/images/banviscose-mauve-02.jpg"
         ]
       },
       {
@@ -3784,7 +3797,8 @@ export const INITIAL_DATA: Category[] = [
         "targetQuantity": 0,
         "color": "bg-primary-fixed-dim",
         "images": [
-          "/assets/images/banviscose-baby-blue-01.jpg"
+          "/assets/images/banviscose-baby-blue-01.jpg",
+          "/assets/images/banviscose-baby-blue-02.jpg"
         ]
       }
     ],
