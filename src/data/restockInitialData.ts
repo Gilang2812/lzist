@@ -3802,6 +3802,6 @@ export const INITIAL_DATA: Category[] = [
         ]
       }
     ],
-    "price": 40000
+    "price": 39000
   }
 ];
