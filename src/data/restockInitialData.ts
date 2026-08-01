@@ -3800,6 +3800,56 @@ export const INITIAL_DATA: Category[] = [
           "/assets/images/banviscose-baby-blue-01.jpg",
           "/assets/images/banviscose-baby-blue-02.jpg"
         ]
+      },
+      {
+        "id": "386102715747",
+        "name": "Abu Muda",
+        "stock": 100,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/banviscose-abu-muda-02.jpg"
+        ]
+      },
+      {
+        "id": "386102715750",
+        "name": "Cappucino",
+        "stock": 100,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/banviscose-cappucino-02.jpg"
+        ]
+      },
+      {
+        "id": "386102715751",
+        "name": "Oat",
+        "stock": 100,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/banviscose-oat-02.jpg"
+        ]
+      },
+      {
+        "id": "386102715752",
+        "name": "Rose Pink",
+        "stock": 100,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/banviscose-rose-pink-02.jpg"
+        ]
+      },
+      {
+        "id": "386102715753",
+        "name": "Taupe",
+        "stock": 100,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/banviscose-taupe-02.jpg"
+        ]
       }
     ],
     "price": 39000
