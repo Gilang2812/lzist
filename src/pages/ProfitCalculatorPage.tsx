@@ -30,6 +30,21 @@ const ProfitCalculatorPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [uploadValidationModal, setUploadValidationModal] = useState<{isOpen: boolean, data: OrderGroup[] | null}>({isOpen: false, data: null});
+  
+  const [searchOrderNo, setSearchOrderNo] = useState('');
+  const [searchNameSku, setSearchNameSku] = useState('');
+
+  const filteredOrders = useMemo(() => {
+    return orders.filter(order => {
+      const matchOrderNo = searchOrderNo ? order.noPesanan.toLowerCase().includes(searchOrderNo.toLowerCase()) : true;
+      const matchNameSku = searchNameSku ? order.items.some(item => 
+        item.namaProduk.toLowerCase().includes(searchNameSku.toLowerCase()) ||
+        item.skuInduk.toLowerCase().includes(searchNameSku.toLowerCase())
+      ) : true;
+      
+      return matchOrderNo && matchNameSku;
+    });
+  }, [orders, searchOrderNo, searchNameSku]);
 
   const today = new Date();
   const [startDate, setStartDate] = useState({
@@ -185,9 +200,12 @@ const ProfitCalculatorPage: React.FC = () => {
         const statusPesanan = row['Status Pesanan'];
         if (statusPesanan && statusPesanan.toLowerCase() === 'batal') return;
         
+        const rawSkuInduk = row['SKU Induk'];
+        const skuInduk = rawSkuInduk ? String(rawSkuInduk) : (row['Nama Produk'] || '-');
         const namaProduk = row['Nama Produk'] || '-';
+        
         const variasi = row['Nama Variasi'] || '-';
-        const itemKey = `${namaProduk} | ${variasi}`;
+        const itemKey = `${skuInduk} | ${variasi}`;
         const hargaSetelahDiskon = parseIndonesianNumber(row['Harga Setelah Diskon']);
         const jumlah = parseIndonesianNumber(row['Jumlah']);
         const subtotalBarang = hargaSetelahDiskon * jumlah;
@@ -195,6 +213,7 @@ const ProfitCalculatorPage: React.FC = () => {
         const item: OrderItem = {
           noPesanan,
           namaProduk,
+          skuInduk,
           variasi,
           hargaSetelahDiskon,
           jumlah,
@@ -263,7 +282,7 @@ const ProfitCalculatorPage: React.FC = () => {
 
   const expandAll = () => {
     const allExpanded: Record<string, boolean> = {};
-    orders.forEach(o => { allExpanded[o.noPesanan] = true; });
+    filteredOrders.forEach(o => { allExpanded[o.noPesanan] = true; });
     setExpandedOrders(allExpanded);
   };
 
@@ -271,24 +290,28 @@ const ProfitCalculatorPage: React.FC = () => {
     setExpandedOrders({});
   };
 
-  const getModal = (orderId: string, itemKey: string, namaProduk: string) => {
+  const getModal = (orderId: string, itemKey: string, skuInduk: string) => {
     const overrideKey = `${orderId}_${itemKey}`;
     if (overrides[overrideKey] !== undefined) {
       return overrides[overrideKey];
     }
-    return masterModal[namaProduk] || 0;
+    return masterModal[skuInduk] || 0;
   };
 
   const uniqueProducts = useMemo(() => {
-    const products = new Set<string>();
+    const productsMap = new Map<string, string>();
     orders.forEach(order => {
-      order.items.forEach(item => products.add(item.namaProduk));
+      order.items.forEach(item => {
+        if (!productsMap.has(item.skuInduk)) {
+          productsMap.set(item.skuInduk, item.namaProduk);
+        }
+      });
     });
-    return Array.from(products).sort();
+    return Array.from(productsMap.entries()).map(([skuInduk, namaProduk]) => ({ skuInduk, namaProduk })).sort((a, b) => a.namaProduk.localeCompare(b.namaProduk));
   }, [orders]);
 
   const filledMasterModalCount = useMemo(() => {
-    return uniqueProducts.filter(productName => masterModal[productName] !== undefined).length;
+    return uniqueProducts.filter(prod => masterModal[prod.skuInduk] !== undefined).length;
   }, [uniqueProducts, masterModal]);
 
   const { totalOmset, totalUntungKotor, totalUntungBersih, totalPlatformFee, totalModal } = useMemo(() => {
@@ -307,7 +330,7 @@ const ProfitCalculatorPage: React.FC = () => {
       tPlatformFee += totalOrderFee;
       
       order.items.forEach(item => {
-        tModal += getModal(order.noPesanan, item.itemKey, item.namaProduk) * item.jumlah;
+        tModal += getModal(order.noPesanan, item.itemKey, item.skuInduk) * item.jumlah;
       });
     });
 
@@ -506,16 +529,16 @@ const ProfitCalculatorPage: React.FC = () => {
                 </div>
                 <div className="flex-1 overflow-auto p-3 bg-white dark:bg-gray-800">
                   <div className="space-y-2">
-                    {uniqueProducts.map((productName, idx) => (
+                    {uniqueProducts.map((prod, idx) => (
                       <div key={idx} className="bg-gray-50 dark:bg-gray-700/30 p-2.5 rounded border border-gray-100 dark:border-gray-700">
                         <label className="block text-[10px] font-medium text-gray-900 dark:text-white mb-1.5 leading-tight">
-                          {productName}
+                          {prod.namaProduk}
                         </label>
                         <div className="relative">
                           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-[10px]">Rp</span>
                           <input type="number" min="0" 
-                            value={masterModal[productName] ?? ''}
-                            onChange={(e) => handleNumberInput(e, (val) => setMasterModal(productName, val))}
+                            value={masterModal[prod.skuInduk] ?? ''}
+                            onChange={(e) => handleNumberInput(e, (val) => setMasterModal(prod.skuInduk, val))}
                             className="w-full pl-7 pr-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-[10px] focus:ring-1 focus:ring-teal-500 outline-none"
                             placeholder="0"
                           />
@@ -530,17 +553,35 @@ const ProfitCalculatorPage: React.FC = () => {
             {/* Right Column: Daftar Pesanan */}
             <div className="lg:col-span-3 space-y-4">
               <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col h-[500px]">
-                <div className="p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center">
+                <div className="p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-2">
                   <div>
                     <h2 className="font-medium text-gray-900 dark:text-white flex items-center gap-1.5 text-xs">
                       <span className="material-symbols-outlined text-teal-600 text-sm">receipt_long</span>
-                      Daftar Pesanan ({orders.length})
+                      Daftar Pesanan ({filteredOrders.length}{filteredOrders.length !== orders.length ? ` / ${orders.length}` : ''})
                     </h2>
                   </div>
-                  <div className="flex gap-2 text-[10px]">
-                    <button onClick={expandAll} className="text-teal-600 hover:text-teal-700 font-medium">Buka Semua</button>
-                    <span className="text-gray-300">|</span>
-                    <button onClick={collapseAll} className="text-gray-500 hover:text-gray-700 font-medium">Tutup Semua</button>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 text-[10px]">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Cari No. Pesanan..."
+                        value={searchOrderNo}
+                        onChange={(e) => setSearchOrderNo(e.target.value)}
+                        className="px-2 py-1 border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-teal-500 w-32"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Cari Nama/SKU..."
+                        value={searchNameSku}
+                        onChange={(e) => setSearchNameSku(e.target.value)}
+                        className="px-2 py-1 border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-teal-500 w-32"
+                      />
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <button onClick={expandAll} className="text-teal-600 hover:text-teal-700 font-medium">Buka Semua</button>
+                      <span className="text-gray-300">|</span>
+                      <button onClick={collapseAll} className="text-gray-500 hover:text-gray-700 font-medium">Tutup Semua</button>
+                    </div>
                   </div>
                 </div>
                 
@@ -556,7 +597,7 @@ const ProfitCalculatorPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                      {orders.map((order) => {
+                      {filteredOrders.map((order) => {
                         const isExpanded = expandedOrders[order.noPesanan];
                         const penghasilan = order.totalSubtotalBarang;
                         const adminFee = (penghasilan * adminFeePercent) / 100;
@@ -566,7 +607,7 @@ const ProfitCalculatorPage: React.FC = () => {
                         const orderOmset = penghasilan - totalPlatformOrder;
                         
                         let orderModal = 0;
-                        order.items.forEach(it => orderModal += getModal(order.noPesanan, it.itemKey, it.namaProduk) * it.jumlah);
+                        order.items.forEach(it => orderModal += getModal(order.noPesanan, it.itemKey, it.skuInduk) * it.jumlah);
                         
                         const orderUntungKotor = orderOmset - orderModal;
                         const orderUntungBersih = orderUntungKotor; // No ads/affiliate here, those are global
@@ -597,7 +638,7 @@ const ProfitCalculatorPage: React.FC = () => {
                             </tr>
                             
                             {isExpanded && order.items.map((item, idx) => {
-                              const currentModal = getModal(order.noPesanan, item.itemKey, item.namaProduk);
+                              const currentModal = getModal(order.noPesanan, item.itemKey, item.skuInduk);
                               const overrideKey = `${order.noPesanan}_${item.itemKey}`;
                               const isOverridden = overrides[overrideKey] !== undefined;
 

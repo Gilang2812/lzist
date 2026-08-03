@@ -107,6 +107,7 @@ export interface StokLog {
 export interface OrderItem {
   noPesanan: string;
   namaProduk: string;
+  skuInduk: string;
   variasi: string;
   hargaSetelahDiskon: number;
   jumlah: number;
