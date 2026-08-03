@@ -181,6 +181,10 @@ const ProfitCalculatorPage: React.FC = () => {
         const noPesanan = row['No. Pesanan'];
         if (!noPesanan) return;
         
+        // Filter pesanan batal
+        const statusPesanan = row['Status Pesanan'];
+        if (statusPesanan && statusPesanan.toLowerCase() === 'batal') return;
+        
         const namaProduk = row['Nama Produk'] || '-';
         const variasi = row['Nama Variasi'] || '-';
         const itemKey = `${namaProduk} | ${variasi}`;

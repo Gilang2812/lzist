@@ -143,6 +143,28 @@ const RestockListPage: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        const dataToExport = {
+                          categories: list.categories,
+                          importedFiles: list.importedFiles || [],
+                          importHistory: list.importHistory || []
+                        };
+                        const jsonString = JSON.stringify(dataToExport, null, 2);
+                        const blob = new Blob([jsonString], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `restock_backup_${list.id}_${new Date().toISOString().slice(0, 10)}.txt`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="p-xs text-on-surface-variant hover:text-primary hover:bg-primary-container rounded-full transition-colors flex items-center justify-center cursor-pointer"
+                      title="Export TXT"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">download</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setListToDelete(list);
                       }}
                       className="p-xs text-on-surface-variant hover:text-error hover:bg-error-container rounded-full transition-colors flex items-center justify-center cursor-pointer"
