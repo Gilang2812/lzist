@@ -111,7 +111,7 @@ const ProfitListPage: React.FC = () => {
                 onClick={() => navigate(`/profit-calculator/${history.id}`)}
                 className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 p-4 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-0 right-0 p-4 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
                    <button 
                     onClick={(e) => handleDeleteClick(history.id, e)}
                     className="p-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"

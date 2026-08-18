@@ -11,6 +11,7 @@ import SupplierListPage from './pages/SupplierListPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
 import ProfitCalculatorPage from './pages/ProfitCalculatorPage';
 import ProfitListPage from './pages/ProfitListPage';
+import EditKatalogPage from './pages/EditKatalogPage';
 import { initDb } from './utils/initDb';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
           <Route path="/restock/new" element={<NewRestockEntryPage />} />
           <Route path="/restock/:id" element={<RestockDetailPage />} />
           <Route path="/katalog" element={<KatalogPage />} />
+          <Route path="/katalog/edit/:id" element={<EditKatalogPage />} />
           <Route path="/katalog/:id" element={<BarangDetailPage />} />
           <Route path="/supplier" element={<SupplierListPage />} />
           <Route path="/supplier/:id" element={<SupplierDetailPage />} />

@@ -25,11 +25,12 @@ const ProfitCalculatorPage: React.FC = () => {
   } = useProfitStore();
   
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
+  const [expandedProducts, setExpandedProducts] = useState<Record<string, boolean>>({});
   const [title, setTitle] = useState('');
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [isLoading, setIsLoading] = useState(true);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-  const [uploadValidationModal, setUploadValidationModal] = useState<{isOpen: boolean, data: OrderGroup[] | null}>({isOpen: false, data: null});
+  const [uploadValidationModal, setUploadValidationModal] = useState<{isOpen: boolean, data: OrderGroup[] | null, minDate?: Date | null, maxDate?: Date | null}>({isOpen: false, data: null});
   
   const [searchOrderNo, setSearchOrderNo] = useState('');
   const [searchNameSku, setSearchNameSku] = useState('');
@@ -191,14 +192,40 @@ const ProfitCalculatorPage: React.FC = () => {
       const data = XLSX.utils.sheet_to_json(ws);
       
       const groups: Record<string, OrderItem[]> = {};
+      let minDate: Date | null = null;
+      let maxDate: Date | null = null;
       
       data.forEach((row: any) => {
+        const waktuPesanan = row['Waktu Pesanan Dibuat'];
+        if (waktuPesanan) {
+          let parsedDate: Date | null = null;
+          if (typeof waktuPesanan === 'number') {
+             parsedDate = new Date(Math.round((waktuPesanan - 25569) * 86400 * 1000));
+          } else if (typeof waktuPesanan === 'string') {
+             let str = waktuPesanan.replace(' ', 'T');
+             parsedDate = new Date(str);
+             if (isNaN(parsedDate.getTime())) {
+                const parts = waktuPesanan.split(' ');
+                const dateParts = parts[0]?.split('-');
+                if (dateParts && dateParts.length === 3) {
+                   if (dateParts[0].length === 2 && dateParts[2].length === 4) {
+                      parsedDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${parts[1] || '00:00'}`);
+                   }
+                }
+             }
+          }
+          if (parsedDate && !isNaN(parsedDate.getTime())) {
+             if (!minDate || parsedDate < minDate) minDate = parsedDate;
+             if (!maxDate || parsedDate > maxDate) maxDate = parsedDate;
+          }
+        }
+
         const noPesanan = row['No. Pesanan'];
         if (!noPesanan) return;
         
         // Filter pesanan batal
         const statusPesanan = row['Status Pesanan'];
-        if (statusPesanan && statusPesanan.toLowerCase() === 'batal') return;
+        if (statusPesanan && statusPesanan.toLowerCase() === 'batal'|| statusPesanan.toLowerCase() === 'belum bayar') return;
         
         const rawSkuInduk = row['SKU Induk'];
         const skuInduk = rawSkuInduk ? String(rawSkuInduk) : (row['Nama Produk'] || '-');
@@ -238,10 +265,22 @@ const ProfitCalculatorPage: React.FC = () => {
       });
       
       if (orders.length > 0) {
-        setUploadValidationModal({ isOpen: true, data: parsedOrders });
+        setUploadValidationModal({ isOpen: true, data: parsedOrders, minDate, maxDate });
       } else {
         setOrders(parsedOrders);
         clearOverrides();
+        if (minDate && maxDate) {
+          setStartDate({
+            day: (minDate as Date).getDate().toString().padStart(2, '0'),
+            month: ((minDate as Date).getMonth() + 1).toString().padStart(2, '0'),
+            year: (minDate as Date).getFullYear().toString(),
+          });
+          setEndDate({
+            day: (maxDate as Date).getDate().toString().padStart(2, '0'),
+            month: ((maxDate as Date).getMonth() + 1).toString().padStart(2, '0'),
+            year: (maxDate as Date).getFullYear().toString(),
+          });
+        }
       }
     };
     reader.readAsArrayBuffer(file);
@@ -256,6 +295,18 @@ const ProfitCalculatorPage: React.FC = () => {
     if (uploadValidationModal.data) {
       setOrders(uploadValidationModal.data);
       clearOverrides();
+      if (uploadValidationModal.minDate && uploadValidationModal.maxDate) {
+        setStartDate({
+          day: (uploadValidationModal.minDate as Date).getDate().toString().padStart(2, '0'),
+          month: ((uploadValidationModal.minDate as Date).getMonth() + 1).toString().padStart(2, '0'),
+          year: (uploadValidationModal.minDate as Date).getFullYear().toString(),
+        });
+        setEndDate({
+          day: (uploadValidationModal.maxDate as Date).getDate().toString().padStart(2, '0'),
+          month: ((uploadValidationModal.maxDate as Date).getMonth() + 1).toString().padStart(2, '0'),
+          year: (uploadValidationModal.maxDate as Date).getFullYear().toString(),
+        });
+      }
     }
     setUploadValidationModal({ isOpen: false, data: null });
   };
@@ -299,15 +350,41 @@ const ProfitCalculatorPage: React.FC = () => {
   };
 
   const uniqueProducts = useMemo(() => {
-    const productsMap = new Map<string, string>();
+    const productsMap = new Map<string, { 
+      namaProduk: string; 
+      totalQty: number; 
+      variations: Map<string, number> 
+    }>();
+    
     orders.forEach(order => {
       order.items.forEach(item => {
-        if (!productsMap.has(item.skuInduk)) {
-          productsMap.set(item.skuInduk, item.namaProduk);
+        const existing = productsMap.get(item.skuInduk);
+        if (existing) {
+          existing.totalQty += item.jumlah;
+          const varQty = existing.variations.get(item.variasi) || 0;
+          existing.variations.set(item.variasi, varQty + item.jumlah);
+        } else {
+          const variations = new Map<string, number>();
+          variations.set(item.variasi, item.jumlah);
+          productsMap.set(item.skuInduk, { 
+            namaProduk: item.namaProduk, 
+            totalQty: item.jumlah, 
+            variations 
+          });
         }
       });
     });
-    return Array.from(productsMap.entries()).map(([skuInduk, namaProduk]) => ({ skuInduk, namaProduk })).sort((a, b) => a.namaProduk.localeCompare(b.namaProduk));
+    
+    return Array.from(productsMap.entries())
+      .map(([skuInduk, { namaProduk, totalQty, variations }]) => ({
+        skuInduk,
+        namaProduk,
+        totalQty,
+        variations: Array.from(variations.entries())
+          .map(([nama, qty]) => ({ nama, qty }))
+          .sort((a, b) => b.qty - a.qty)
+      }))
+      .sort((a, b) => a.namaProduk.localeCompare(b.namaProduk));
   }, [orders]);
 
   const filledMasterModalCount = useMemo(() => {
@@ -529,22 +606,50 @@ const ProfitCalculatorPage: React.FC = () => {
                 </div>
                 <div className="flex-1 overflow-auto p-3 bg-white dark:bg-gray-800">
                   <div className="space-y-2">
-                    {uniqueProducts.map((prod, idx) => (
-                      <div key={idx} className="bg-gray-50 dark:bg-gray-700/30 p-2.5 rounded border border-gray-100 dark:border-gray-700">
-                        <label className="block text-[10px] font-medium text-gray-900 dark:text-white mb-1.5 leading-tight">
-                          {prod.namaProduk}
-                        </label>
-                        <div className="relative">
-                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-[10px]">Rp</span>
-                          <input type="number" min="0" 
-                            value={masterModal[prod.skuInduk] ?? ''}
-                            onChange={(e) => handleNumberInput(e, (val) => setMasterModal(prod.skuInduk, val))}
-                            className="w-full pl-7 pr-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-[10px] focus:ring-1 focus:ring-teal-500 outline-none"
-                            placeholder="0"
-                          />
+                    {uniqueProducts.map((prod, idx) => {
+                      const isExpanded = expandedProducts[prod.skuInduk];
+                      return (
+                        <div key={idx} className="bg-gray-50 dark:bg-gray-700/30 p-2.5 rounded border border-gray-100 dark:border-gray-700">
+                          <div className="flex justify-between items-start gap-2 mb-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setExpandedProducts(prev => ({ ...prev, [prod.skuInduk]: !prev[prod.skuInduk] }))}
+                              className="flex items-center gap-1 text-[10px] font-medium text-gray-900 dark:text-white leading-tight hover:text-teal-600 dark:hover:text-teal-400 transition-colors text-left font-inter"
+                            >
+                              <span className="material-symbols-outlined text-[12px] transition-transform duration-200 select-none" style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                                chevron_right
+                              </span>
+                              <span>{prod.namaProduk}</span>
+                            </button>
+                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-gray-200/60 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 shrink-0 select-none">
+                              {prod.totalQty} pcs
+                            </span>
+                          </div>
+
+                          {/* Accordion Content */}
+                          {isExpanded && (
+                            <div className="mb-2 pl-4 pr-1 py-1 bg-white/50 dark:bg-black/25 rounded text-[9px] text-gray-500 dark:text-gray-400 divide-y divide-gray-100 dark:divide-gray-800 animate-in fade-in slide-in-from-top-1 duration-200">
+                              {prod.variations.map((v, vIdx) => (
+                                <div key={vIdx} className="flex justify-between py-1 first:pt-0.5 last:pb-0.5">
+                                  <span className="truncate pr-2">{v.nama === '-' || !v.nama ? 'Tanpa Variasi' : v.nama}</span>
+                                  <span className="font-medium shrink-0">{v.qty} pcs</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-[10px]">Rp</span>
+                            <input type="number" min="0" 
+                              value={masterModal[prod.skuInduk] ?? ''}
+                              onChange={(e) => handleNumberInput(e, (val) => setMasterModal(prod.skuInduk, val))}
+                              className="w-full pl-7 pr-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-[10px] focus:ring-1 focus:ring-teal-500 outline-none"
+                              placeholder="0"
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>

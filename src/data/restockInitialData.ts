@@ -3853,5 +3853,75 @@ export const INITIAL_DATA: Category[] = [
       }
     ],
     "price": 39000
+  },
+  {
+    "id": "57263493705",
+    "name": "Mini Viscose Bamboo",
+    "skus": [
+      "miniviscose"
+    ],
+    "price": 111000,
+    "variants": [
+      {
+        "id": "292761159230",
+        "name": "Black / Hitam",
+        "stock": 13,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/miniviscose-hitam-01.jpg"
+        ]
+      },
+      {
+        "id": "292761159231",
+        "name": "Frappuchino",
+        "stock": 13,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/miniviscose-frappuchino-01.jpg"
+        ]
+      },
+      {
+        "id": "292761159226",
+        "name": "Silver",
+        "stock": 18,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/miniviscose-silver-01.jpg"
+        ]
+      },
+      {
+        "id": "292761159227",
+        "name": "Maroon",
+        "stock": 12,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/miniviscose-maroon-01.jpg"
+        ]
+      },
+      {
+        "id": "292761159228",
+        "name": "Ivory",
+        "stock": 16,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/miniviscose-ivory-01.jpg"
+        ]
+      },
+      {
+        "id": "292761159229",
+        "name": "Navy",
+        "stock": 18,
+        "targetQuantity": 0,
+        "color": "bg-primary-fixed-dim",
+        "images": [
+          "/assets/images/miniviscose-navy-01.jpg"
+        ]
+      }
+    ]
   }
 ];
