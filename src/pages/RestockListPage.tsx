@@ -1,36 +1,71 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EmptyState from '../components/ui/EmptyState';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { db } from '../db/database';
 import type { RestockList } from '../types';
 import { formatRupiah } from '../utils/formatCurrency';
+import Toast from '../components/ui/Toast';
+import Skeleton from '../components/ui/Skeleton';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { useAuthStore } from '../stores/useAuthStore';
+import { useAppModeStore } from '../stores/useAppModeStore';
+import { ROUTES } from '../routes';
 
 const RestockListPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const { mode } = useAppModeStore();
   const [lists, setLists] = useState<RestockList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [listToDelete, setListToDelete] = useState<RestockList | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const showToast = (message: string, type: 'info' | 'success' | 'error') => {
+    setToast({ message, type });
+    if (type !== 'info') {
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const fetchLists = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      if (mode === 'online' && user?.id) {
+        const { pullRestockFromSupabase } = await import('../utils/syncRestock');
+        await pullRestockFromSupabase(user.id);
+      }
+      const data = await db.restockLists.toArray();
+      // Filter lists belonging to the logged-in user in online mode, or all in offline mode
+      const userLists = (mode === 'online' && user)
+        ? data.filter(l => l.userId === user.id)
+        : data;
+      userLists.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      setLists(userLists);
+    } catch (error) {
+      console.error('Failed to fetch restock lists:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user, mode]);
 
   useEffect(() => {
-    const fetchLists = async () => {
-      try {
-        const data = await db.restockLists.toArray();
-        data.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-        setLists(data);
-      } catch (error) {
-        console.error("Failed to fetch restock lists:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchLists();
-  }, []);
+  }, [fetchLists]);
 
   const handleDelete = async () => {
     if (!listToDelete) return;
     try {
+      // Delete locally
       await db.restockLists.delete(listToDelete.id);
+      
+      // Delete in Supabase only if in online mode
+      if (mode === 'online') {
+        const { supabase } = await import('../db/supabase');
+        await supabase.from('restock').delete().eq('restock_id', listToDelete.id);
+      }
+
       setLists(prev => prev.filter(l => l.id !== listToDelete.id));
     } catch (error) {
       console.error("Failed to delete list:", error);
@@ -39,38 +74,75 @@ const RestockListPage: React.FC = () => {
     }
   };
 
+  // Draft means the local version still needs to be saved to the database.
+  // Any local edit flow should set status back to 'draft' before persisting the list.
   const statusStyles = {
-    draft: 'bg-tertiary-container text-on-tertiary-container',
+    draft: 'bg-error-container text-on-error-container',
     finalized: 'bg-primary-container text-on-primary-container',
     completed: 'bg-surface-container text-on-surface-variant',
   };
 
-  const statusLabels = {
-    draft: 'Draft',
-    finalized: 'Finalized',
-    completed: 'Selesai',
-  };
-
   return (
     <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-12">
-      <div className="flex items-center justify-between">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-medium text-h1 text-on-surface mb-xs">Restock List</h1>
+          <div className="flex items-center gap-2 mb-xs">
+            <h1 className="font-medium text-h1 text-on-surface">Restock List</h1>
+            {mode === 'online' ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30">
+                <span className="material-symbols-outlined text-[14px]">cloud_done</span>
+                Online Supabase
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant border border-surface-variant">
+                <span className="material-symbols-outlined text-[14px]">cloud_off</span>
+                Offline Lokal
+              </span>
+            )}
+          </div>
           <p className="font-body-md text-body-md text-on-surface-variant">Kelola daftar belanja restock.</p>
         </div>
-        <button 
-          onClick={() => navigate('/restock/new')}
-          className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors flex items-center gap-xs cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-[18px]">add</span>
-          Buat Baru
-        </button>
+        <div className="flex items-center gap-sm">
+          {mode === 'online' && (
+            <button 
+              onClick={async () => {
+                setIsSyncing(true);
+                setToast({ message: 'Sedang menarik data dari Supabase...', type: 'info' });
+                try {
+                  const { pullRestockFromSupabase } = await import('../utils/syncRestock');
+                  const res = await pullRestockFromSupabase(user?.id);
+                  if (res.success) {
+                    showToast(`Berhasil menarik ${res.count} daftar restock dari Supabase!`, 'success');
+                    fetchLists(); // reload UI
+                  } else {
+                    showToast('Gagal menarik data: ' + res.error, 'error');
+                  }
+                } catch (err: any) {
+                  showToast('Gagal menarik data: ' + err.message, 'error');
+                } finally {
+                  setIsSyncing(false);
+                }
+              }}
+              disabled={isSyncing}
+              className="bg-surface-container-high text-primary px-md py-sm rounded-lg font-label-md hover:bg-surface-container-highest transition-colors flex items-center gap-xs cursor-pointer border border-surface-variant disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[18px]">cloud_download</span>
+              Sync Data
+            </button>
+          )}
+          <button 
+            onClick={() => navigate(ROUTES.RESTOCK.NEW)}
+            className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors flex items-center gap-xs cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            Buat Baru
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center items-center py-xl">
-          <p className="text-on-surface-variant">Memuat data...</p>
-        </div>
+        <Skeleton className="h-20 w-full" count={4} />
       ) : lists.length === 0 ? (
         <EmptyState
           icon="playlist_add"
@@ -108,7 +180,7 @@ const RestockListPage: React.FC = () => {
               return (
                 <div
                   key={list.id}
-                  onClick={() => navigate(`/restock/${list.id}`)}
+                  onClick={() => navigate(ROUTES.RESTOCK.detail(list.id))}
                   className={`rounded-xl p-md cursor-pointer hover:shadow-md transition-all flex items-center justify-between ${
                     today
                       ? 'bg-primary-container/40 border-l-4 border-primary border-r border-t border-b border-r-primary/20 border-t-primary/20 border-b-primary/20 hover:border-r-primary/40 hover:border-t-primary/40 hover:border-b-primary/40'
@@ -137,8 +209,19 @@ const RestockListPage: React.FC = () => {
                     </p>
                   </div>
                   <div className="flex items-center gap-md">
-                    <span className={`px-md py-xs rounded-full font-label-md text-label-md ${statusStyles[list.status]}`}>
-                      {statusLabels[list.status]}
+                    <span
+                      className={`${
+                        list.status === 'finalized'
+                          ? 'text-primary'
+                          : `px-md py-xs rounded-full font-label-md text-label-md ${statusStyles[list.status]}`
+                      }`}
+                      title={list.status === 'finalized' ? 'Finalized' : list.status === 'draft' ? 'Draft' : 'Selesai'}
+                    >
+                      {list.status === 'finalized' ? (
+                        <span className="material-symbols-outlined text-[22px]">check_circle</span>
+                      ) : (
+                        list.status === 'draft' ? 'Draft' : 'Selesai'
+                      )}
                     </span>
                     <button
                       onClick={(e) => {
@@ -161,6 +244,29 @@ const RestockListPage: React.FC = () => {
                       title="Export TXT"
                     >
                       <span className="material-symbols-outlined text-[20px]">download</span>
+                    </button>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        import('../utils/syncRestock').then(async ({ syncRestockToSupabase }) => {
+                          setToast({ message: 'Sedang menyimpan ke Supabase...', type: 'info' });
+                          const res = await syncRestockToSupabase(list, user?.id);
+                          if (res.success) {
+                            showToast('Berhasil disimpan ke Supabase!', 'success');
+                            fetchLists();
+                          } else {
+                            showToast('Gagal menyimpan: ' + res.error, 'error');
+                          }
+                        });
+                      }}
+                      className={`p-2 rounded-md transition-colors ${
+                        list.status === 'draft'
+                          ? 'bg-primary text-on-primary hover:bg-surface-tint'
+                          : 'text-primary hover:bg-primary-container'
+                      }`}
+                      title="Save"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">cloud_upload</span>
                     </button>
                     <button
                       onClick={(e) => {
@@ -224,6 +330,8 @@ const RestockListPage: React.FC = () => {
         onCancel={() => setListToDelete(null)}
         variant="danger"
       />
+
+      <LoadingSpinner isOpen={isSyncing} title="Menarik data dari Supabase..." message="Harap tunggu sebentar." />
     </main>
   );
 };

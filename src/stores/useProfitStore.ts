@@ -10,10 +10,12 @@ export interface OrderItem {
   jumlah: number;
   subtotalBarang: number;
   itemKey: string;
+  statusPesanan?: string;
 }
 
 export interface OrderGroup {
   noPesanan: string;
+  statusPesanan?: string;
   items: OrderItem[];
   totalSubtotalBarang: number;
 }
@@ -32,6 +34,7 @@ interface ProfitState {
   adsFeeAmount: number;
   adsTaxPercent: number; // PPN Iklan
   affiliateFeeAmount: number;
+  is_sinkron: boolean;
   
   setOrders: (orders: OrderGroup[]) => void;
   setMasterModal: (itemKey: string, price: number) => void;
@@ -43,6 +46,7 @@ interface ProfitState {
   setAdsFeeAmount: (val: number) => void;
   setAdsTaxPercent: (val: number) => void;
   setAffiliateFeeAmount: (val: number) => void;
+  setIsSinkron: (val: boolean) => void;
   
   clearOrders: () => void;
   clearOverrides: () => void;
@@ -61,6 +65,7 @@ export const useProfitStore = create<ProfitState>()(
       adsFeeAmount: 0,
       adsTaxPercent: 11,
       affiliateFeeAmount: 0,
+      is_sinkron: false,
 
       setOrders: (orders) => set({ orders }),
       setMasterModal: (itemKey, price) => 
@@ -78,8 +83,9 @@ export const useProfitStore = create<ProfitState>()(
       setAdsFeeAmount: (val) => set({ adsFeeAmount: val }),
       setAdsTaxPercent: (val) => set({ adsTaxPercent: val }),
       setAffiliateFeeAmount: (val) => set({ affiliateFeeAmount: val }),
+      setIsSinkron: (val) => set({ is_sinkron: val }),
       
-      clearOrders: () => set({ orders: [] }),
+      clearOrders: () => set({ orders: [], is_sinkron: false }),
       clearOverrides: () => set({ overrides: {} }),
     }),
     {
@@ -90,7 +96,8 @@ export const useProfitStore = create<ProfitState>()(
         serviceFeePercent: state.serviceFeePercent,
         orderFeeAmount: state.orderFeeAmount,
         adsTaxPercent: state.adsTaxPercent,
-      }), // Persist modal and fee settings
+        is_sinkron: state.is_sinkron,
+      }), // Persist modal, fee settings, and is_sinkron
     }
   )
 );

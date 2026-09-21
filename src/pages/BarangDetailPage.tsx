@@ -6,6 +6,8 @@ import EmptyState from '../components/ui/EmptyState';
 import Modal from '../components/ui/Modal';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import type { SubBarang } from '../types';
+import Skeleton from '../components/ui/Skeleton';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const BarangDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +24,8 @@ const BarangDetailPage: React.FC = () => {
 
   // Form states
   const [formData, setFormData] = useState({ name: '', stock: 0, image: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [spinnerTitle, setSpinnerTitle] = useState('');
 
   const data = useLiveQuery(async () => {
     if (!id) return null;
@@ -45,14 +49,25 @@ const BarangDetailPage: React.FC = () => {
   if (data === undefined) {
     return (
       <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
-        <p className="text-on-surface-variant text-center py-xl">Memuat data...</p>
+        <Skeleton className="h-6 w-32" />
+        <div className="bg-surface-container-lowest border border-surface-variant rounded-2xl p-lg flex flex-col gap-md">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-between items-center pb-xs">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-8 w-48" />
+          </div>
+          <Skeleton className="h-14 w-full" count={5} />
+        </div>
       </main>
     );
   }
 
   if (data === null) {
     return (
-      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+      <main className="max-w-4lx mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
         <button onClick={() => navigate(-1)} className="flex items-center gap-xs text-primary font-label-md text-label-md hover:underline w-fit cursor-pointer">
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Kembali
@@ -75,6 +90,8 @@ const BarangDetailPage: React.FC = () => {
     e.preventDefault();
     if (!formData.name.trim() || !id) return;
 
+    setIsSubmitting(true);
+    setSpinnerTitle('Menyimpan varian...');
     try {
       await db.subBarang.add({
         id: Date.now().toString(),
@@ -87,6 +104,8 @@ const BarangDetailPage: React.FC = () => {
       setFormData({ name: '', stock: 0, image: '' });
     } catch (error) {
       console.error('Failed to add variant', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -94,6 +113,8 @@ const BarangDetailPage: React.FC = () => {
     e.preventDefault();
     if (!editVariant || !formData.name.trim()) return;
 
+    setIsSubmitting(true);
+    setSpinnerTitle('Menyimpan perubahan...');
     try {
       await db.subBarang.update(editVariant.id, {
         name: formData.name,
@@ -104,6 +125,8 @@ const BarangDetailPage: React.FC = () => {
       setFormData({ name: '', stock: 0, image: '' });
     } catch (error) {
       console.error('Failed to update variant', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -133,7 +156,7 @@ const BarangDetailPage: React.FC = () => {
   };
 
   return (
-    <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+    <main className="max-w-4lx mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
       <div className="flex flex-col gap-md">
         <button onClick={() => navigate(-1)} className="flex items-center gap-xs text-primary font-label-md text-label-md hover:underline w-fit cursor-pointer">
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -353,6 +376,8 @@ const BarangDetailPage: React.FC = () => {
         onCancel={() => setDeleteVariant(null)}
         variant="danger"
       />
+
+      <LoadingSpinner isOpen={isSubmitting} title={spinnerTitle} />
     </main>
   );
 };

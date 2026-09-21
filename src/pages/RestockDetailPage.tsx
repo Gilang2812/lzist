@@ -1,13 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import type { Category, RestockList, ImportRecord, UnmatchedRow } from '../types';
 import RestockListCard from '../components/restock/RestockListCard';
 import AddItemsForm from '../components/restock/AddItemsForm';
 import { db } from '../db/database';
+import { supabase } from '../db/supabase';
 import { formatRupiah } from '../utils/formatCurrency';
-import { fetchCatalogAsCategories } from '../utils/dbHelpers';
+import { fetchCatalogAsCategories, fetchOfflineCatalogAsCategories, fetchOnlineCatalogAsCategories } from '../utils/dbHelpers';
+import { fetchSingleRestockFromSupabase, syncRestockChecklistToSupabase } from '../utils/syncRestock';
+import { applyStockSync } from '../utils/stockSyncHelper';
 import { motion, AnimatePresence } from 'framer-motion';
+import Toast from '../components/ui/Toast';
+import Skeleton from '../components/ui/Skeleton';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import StockSyncModal, { type StockSyncItem } from '../components/ui/StockSyncModal';
+import { useAuthStore } from '../stores/useAuthStore';
+import { useAppModeStore } from '../stores/useAppModeStore';
 
 interface ImportSummaryData {
   isOpen: boolean;
@@ -20,10 +29,147 @@ interface ImportSummaryData {
 
 const RestockDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuthStore();
   const [list, setList] = useState<RestockList | null>(null);
   const [checklist, setChecklist] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOperationLoading, setIsOperationLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('Memproses...');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'info' | 'success' | 'error') => {
+    setToast({ message, type });
+    if (type !== 'info') {
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const startLoading = (message: string) => {
+    setLoadingMessage(message);
+    setIsOperationLoading(true);
+  };
+
+  const stopLoading = () => setIsOperationLoading(false);
+
+  // Determine if logged-in user is the owner
+  const isOwner = Boolean(user && list && (list.userId === user.id || !list.userId));
+
+  // Draft berarti data belum tersinkron ke Supabase atau sudah pernah tersinkron
+  // tetapi kemudian mengalami perubahan lokal. updateListInDb() akan mengubah
+  // status menjadi 'draft' setiap kali ada perubahan lokal.
+  const isDraft = list?.status === 'draft';
+
+  const { mode: appMode } = useAppModeStore();
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncStockSource, setSyncStockSource] = useState<'online' | 'offline'>(appMode);
+  const [syncItems, setSyncItems] = useState<StockSyncItem[]>([]);
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [isSyncingAction, setIsSyncingAction] = useState(false);
+
+  useEffect(() => {
+    setSyncStockSource(appMode);
+  }, [appMode]);
+
+  const loadStockSyncData = useCallback(async (source: 'online' | 'offline', currentChecklist: Category[]) => {
+    setSyncLoading(true);
+    try {
+      const catalogData = source === 'online' 
+        ? await fetchOnlineCatalogAsCategories() 
+        : await fetchOfflineCatalogAsCategories();
+
+      const items: StockSyncItem[] = [];
+
+      currentChecklist.forEach(cat => {
+        const matchedCat = catalogData.find(c => c.id === cat.id || c.name.toLowerCase() === cat.name.toLowerCase());
+        
+        cat.variants.forEach(v => {
+          let catalogStock = 0;
+          if (matchedCat) {
+            const matchedVar = matchedCat.variants.find(
+              mv => mv.id === v.id || mv.name.toLowerCase() === v.name.toLowerCase()
+            );
+            if (matchedVar) {
+              catalogStock = matchedVar.stock || 0;
+            }
+          }
+          const quantity = v.targetQuantity || 0;
+          items.push({
+            productName: cat.name,
+            variantName: v.name,
+            stock: catalogStock,
+            quantity,
+            result: catalogStock - quantity,
+            categoryId: cat.id,
+            variantId: v.id
+          });
+        });
+      });
+
+      setSyncItems(items);
+    } catch (err) {
+      console.error('Failed to load stock sync data:', err);
+      showToast('Gagal memuat data stok.', 'error');
+    } finally {
+      setSyncLoading(false);
+    }
+  }, []);
+
+  const handleOpenSyncModal = () => {
+    setIsSyncModalOpen(true);
+    loadStockSyncData(syncStockSource, checklist);
+  };
+
+  const handleToggleStockSource = (source: 'online' | 'offline') => {
+    setSyncStockSource(source);
+    loadStockSyncData(source, checklist);
+  };
+
+  const handleConfirmSync = async (isRestore: boolean) => {
+    setIsSyncingAction(true);
+    try {
+      const res = await applyStockSync(syncItems, syncStockSource, isRestore ? 'restore' : 'deduct');
+      if (res.success) {
+        const newIsSinkron = !isRestore;
+        if (list) {
+          const updatedList: RestockList = {
+            ...list,
+            is_sinkron: newIsSinkron,
+            updatedAt: new Date()
+          };
+          await db.restockLists.put(updatedList);
+          setList(updatedList);
+
+          if (navigator.onLine && list.id) {
+            try {
+              await supabase
+                .from('restock')
+                .update({ is_sinkron: newIsSinkron, updated_at: new Date().toISOString() })
+                .eq('restock_id', list.id);
+            } catch (err) {
+              console.warn('Failed to update is_sinkron in Supabase:', err);
+            }
+          }
+        }
+
+        showToast(
+          isRestore
+            ? 'Stok berhasil dikembalikan ke data master katalog.'
+            : 'Stok data master katalog berhasil diperbarui (dikurangi).',
+          'success'
+        );
+        await loadStockSyncData(syncStockSource, checklist);
+      } else {
+        showToast(res.error || 'Gagal memperbarui stok master.', 'error');
+      }
+    } catch (err: any) {
+      console.error('Error during stock sync:', err);
+      showToast('Terjadi kesalahan saat memproses stok.', 'error');
+    } finally {
+      setIsSyncingAction(false);
+    }
+  };
+
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedVariants, setExpandedVariants] = useState<Set<string>>(new Set());
   const checkedVariants = React.useMemo(() => {
@@ -113,28 +259,36 @@ const RestockDetailPage: React.FC = () => {
   const [txtImportModal, setTxtImportModal] = useState<{isOpen: boolean, data: any | null}>({ isOpen: false, data: null });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const txtFileInputRef = useRef<HTMLInputElement>(null);
+  const fetchList = useCallback(async () => {
+    if (!id) return;
+    try {
+      let data = await db.restockLists.get(id);
+      if (!data) {
+        // Fallback: Fetch from Supabase if not found in local Dexie (e.g. other user's list)
+        const remoteData = await fetchSingleRestockFromSupabase(id);
+        if (remoteData) {
+          data = remoteData;
+          await db.restockLists.put(remoteData);
+        }
+      }
+      if (data) {
+        setList(data);
+        setChecklist(data.categories);
+        
+        // By default, keep categories and variants collapsed
+        setExpandedCategories(new Set());
+        setExpandedVariants(new Set());
+      }
+    } catch (error) {
+      console.error("Failed to fetch restock list:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id]);
 
   useEffect(() => {
-    const fetchList = async () => {
-      if (!id) return;
-      try {
-        const data = await db.restockLists.get(id);
-        if (data) {
-          setList(data);
-          setChecklist(data.categories);
-          
-          // By default, keep categories and variants collapsed
-          setExpandedCategories(new Set());
-          setExpandedVariants(new Set());
-        }
-      } catch (error) {
-        console.error("Failed to fetch restock list:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchList();
-  }, [id]);
+  }, [fetchList]);
 
   const toggleCategory = (catId: string) => {
     setExpandedCategories(prev => {
@@ -237,7 +391,7 @@ const RestockDetailPage: React.FC = () => {
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
-      alert('Gagal menyalin data ke clipboard.');
+      showToast('Gagal menyalin data ke clipboard.', 'error');
     }
   };
 
@@ -248,13 +402,79 @@ const RestockDetailPage: React.FC = () => {
       categories: newCategories || list.categories, 
       importedFiles: newImportedFiles || list.importedFiles,
       importHistory: newImportHistory || list.importHistory,
-      updatedAt: new Date() 
+      updatedAt: new Date(),
+      status: 'draft' 
     };
     try {
       await db.restockLists.put(updatedList);
       setList(updatedList);
     } catch (error) {
       console.error("Failed to update list in DB", error);
+    }
+  };
+
+  const handleSyncToSupabase = async () => {
+    if (!list || isOperationLoading) return;
+
+    if (!isOwner) {
+      // Non-owner only syncs checklist states
+      startLoading('Menyimpan status ceklis ke Supabase...');
+      try {
+        const updatedList: RestockList = {
+          ...list,
+          categories: checklist,
+          updatedAt: new Date()
+        };
+
+        const res = await syncRestockChecklistToSupabase(updatedList);
+        if (res.success) {
+          const syncedList: RestockList = {
+            ...updatedList,
+            status: 'finalized'
+          };
+          await db.restockLists.put(syncedList);
+          setList(syncedList);
+          showToast('Status ceklis berhasil disimpan ke Supabase.', 'success');
+        } else {
+          showToast('Gagal menyimpan ceklis: ' + res.error, 'error');
+        }
+      } catch (error) {
+        console.error('Failed to sync checklist:', error);
+        showToast('Gagal menyimpan ceklis ke Supabase.', 'error');
+      } finally {
+        stopLoading();
+      }
+      return;
+    }
+
+    startLoading('Menyimpan perubahan ke Supabase...');
+    try {
+      const updatedList: RestockList = {
+        ...list,
+        categories: checklist,
+        updatedAt: new Date()
+      };
+
+      const { syncRestockToSupabase } = await import('../utils/syncRestock');
+      const res = await syncRestockToSupabase(updatedList, user?.id);
+      if (res.success) {
+        const syncedList: RestockList = {
+          ...(res.list as RestockList),
+          status: 'finalized'
+        };
+
+        // Pastikan status lokal kembali finalized setelah berhasil tersimpan.
+        await db.restockLists.put(syncedList);
+        setList(syncedList);
+        showToast('Berhasil disimpan ke Supabase.', 'success');
+      } else {
+        showToast('Gagal menyimpan: ' + res.error, 'error');
+      }
+    } catch (error) {
+      console.error('Failed to sync restock list:', error);
+      showToast('Gagal menyimpan ke Supabase.', 'error');
+    } finally {
+      stopLoading();
     }
   };
 
@@ -654,7 +874,7 @@ const RestockDetailPage: React.FC = () => {
       }
     } catch (err) {
       console.error("Failed to parse Excel file", err);
-      alert("Gagal membaca file Excel. Pastikan format file sesuai.");
+      showToast("Gagal membaca file Excel. Pastikan format file sesuai.", 'error');
     }
   };
 
@@ -670,14 +890,14 @@ const RestockDetailPage: React.FC = () => {
         const parsed = JSON.parse(text);
         setTxtImportModal({ isOpen: true, data: parsed });
       } catch (err) {
-        alert("Gagal membaca atau mem-parsing file TXT. Pastikan format file sesuai.");
+        showToast("Gagal membaca atau mem-parsing file TXT. Pastikan format file sesuai.", 'error');
       }
       if (txtFileInputRef.current) {
         txtFileInputRef.current.value = '';
       }
     };
     reader.onerror = () => {
-      alert("Gagal membaca file TXT.");
+      showToast("Gagal membaca file TXT.", 'error');
     };
     reader.readAsText(file);
   };
@@ -687,7 +907,7 @@ const RestockDetailPage: React.FC = () => {
       processReplaceData(txtImportModal.data);
       setTxtImportModal({ isOpen: false, data: null });
     } catch (err: any) {
-      alert(err.message || "Data TXT tidak valid.");
+      showToast(err.message || "Data TXT tidak valid.", 'error');
       setTxtImportModal({ isOpen: false, data: null });
     }
   };
@@ -697,7 +917,7 @@ const RestockDetailPage: React.FC = () => {
       processAppendData(txtImportModal.data);
       setTxtImportModal({ isOpen: false, data: null });
     } catch (err: any) {
-      alert(err.message || "Data TXT tidak valid.");
+      showToast(err.message || "Data TXT tidak valid.", 'error');
       setTxtImportModal({ isOpen: false, data: null });
     }
   };
@@ -709,9 +929,41 @@ const RestockDetailPage: React.FC = () => {
 
   return (
     <>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {isOperationLoading && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-on-surface/20 backdrop-blur-[2px]" role="status" aria-live="polite">
+          <div className="flex items-center gap-3 rounded-xl bg-surface px-5 py-4 shadow-xl border border-surface-variant">
+            <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-on-surface">Harap tunggu</span>
+              <span className="text-xs text-on-surface-variant">{loadingMessage}</span>
+            </div>
+          </div>
+        </div>
+      )}
       <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-4 sm:py-6 w-full flex flex-col gap-4 sm:gap-6 overflow-x-hidden">
+        {/* Non-owner Viewer Banner */}
+        {!isOwner && list && (
+          <div className="flex items-center gap-2.5 bg-secondary-container/70 border border-secondary/30 text-on-secondary-container px-4 py-3 rounded-xl text-xs font-medium shadow-xs">
+            <span className="material-symbols-outlined text-[20px] text-secondary">visibility</span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-on-surface">Mode Lihat (Read-only)</span>
+              <span>Anda sedang melihat daftar restock milik pengguna lain. Anda dapat melihat detail dan mengubah status ceklis barang.</span>
+            </div>
+          </div>
+        )}
+
         {/* Action Bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border-y border-surface-variant p-md rounded-lg shadow-sm gap-sm">
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-lowest border-y border-surface-variant p-md rounded-lg shadow-sm gap-sm">
+          {isDraft && (
+            <span
+              className="absolute -top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full bg-error px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-on-error shadow-sm"
+              title="Ada perubahan lokal yang belum disimpan ke Supabase"
+            >
+              <span className="material-symbols-outlined text-[12px]">edit_note</span>
+              Draft
+            </span>
+          )}
           <div className="flex-grow min-w-0">
             <h2 className="font-h3 text-h3 text-on-surface truncate">
               {list ? list.title : "Daftar restock"}
@@ -721,7 +973,7 @@ const RestockDetailPage: React.FC = () => {
                 <p className="font-body-sm text-body-sm text-on-surface-variant">
                   {list.categories.reduce((acc, cat) => acc + cat.variants.length, 0)} item · Kelola daftar belanja restock.
                 </p>
-                {isEditing && (
+                {isOwner && isEditing && (
                   <button
                     onClick={() => setIsModalOpen(true)}
                     className="flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary rounded-lg text-xs font-semibold hover:bg-primary/90 transition-colors cursor-pointer shadow-sm"
@@ -734,7 +986,7 @@ const RestockDetailPage: React.FC = () => {
             )}
           </div>
           <div className="flex gap-sm self-end sm:self-auto flex-wrap">
-            {isEditing && checkedVariants.size > 0 && (
+            {isOwner && isEditing && checkedVariants.size > 0 && (
               <button 
                 onClick={handleBulkDelete}
                 className="flex items-center gap-xs px-sm py-xs rounded-md transition-colors border cursor-pointer text-error hover:bg-error/10 border-transparent hover:border-error/20"
@@ -743,7 +995,7 @@ const RestockDetailPage: React.FC = () => {
                 <span className="font-label-md text-label-md">Hapus ({checkedVariants.size})</span>
               </button>
             )}
-            {isEditing && (
+            {isOwner && isEditing && (
               <>
                 <input 
                   type="file" 
@@ -787,17 +1039,19 @@ const RestockDetailPage: React.FC = () => {
                 </button>
               </>
             )}
-            <button 
-              onClick={() => setIsEditing(!isEditing)}
-              className={`flex items-center gap-xs px-sm py-xs rounded-md transition-colors border ${isEditing ? 'bg-primary-container text-on-primary-container border-transparent' : 'text-primary border-transparent hover:bg-surface-container hover:border-surface-variant'} cursor-pointer`}
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                {isEditing ? 'done' : 'edit'}
-              </span>
-              <span className="font-label-md text-label-md">
-                {isEditing ? 'Selesai Edit' : 'Edit'}
-              </span>
-            </button>
+            {isOwner && (
+              <button 
+                onClick={() => setIsEditing(!isEditing)}
+                className={`flex items-center gap-xs px-sm py-xs rounded-md transition-colors border ${isEditing ? 'bg-primary-container text-on-primary-container border-transparent' : 'text-primary border-transparent hover:bg-surface-container hover:border-surface-variant'} cursor-pointer`}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {isEditing ? 'done' : 'edit'}
+                </span>
+                <span className="font-label-md text-label-md">
+                  {isEditing ? 'Selesai Edit' : 'Edit'}
+                </span>
+              </button>
+            )}
             <button 
               onClick={handleExportTxt}
               className="flex items-center gap-xs text-primary hover:bg-surface-container px-sm py-xs rounded-md transition-colors border border-transparent hover:border-surface-variant cursor-pointer"
@@ -818,6 +1072,35 @@ const RestockDetailPage: React.FC = () => {
               </span>
               <span className="font-label-md text-label-md">
                 {isCopied ? 'Copied' : 'Copy'}
+              </span>
+            </button>
+            <button
+              onClick={handleOpenSyncModal}
+              disabled={checklist.length === 0}
+              className={`flex items-center gap-xs text-primary hover:bg-surface-container px-sm py-xs rounded-md transition-colors border border-transparent hover:border-surface-variant cursor-pointer ${
+                checklist.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              title="Sinkronisasi & Periksa Stok Barang"
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                sync
+              </span>
+              <span className="font-label-md text-label-md">
+                Sinkron Stok
+              </span>
+            </button>
+            <button 
+              onClick={handleSyncToSupabase}
+              className={`flex items-center gap-xs px-sm py-xs rounded-md transition-colors border cursor-pointer ${
+                isDraft
+                  ? 'bg-primary text-on-primary hover:bg-primary/90 border-transparent shadow-sm'
+                  : 'text-primary hover:bg-surface-container hover:border-surface-variant border-transparent'
+              }`}>
+              <span className="material-symbols-outlined text-[18px]">
+                cloud_upload
+              </span>
+              <span className="font-label-md text-label-md">
+                Save
               </span>
             </button>
           </div>
@@ -844,7 +1127,7 @@ const RestockDetailPage: React.FC = () => {
                     setPasteContent(text);
                   } catch (err) {
                     console.error("Failed to read clipboard contents: ", err);
-                    alert("Gagal membaca clipboard. Pastikan browser memberikan izin.");
+                    showToast("Gagal membaca clipboard. Pastikan browser memberikan izin.", 'error');
                   }
                 }}
                 className="absolute top-2 right-2 p-1.5 bg-surface-container hover:bg-surface-variant text-on-surface rounded-md border border-outline/50 shadow-sm flex items-center justify-center transition-colors cursor-pointer"
@@ -916,7 +1199,7 @@ const RestockDetailPage: React.FC = () => {
                           {new Date(h.importedAt).toLocaleString('id-ID')}
                         </span>
                       </div>
-                      {isEditing && (
+                      {isOwner && isEditing && (
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
@@ -979,8 +1262,8 @@ const RestockDetailPage: React.FC = () => {
         {/* Checklist Canvas */}
         <div className="flex flex-col gap-0 bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden">
           {isLoading ? (
-            <div className="py-xl text-center flex flex-col items-center justify-center">
-              <p className="text-on-surface-variant font-body-lg">Memuat data...</p>
+            <div className="p-4 flex flex-col gap-3">
+              <Skeleton className="h-16 w-full" count={5} />
             </div>
           ) : checklist.length === 0 ? (
             <div className="py-xl text-center flex flex-col items-center justify-center">
@@ -1007,7 +1290,7 @@ const RestockDetailPage: React.FC = () => {
                     expandedVariants={expandedVariants}
                     onToggleVariant={toggleVariant}
                     onImageClick={setSelectedImage}
-                    readOnly={!isEditing}
+                    readOnly={!isOwner || !isEditing}
                     onToggleVariantCheck={toggleVariantCheck}
                     onToggleCategoryCheck={() => toggleCategoryCheck(category)}
                     onChangeVariantTargetQuantity={(varId, qty) => handleTargetQuantityChange(category.id, varId, qty)}
@@ -1432,8 +1715,26 @@ const RestockDetailPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Stock Sync Modal */}
+      <StockSyncModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+        items={syncItems}
+        isLoading={syncLoading}
+        appMode={appMode}
+        stockSource={syncStockSource}
+        onToggleStockSource={handleToggleStockSource}
+        title="Sinkronisasi Stok (Restock Detail)"
+        isSinkron={Boolean(list?.is_sinkron)}
+        onConfirmSync={handleConfirmSync}
+        isSyncingAction={isSyncingAction}
+      />
+
+      <LoadingSpinner isOpen={isOperationLoading} title={loadingMessage} />
     </>
   );
 };
 
 export default RestockDetailPage;
+

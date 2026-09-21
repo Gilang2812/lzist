@@ -4,10 +4,16 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import Modal from '../components/ui/Modal';
 import type { SubBarang } from '../types';
+import { generateId } from '../utils/generateId';
+import Toast from '../components/ui/Toast';
+import { useToast } from '../hooks/useToast';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { ROUTES } from '../routes';
 
 const EditKatalogPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { toast, showToast, hideToast } = useToast();
 
   const [formName, setFormName] = useState('');
   const [formSkus, setFormSkus] = useState<string[]>(['']);
@@ -15,6 +21,7 @@ const EditKatalogPage: React.FC = () => {
   const [selectedSupplierIds, setSelectedSupplierIds] = useState<string[]>([]);
   const [variants, setVariants] = useState<SubBarang[]>([]);
   const [massStock, setMassStock] = useState<number | ''>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [addingImageVariantIdx, setAddingImageVariantIdx] = useState<number | null>(null);
@@ -45,11 +52,32 @@ const EditKatalogPage: React.FC = () => {
     );
   };
 
+
   const handleVariantChange = (index: number, field: keyof SubBarang, value: any) => {
     const newVariants = [...variants];
     newVariants[index] = { ...newVariants[index], [field]: value };
     setVariants(newVariants);
   };
+
+  const handleAddVariant = () => {
+    setVariants([
+      ...variants,
+      {
+        id: generateId('sub'),
+        barangId: id as string,
+        name: '',
+        stock: 0,
+        images: []
+      }
+    ]);
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    const newVariants = [...variants];
+    newVariants.splice(index, 1);
+    setVariants(newVariants);
+  };
+
 
 
 
@@ -101,6 +129,7 @@ const EditKatalogPage: React.FC = () => {
     e.preventDefault();
     if (!id || !formName.trim()) return;
 
+    setIsSubmitting(true);
     try {
       await db.transaction('rw', db.barang, db.barangSupplier, db.subBarang, async () => {
         await db.barang.update(id, {
@@ -117,27 +146,52 @@ const EditKatalogPage: React.FC = () => {
           await db.barangSupplier.add({ id: `${id}-${supplierId}`, barangId: id, supplierId });
         }
 
-        // update variants
+        // get existing variants
+        const existingVariants = await db.subBarang.where('barangId').equals(id).toArray();
+        const existingVariantIds = existingVariants.map(v => v.id);
+        const currentVariantIds = variants.map(v => v.id);
+
+        // delete variants that are not in the current list
+        const variantsToDelete = existingVariantIds.filter(vId => !currentVariantIds.includes(vId));
+        for (const vId of variantsToDelete) {
+          await db.subBarang.delete(vId);
+        }
+
+        // update or add variants
         for (const variant of variants) {
-          await db.subBarang.update(variant.id, {
-            name: variant.name,
-            stock: variant.stock,
-            images: variant.images
-          });
+          if (existingVariantIds.includes(variant.id)) {
+            await db.subBarang.update(variant.id, {
+              name: variant.name,
+              stock: variant.stock,
+              images: variant.images
+            });
+          } else {
+            await db.subBarang.add({
+              id: variant.id,
+              barangId: id,
+              name: variant.name,
+              stock: variant.stock,
+              images: variant.images
+            });
+          }
         }
       });
-      navigate('/katalog');
+      navigate(ROUTES.KATALOG.INDEX);
     } catch (error) {
       console.error('Failed to save changes', error);
-      alert('Gagal menyimpan perubahan');
+      showToast('Gagal menyimpan perubahan', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+    <>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+      <main className="max-w-4lx mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
       <div className="flex items-center gap-sm">
         <button
-          onClick={() => navigate('/katalog')}
+          onClick={() => navigate(ROUTES.KATALOG.INDEX)}
           className="p-2 rounded-full text-on-surface-variant hover:bg-surface-variant transition-colors"
         >
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
@@ -210,7 +264,7 @@ const EditKatalogPage: React.FC = () => {
                 Belum ada supplier.{' '}
                 <span
                   className="text-primary underline cursor-pointer"
-                  onClick={() => navigate('/supplier')}
+                  onClick={() => navigate(ROUTES.SUPPLIER.INDEX)}
                 >
                   Tambah supplier
                 </span>{' '}
@@ -243,7 +297,17 @@ const EditKatalogPage: React.FC = () => {
 
         <div className="bg-surface-container-lowest p-md rounded-xl border border-surface-variant flex flex-col gap-md">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-sm">
-            <h2 className="font-h3 text-h3 text-on-surface">Daftar Varian</h2>
+            <div className="flex items-center gap-sm">
+              <h2 className="font-h3 text-h3 text-on-surface">Daftar Varian</h2>
+              <button
+                type="button"
+                onClick={handleAddVariant}
+                className="px-sm py-1 bg-surface-container hover:bg-surface-variant text-on-surface text-label-md rounded-md border border-surface-variant transition-colors flex items-center gap-xs cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">add</span>
+                Tambah Varian
+              </button>
+            </div>
             {variants.length > 0 && (
               <div className="flex items-center gap-sm">
                 <label className="text-label-md text-on-surface-variant whitespace-nowrap">Update Stok Massal:</label>
@@ -284,6 +348,7 @@ const EditKatalogPage: React.FC = () => {
                     <th className="pb-sm font-label-md">Nama Varian</th>
                     <th className="pb-sm font-label-md w-32">Stok</th>
                     <th className="pb-sm font-label-md">URL Gambar</th>
+                    <th className="pb-sm font-label-md w-10"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -336,6 +401,16 @@ const EditKatalogPage: React.FC = () => {
                           </button>
                         </div>
                       </td>
+                      <td className="py-sm pl-sm text-right align-top">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveVariant(idx)}
+                          className="p-1.5 text-on-surface-variant hover:text-error transition-colors rounded-md hover:bg-error/10 cursor-pointer"
+                          title="Hapus Varian"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">delete</span>
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -347,7 +422,7 @@ const EditKatalogPage: React.FC = () => {
         <div className="flex justify-end gap-sm">
           <button
             type="button"
-            onClick={() => navigate('/katalog')}
+            onClick={() => navigate(ROUTES.KATALOG.INDEX)}
             className="px-md py-sm font-label-md text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer"
           >
             Batal
@@ -394,7 +469,9 @@ const EditKatalogPage: React.FC = () => {
           </div>
         </form>
       </Modal>
+      <LoadingSpinner isOpen={isSubmitting} title="Menyimpan perubahan..." />
     </main>
+    </>
   );
 };
 

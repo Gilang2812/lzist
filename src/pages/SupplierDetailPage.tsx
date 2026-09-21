@@ -5,6 +5,9 @@ import { db } from '../db/database';
 import EmptyState from '../components/ui/EmptyState';
 import Modal from '../components/ui/Modal';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
+import Skeleton from '../components/ui/Skeleton';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { ROUTES } from '../routes';
 
 interface SupplierFormData {
   name: string;
@@ -21,6 +24,8 @@ const SupplierDetailPage: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [formData, setFormData] = useState<SupplierFormData>({ name: '', contact: '', phone: '', address: '', notes: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [spinnerTitle, setSpinnerTitle] = useState('');
 
   // State for detach barang confirm
   const [detachBarangId, setDetachBarangId] = useState<string | null>(null);
@@ -45,8 +50,21 @@ const SupplierDetailPage: React.FC = () => {
 
   if (data === undefined) {
     return (
-      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full">
-        <p className="text-on-surface-variant text-center py-xl">Memuat data...</p>
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+        <Skeleton className="h-6 w-32" />
+        <div className="bg-surface-container-lowest rounded-2xl border border-surface-variant p-lg flex flex-col gap-md">
+          <div className="flex items-center gap-md">
+            <Skeleton className="h-14 w-14 rounded-2xl" />
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col gap-sm">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-16 w-full" count={3} />
+        </div>
       </main>
     );
   }
@@ -79,6 +97,8 @@ const SupplierDetailPage: React.FC = () => {
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
+    setIsSubmitting(true);
+    setSpinnerTitle('Menyimpan perubahan...');
     try {
       await db.suppliers.update(id!, {
         name: formData.name,
@@ -90,19 +110,25 @@ const SupplierDetailPage: React.FC = () => {
       setIsEditModalOpen(false);
     } catch (err) {
       console.error('Failed to update supplier', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
     if (!id) return;
+    setIsSubmitting(true);
+    setSpinnerTitle('Menghapus supplier...');
     try {
       await db.transaction('rw', db.suppliers, db.barangSupplier, async () => {
         await db.barangSupplier.where('supplierId').equals(id).delete();
         await db.suppliers.delete(id);
       });
-      navigate('/supplier', { replace: true });
+      navigate(ROUTES.SUPPLIER.INDEX, { replace: true });
     } catch (err) {
       console.error('Failed to delete supplier', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -130,7 +156,7 @@ const SupplierDetailPage: React.FC = () => {
     ) : null;
 
   return (
-    <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+    <main className="max-w-4lx mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
       {/* Back */}
       <button onClick={() => navigate(-1)} className="flex items-center gap-xs text-primary font-label-md text-label-md hover:underline w-fit cursor-pointer">
         <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -204,7 +230,7 @@ const SupplierDetailPage: React.FC = () => {
                 >
                   <div
                     className="flex-1 min-w-0 cursor-pointer"
-                    onClick={() => navigate(`/katalog/${b.id}`)}
+                    onClick={() => navigate(ROUTES.KATALOG.detail(b.id))}
                   >
                     <h3 className="font-label-lg text-label-lg text-on-surface truncate">{b.name}</h3>
                     <div className="flex items-center gap-sm mt-xs text-body-sm text-on-surface-variant">
@@ -287,6 +313,8 @@ const SupplierDetailPage: React.FC = () => {
         onCancel={() => setDetachBarangId(null)}
         variant="danger"
       />
+
+      <LoadingSpinner isOpen={isSubmitting} title={spinnerTitle} />
     </main>
   );
 };

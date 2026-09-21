@@ -6,6 +6,15 @@ import type { OrderGroup, OrderItem } from '../stores/useProfitStore';
 import { parseIndonesianNumber } from '../utils/numberParser';
 import { db } from '../db/database';
 import type { ProfitHistory } from '../types';
+import Skeleton from '../components/ui/Skeleton';
+import Tooltip from '../components/ui/Tooltip';
+import CornerAlert from '../components/ui/CornerAlert';
+import { useCornerAlert } from '../hooks/useCornerAlert';
+import StockSyncModal, { type StockSyncItem } from '../components/ui/StockSyncModal';
+import { fetchOfflineCatalogAsCategories, fetchOnlineCatalogAsCategories } from '../utils/dbHelpers';
+import { applyStockSync } from '../utils/stockSyncHelper';
+import { ROUTES } from '../routes';
+import { useAppModeStore } from '../stores/useAppModeStore';
 
 const formatCurrency = (val: number) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
@@ -13,13 +22,28 @@ const formatCurrency = (val: number) => {
 
 const AUTOSAVE_DEBOUNCE_MS = 1500;
 
+export type StatusFilterOption = string;
+
+export const isNonIncomeStatus = (status?: string): boolean => {
+  if (!status) return false;
+  const s = status.toLowerCase().trim();
+  return (
+    s === 'batal' ||
+    s === 'belum bayar' ||
+    s.includes('cancel') ||
+    s === 'unpaid' ||
+    s.includes('dibatalkan')
+  );
+};
+
 const ProfitCalculatorPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { alert: cornerAlert, showAlert, hideAlert } = useCornerAlert();
 
   const { 
-    orders, masterModal, overrides, 
-    setOrders, setMasterModal, setOverride, clearOrders, clearOverrides,
+    orders, masterModal, overrides, is_sinkron,
+    setOrders, setMasterModal, setOverride, clearOrders, clearOverrides, setIsSinkron,
     adminFeePercent, serviceFeePercent, orderFeeAmount, adsFeeAmount, adsTaxPercent, affiliateFeeAmount,
     setAdminFeePercent, setServiceFeePercent, setOrderFeeAmount, setAdsFeeAmount, setAdsTaxPercent, setAffiliateFeeAmount
   } = useProfitStore();
@@ -32,11 +56,110 @@ const ProfitCalculatorPage: React.FC = () => {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [uploadValidationModal, setUploadValidationModal] = useState<{isOpen: boolean, data: OrderGroup[] | null, minDate?: Date | null, maxDate?: Date | null}>({isOpen: false, data: null});
   
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const hasUserChangedFilter = useRef(false);
+
   const [searchOrderNo, setSearchOrderNo] = useState('');
   const [searchNameSku, setSearchNameSku] = useState('');
 
+  const { mode: appMode } = useAppModeStore();
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncStockSource, setSyncStockSource] = useState<'online' | 'offline'>(appMode);
+  const [syncItems, setSyncItems] = useState<StockSyncItem[]>([]);
+  const [syncLoading, setSyncLoading] = useState(false);
+
+  useEffect(() => {
+    setSyncStockSource(appMode);
+  }, [appMode]);
+
+  // Extract unique statuses from document orders
+  const availableStatuses = useMemo(() => {
+    const statusSet = new Set<string>();
+    orders.forEach(o => {
+      statusSet.add(o.statusPesanan?.trim() || '');
+    });
+    return Array.from(statusSet).sort((a, b) => {
+      if (!a) return 1;
+      if (!b) return -1;
+      return a.localeCompare(b);
+    });
+  }, [orders]);
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    orders.forEach(o => {
+      const s = o.statusPesanan?.trim() || '';
+      counts[s] = (counts[s] || 0) + 1;
+    });
+    return counts;
+  }, [orders]);
+
+  // Sync selected statuses when available statuses change
+  useEffect(() => {
+    if (availableStatuses.length === 0) {
+      setSelectedStatuses([]);
+      hasUserChangedFilter.current = false;
+      return;
+    }
+    if (!hasUserChangedFilter.current) {
+      const nonCancelled = availableStatuses.filter(s => !isNonIncomeStatus(s));
+      setSelectedStatuses(nonCancelled.length > 0 ? nonCancelled : availableStatuses);
+    } else {
+      setSelectedStatuses(prev => {
+        const valid = prev.filter(s => availableStatuses.includes(s));
+        return valid;
+      });
+    }
+  }, [availableStatuses]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setIsStatusDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleToggleStatus = (status: string) => {
+    hasUserChangedFilter.current = true;
+    setSelectedStatuses(prev => {
+      if (prev.includes(status)) {
+        return prev.filter(s => s !== status);
+      } else {
+        return [...prev, status];
+      }
+    });
+  };
+
+  const handleSelectAllStatuses = () => {
+    hasUserChangedFilter.current = true;
+    setSelectedStatuses(availableStatuses);
+  };
+
+  const handleClearAllStatuses = () => {
+    hasUserChangedFilter.current = true;
+    setSelectedStatuses([]);
+  };
+
+  const handleSelectIncomeOnlyStatuses = () => {
+    hasUserChangedFilter.current = true;
+    const nonCancelled = availableStatuses.filter(s => !isNonIncomeStatus(s));
+    setSelectedStatuses(nonCancelled.length > 0 ? nonCancelled : availableStatuses);
+  };
+
+  const statusFilteredOrders = useMemo(() => {
+    if (selectedStatuses.length === 0) return [];
+    const selectedSet = new Set(selectedStatuses);
+    return orders.filter(order => selectedSet.has(order.statusPesanan?.trim() || ''));
+  }, [orders, selectedStatuses]);
+
   const filteredOrders = useMemo(() => {
-    return orders.filter(order => {
+    return statusFilteredOrders.filter(order => {
       const matchOrderNo = searchOrderNo ? order.noPesanan.toLowerCase().includes(searchOrderNo.toLowerCase()) : true;
       const matchNameSku = searchNameSku ? order.items.some(item => 
         item.namaProduk.toLowerCase().includes(searchNameSku.toLowerCase()) ||
@@ -45,7 +168,7 @@ const ProfitCalculatorPage: React.FC = () => {
       
       return matchOrderNo && matchNameSku;
     });
-  }, [orders, searchOrderNo, searchNameSku]);
+  }, [statusFilteredOrders, searchOrderNo, searchNameSku]);
 
   const today = new Date();
   const [startDate, setStartDate] = useState({
@@ -82,12 +205,13 @@ const ProfitCalculatorPage: React.FC = () => {
               orderFeeAmount: history.orderFeeAmount,
               adsFeeAmount: history.adsFeeAmount,
               adsTaxPercent: history.adsTaxPercent,
-              affiliateFeeAmount: history.affiliateFeeAmount
+              affiliateFeeAmount: history.affiliateFeeAmount,
+              is_sinkron: history.is_sinkron || false,
             });
             currentIdRef.current = id;
           } else {
             // Not found
-            navigate('/profit-history');
+            navigate(ROUTES.PROFIT.HISTORY);
           }
         } catch (err) {
           console.error('Failed to load profit history:', err);
@@ -111,7 +235,7 @@ const ProfitCalculatorPage: React.FC = () => {
       if (!currentIdRef.current) {
         currentIdRef.current = recordId;
         // Optionally update URL without reloading
-        window.history.replaceState(null, '', `/profit-calculator/${recordId}`);
+        window.history.replaceState(null, '', ROUTES.PROFIT.calculator(recordId));
       }
 
       setAutoSaveStatus('saving');
@@ -132,6 +256,7 @@ const ProfitCalculatorPage: React.FC = () => {
         adsFeeAmount: currentState.adsFeeAmount,
         adsTaxPercent: currentState.adsTaxPercent,
         affiliateFeeAmount: currentState.affiliateFeeAmount,
+        is_sinkron: currentState.is_sinkron,
         createdAt: currentIdRef.current === recordId ? (await db.profitHistories.get(recordId))?.createdAt || new Date() : new Date(),
         updatedAt: new Date(),
       };
@@ -185,102 +310,178 @@ const ProfitCalculatorPage: React.FC = () => {
 
     const reader = new FileReader();
     reader.onload = (evt) => {
-      const arrayBuffer = evt.target?.result as ArrayBuffer;
-      const wb = XLSX.read(arrayBuffer, { type: 'array' });
-      const wsname = wb.SheetNames[0];
-      const ws = wb.Sheets[wsname];
-      const data = XLSX.utils.sheet_to_json(ws);
-      
-      const groups: Record<string, OrderItem[]> = {};
-      let minDate: Date | null = null;
-      let maxDate: Date | null = null;
-      
-      data.forEach((row: any) => {
-        const waktuPesanan = row['Waktu Pesanan Dibuat'];
-        if (waktuPesanan) {
-          let parsedDate: Date | null = null;
-          if (typeof waktuPesanan === 'number') {
-             parsedDate = new Date(Math.round((waktuPesanan - 25569) * 86400 * 1000));
-          } else if (typeof waktuPesanan === 'string') {
-             let str = waktuPesanan.replace(' ', 'T');
-             parsedDate = new Date(str);
-             if (isNaN(parsedDate.getTime())) {
-                const parts = waktuPesanan.split(' ');
-                const dateParts = parts[0]?.split('-');
-                if (dateParts && dateParts.length === 3) {
-                   if (dateParts[0].length === 2 && dateParts[2].length === 4) {
-                      parsedDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${parts[1] || '00:00'}`);
-                   }
-                }
-             }
-          }
-          if (parsedDate && !isNaN(parsedDate.getTime())) {
-             if (!minDate || parsedDate < minDate) minDate = parsedDate;
-             if (!maxDate || parsedDate > maxDate) maxDate = parsedDate;
-          }
+      try {
+        const arrayBuffer = evt.target?.result as ArrayBuffer;
+        const wb = XLSX.read(arrayBuffer, { type: 'array' });
+        const wsname = wb.SheetNames[0];
+        if (!wsname || !wb.Sheets[wsname]) {
+          showAlert({
+            title: 'Dokumen Tidak Cocok',
+            message: 'File Excel tidak memiliki lembar kerja (sheet) yang dapat dibaca.',
+            type: 'error',
+            duration: 4500,
+          });
+          return;
         }
 
-        const noPesanan = row['No. Pesanan'];
-        if (!noPesanan) return;
+        const ws = wb.Sheets[wsname];
+        const data: any[] = XLSX.utils.sheet_to_json(ws);
         
-        // Filter pesanan batal
-        const statusPesanan = row['Status Pesanan'];
-        if (statusPesanan && statusPesanan.toLowerCase() === 'batal'|| statusPesanan.toLowerCase() === 'belum bayar') return;
-        
-        const rawSkuInduk = row['SKU Induk'];
-        const skuInduk = rawSkuInduk ? String(rawSkuInduk) : (row['Nama Produk'] || '-');
-        const namaProduk = row['Nama Produk'] || '-';
-        
-        const variasi = row['Nama Variasi'] || '-';
-        const itemKey = `${skuInduk} | ${variasi}`;
-        const hargaSetelahDiskon = parseIndonesianNumber(row['Harga Setelah Diskon']);
-        const jumlah = parseIndonesianNumber(row['Jumlah']);
-        const subtotalBarang = hargaSetelahDiskon * jumlah;
-        
-        const item: OrderItem = {
-          noPesanan,
-          namaProduk,
-          skuInduk,
-          variasi,
-          hargaSetelahDiskon,
-          jumlah,
-          subtotalBarang,
-          itemKey,
-        };
-        
-        if (!groups[noPesanan]) {
-          groups[noPesanan] = [];
-        }
-        groups[noPesanan].push(item);
-      });
-      
-      const parsedOrders: OrderGroup[] = Object.keys(groups).map((orderId) => {
-        const items = groups[orderId];
-        const totalSubtotalBarang = items.reduce((sum, item) => sum + item.subtotalBarang, 0);
-        return {
-          noPesanan: orderId,
-          items,
-          totalSubtotalBarang,
-        };
-      });
-      
-      if (orders.length > 0) {
-        setUploadValidationModal({ isOpen: true, data: parsedOrders, minDate, maxDate });
-      } else {
-        setOrders(parsedOrders);
-        clearOverrides();
-        if (minDate && maxDate) {
-          setStartDate({
-            day: (minDate as Date).getDate().toString().padStart(2, '0'),
-            month: ((minDate as Date).getMonth() + 1).toString().padStart(2, '0'),
-            year: (minDate as Date).getFullYear().toString(),
+        if (!data || data.length === 0) {
+          showAlert({
+            title: 'Dokumen Tidak Cocok',
+            message: 'File Excel kosong atau tidak memiliki baris data.',
+            type: 'error',
+            duration: 4500,
           });
-          setEndDate({
-            day: (maxDate as Date).getDate().toString().padStart(2, '0'),
-            month: ((maxDate as Date).getMonth() + 1).toString().padStart(2, '0'),
-            year: (maxDate as Date).getFullYear().toString(),
+          return;
+        }
+
+        const groups: Record<string, { items: OrderItem[]; statusPesanan?: string }> = {};
+        let minDate: Date | null = null;
+        let maxDate: Date | null = null;
+        let matchedRowCount = 0;
+        
+        data.forEach((row: any) => {
+          const noPesanan = row['No. Pesanan'] || row['Order ID'] || row['Order Number'] || row['Nomor Pesanan'];
+          if (!noPesanan || String(noPesanan).trim() === 'Platform unique order ID.') return;
+
+          matchedRowCount++;
+
+          const waktuPesanan = row['Waktu Pesanan Dibuat'] || row['Created Time'] || row['Waktu Pembayaran Dilakukan'] || row['Order Time'];
+          if (waktuPesanan) {
+            let parsedDate: Date | null = null;
+            if (typeof waktuPesanan === 'number') {
+               parsedDate = new Date(Math.round((waktuPesanan - 25569) * 86400 * 1000));
+            } else if (typeof waktuPesanan === 'string') {
+               let str = waktuPesanan.replace(' ', 'T');
+               parsedDate = new Date(str);
+               if (isNaN(parsedDate.getTime())) {
+                  const parts = waktuPesanan.split(' ');
+                  
+                  // Handle DD-MM-YYYY
+                  const dateParts = parts[0]?.split('-');
+                  if (dateParts && dateParts.length === 3) {
+                     if (dateParts[0].length === 2 && dateParts[2].length === 4) {
+                        parsedDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${parts[1] || '00:00'}`);
+                     }
+                  }
+                  
+                  // Handle DD/MM/YYYY (TikTok format)
+                  if (isNaN(parsedDate?.getTime() || NaN)) {
+                     const slashParts = parts[0]?.split('/');
+                     if (slashParts && slashParts.length === 3) {
+                        if (slashParts[0].length === 2 && slashParts[2].length === 4) {
+                           parsedDate = new Date(`${slashParts[2]}-${slashParts[1]}-${slashParts[0]}T${parts[1] || '00:00'}`);
+                        }
+                     }
+                  }
+               }
+            }
+            if (parsedDate && !isNaN(parsedDate.getTime())) {
+               if (!minDate || parsedDate < minDate) minDate = parsedDate;
+               if (!maxDate || parsedDate > maxDate) maxDate = parsedDate;
+            }
+          }
+
+          const statusPesanan = String(row['Status Pesanan'] || row['Order Status'] || row['Status'] || '').trim();
+          const rawSkuInduk = row['SKU Induk'] || row['Seller SKU'];
+          const namaProduk = row['Nama Produk'] || row['Product Name'] || '-';
+          const skuInduk = rawSkuInduk ? String(rawSkuInduk) : String(namaProduk);
+          
+          const variasi = row['Nama Variasi'] || row['Variation'] || '-';
+          const itemKey = `${skuInduk} | ${variasi}`;
+          
+          const jumlah = parseIndonesianNumber(row['Jumlah'] || row['Quantity'] || 0);
+          
+          let hargaSetelahDiskon = 0;
+          let subtotalBarang = 0;
+          
+          if (row['Harga Setelah Diskon'] !== undefined) {
+             hargaSetelahDiskon = parseIndonesianNumber(row['Harga Setelah Diskon']);
+             subtotalBarang = hargaSetelahDiskon * jumlah;
+          } else if (row['SKU Subtotal After Discount'] !== undefined) {
+             subtotalBarang = parseIndonesianNumber(row['SKU Subtotal After Discount']);
+             hargaSetelahDiskon = jumlah > 0 ? subtotalBarang / jumlah : 0;
+          }
+          
+          const item: OrderItem = {
+            noPesanan: String(noPesanan),
+            namaProduk: String(namaProduk),
+            skuInduk,
+            variasi: String(variasi),
+            hargaSetelahDiskon,
+            jumlah,
+            subtotalBarang,
+            itemKey,
+            statusPesanan: statusPesanan || undefined,
+          };
+          
+          const orderIdKey = String(noPesanan);
+          if (!groups[orderIdKey]) {
+            groups[orderIdKey] = {
+              items: [],
+              statusPesanan: statusPesanan || undefined,
+            };
+          }
+          groups[orderIdKey].items.push(item);
+        });
+        
+        if (matchedRowCount === 0 || Object.keys(groups).length === 0) {
+          showAlert({
+            title: 'Dokumen Tidak Cocok',
+            message: 'Format dokumen tidak sesuai. Pastikan file berisi kolom No. Pesanan / Order ID yang valid.',
+            type: 'error',
+            duration: 4500,
+          });
+          return;
+        }
+
+        const parsedOrders: OrderGroup[] = Object.keys(groups).map((orderId) => {
+          const grp = groups[orderId];
+          const totalSubtotalBarang = grp.items.reduce((sum, item) => sum + item.subtotalBarang, 0);
+          return {
+            noPesanan: orderId,
+            statusPesanan: grp.statusPesanan,
+            items: grp.items,
+            totalSubtotalBarang,
+          };
+        });
+        
+        if (orders.length > 0) {
+          setUploadValidationModal({ isOpen: true, data: parsedOrders, minDate, maxDate });
+        } else {
+          hasUserChangedFilter.current = false;
+          setOrders(parsedOrders);
+          clearOverrides();
+          if (minDate && maxDate) {
+            setStartDate({
+              day: (minDate as Date).getDate().toString().padStart(2, '0'),
+              month: ((minDate as Date).getMonth() + 1).toString().padStart(2, '0'),
+              year: (minDate as Date).getFullYear().toString(),
+            });
+            setEndDate({
+              day: (maxDate as Date).getDate().toString().padStart(2, '0'),
+              month: ((maxDate as Date).getMonth() + 1).toString().padStart(2, '0'),
+              year: (maxDate as Date).getFullYear().toString(),
+            });
+          }
+
+          showAlert({
+            title: 'Dokumen Berhasil Dimuat',
+            message: `Berhasil memuat ${parsedOrders.length} data pesanan.`,
+            type: 'success',
+            duration: 3500,
           });
         }
+      } catch (err: any) {
+        console.error('Failed to parse Excel:', err);
+        showAlert({
+          title: 'Dokumen Tidak Cocok',
+          message: 'Gagal memproses file. Pastikan dokumen berekstensi .xlsx atau .xls yang valid.',
+          type: 'error',
+          duration: 4500,
+        });
       }
     };
     reader.readAsArrayBuffer(file);
@@ -293,6 +494,7 @@ const ProfitCalculatorPage: React.FC = () => {
 
   const handleReplaceUpload = () => {
     if (uploadValidationModal.data) {
+      hasUserChangedFilter.current = false;
       setOrders(uploadValidationModal.data);
       clearOverrides();
       if (uploadValidationModal.minDate && uploadValidationModal.maxDate) {
@@ -356,7 +558,7 @@ const ProfitCalculatorPage: React.FC = () => {
       variations: Map<string, number> 
     }>();
     
-    orders.forEach(order => {
+    statusFilteredOrders.forEach(order => {
       order.items.forEach(item => {
         const existing = productsMap.get(item.skuInduk);
         if (existing) {
@@ -385,7 +587,136 @@ const ProfitCalculatorPage: React.FC = () => {
           .sort((a, b) => b.qty - a.qty)
       }))
       .sort((a, b) => a.namaProduk.localeCompare(b.namaProduk));
-  }, [orders]);
+  }, [statusFilteredOrders]);
+
+  const [isSyncingAction, setIsSyncingAction] = useState(false);
+
+  const loadStockSyncData = useCallback(async (source: 'online' | 'offline', prods: typeof uniqueProducts) => {
+    setSyncLoading(true);
+    try {
+      const catalogData = source === 'online' 
+        ? await fetchOnlineCatalogAsCategories() 
+        : await fetchOfflineCatalogAsCategories();
+
+      const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+      const items: StockSyncItem[] = [];
+
+      prods.forEach(prod => {
+        const nProduct = normalize(prod.namaProduk);
+        const nSkuInduk = prod.skuInduk ? normalize(prod.skuInduk) : '';
+
+        // 1. Find best category match
+        let bestCategoryMatch = catalogData.find(cat => {
+          if (!cat.skus || cat.skus.length === 0) return false;
+          return cat.skus.some(sku => normalize(sku) === nSkuInduk);
+        });
+
+        if (!bestCategoryMatch) {
+          let longestMatchLen = 0;
+          for (const cat of catalogData) {
+            const nName = normalize(cat.name);
+            if (nProduct.includes(nName) || nName.includes(nProduct)) {
+              if (nName.length > longestMatchLen) {
+                longestMatchLen = nName.length;
+                bestCategoryMatch = cat;
+              }
+            }
+          }
+        }
+
+        prod.variations.forEach(v => {
+          let catalogStock = 0;
+          let matchedVarId: string | undefined = undefined;
+          const varName = v.nama === '-' || !v.nama ? '' : v.nama;
+
+          if (bestCategoryMatch) {
+            if (!varName && bestCategoryMatch.variants.length === 1) {
+              catalogStock = bestCategoryMatch.variants[0].stock || 0;
+              matchedVarId = bestCategoryMatch.variants[0].id;
+            } else {
+              const matchedVar = bestCategoryMatch.variants.find(
+                mv => mv.name.toLowerCase() === varName.toLowerCase()
+              );
+              if (matchedVar) {
+                catalogStock = matchedVar.stock || 0;
+                matchedVarId = matchedVar.id;
+              }
+            }
+          }
+
+          items.push({
+            productName: prod.namaProduk,
+            variantName: varName || 'Tanpa Variasi',
+            stock: catalogStock,
+            quantity: v.qty,
+            result: catalogStock - v.qty,
+            categoryId: bestCategoryMatch?.id,
+            variantId: matchedVarId
+          });
+        });
+      });
+
+      setSyncItems(items);
+    } catch (err) {
+      console.error('Failed to load stock sync data:', err);
+      showAlert({
+        title: 'Gagal Memuat Stok',
+        message: 'Gagal mengambil data katalog untuk sinkronisasi stok.',
+        type: 'error',
+        duration: 4000
+      });
+    } finally {
+      setSyncLoading(false);
+    }
+  }, [showAlert]);
+
+  const handleOpenSyncModal = () => {
+    setIsSyncModalOpen(true);
+    loadStockSyncData(syncStockSource, uniqueProducts);
+  };
+
+  const handleToggleStockSource = (source: 'online' | 'offline') => {
+    setSyncStockSource(source);
+    loadStockSyncData(source, uniqueProducts);
+  };
+
+  const handleConfirmSync = async (isRestore: boolean) => {
+    setIsSyncingAction(true);
+    try {
+      const res = await applyStockSync(syncItems, syncStockSource, isRestore ? 'restore' : 'deduct');
+      if (res.success) {
+        const newIsSinkron = !isRestore;
+        setIsSinkron(newIsSinkron);
+        showAlert({
+          title: isRestore ? 'Stok Berhasil Direstore' : 'Stok Berhasil Disinkronkan',
+          message: isRestore
+            ? 'Stok berhasil dikembalikan ke data master katalog.'
+            : 'Stok data master katalog berhasil diperbarui (dikurangi).',
+          type: 'success',
+          duration: 3500
+        });
+        await loadStockSyncData(syncStockSource, uniqueProducts);
+      } else {
+        showAlert({
+          title: 'Gagal Update Stok',
+          message: res.error || 'Terjadi kesalahan saat memperbarui stok master.',
+          type: 'error',
+          duration: 4000
+        });
+      }
+    } catch (err: any) {
+      console.error('Error during stock sync:', err);
+      showAlert({
+        title: 'Gagal Update Stok',
+        message: 'Terjadi kesalahan saat memproses stok.',
+        type: 'error',
+        duration: 4000
+      });
+    } finally {
+      setIsSyncingAction(false);
+    }
+  };
 
   const filledMasterModalCount = useMemo(() => {
     return uniqueProducts.filter(prod => masterModal[prod.skuInduk] !== undefined).length;
@@ -396,7 +727,7 @@ const ProfitCalculatorPage: React.FC = () => {
     let tPlatformFee = 0;
     let tModal = 0;
 
-    orders.forEach(order => {
+    statusFilteredOrders.forEach(order => {
       const penghasilan = order.totalSubtotalBarang;
       tPenghasilan += penghasilan;
       
@@ -423,10 +754,29 @@ const ProfitCalculatorPage: React.FC = () => {
       totalPlatformFee: tPlatformFee,
       totalModal: tModal
     };
-  }, [orders, masterModal, overrides, adminFeePercent, serviceFeePercent, orderFeeAmount, adsFeeAmount, adsTaxPercent, affiliateFeeAmount]);
+  }, [statusFilteredOrders, masterModal, overrides, adminFeePercent, serviceFeePercent, orderFeeAmount, adsFeeAmount, adsTaxPercent, affiliateFeeAmount]);
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div></div>;
+    return (
+      <div className="p-4 md:p-8 max-w-full space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex items-center gap-3 w-full md:w-1/2">
+            <Skeleton className="h-9 w-9 rounded-lg" />
+            <Skeleton className="h-8 w-64" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-28 rounded-lg" />
+            <Skeleton className="h-10 w-28 rounded-lg" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-64 w-full rounded-xl" />
+      </div>
+    );
   }
 
   return (
@@ -434,7 +784,7 @@ const ProfitCalculatorPage: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex-1 flex flex-col gap-2 w-full">
           <div className="flex items-center gap-3">
-             <button onClick={() => navigate('/profit-history')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 transition-colors">
+             <button onClick={() => navigate(ROUTES.PROFIT.HISTORY)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 transition-colors">
                <span className="material-symbols-outlined text-xl">arrow_back</span>
              </button>
              <input 
@@ -483,11 +833,145 @@ const ProfitCalculatorPage: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-2">
+          {orders.length > 0 && (
+            <div className="relative" ref={statusDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsStatusDropdownOpen(prev => !prev)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium border transition-colors cursor-pointer shadow-sm ${
+                  isStatusDropdownOpen
+                    ? 'bg-teal-50 border-teal-500 text-teal-700 dark:bg-teal-900/30 dark:border-teal-500 dark:text-teal-300'
+                    : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm text-teal-600 dark:text-teal-400">filter_alt</span>
+                <span>
+                  {selectedStatuses.length === 0
+                    ? 'Status: 0 Terpilih'
+                    : selectedStatuses.length === availableStatuses.length
+                    ? `Semua Status (${orders.length})`
+                    : `Status (${selectedStatuses.length}/${availableStatuses.length})`}
+                </span>
+                <span
+                  className="material-symbols-outlined text-xs transition-transform duration-200"
+                  style={{ transform: isStatusDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                >
+                  expand_more
+                </span>
+              </button>
+
+              {isStatusDropdownOpen && (
+                <div className="absolute right-0 mt-1.5 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-30 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3 pb-2 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-gray-800 dark:text-gray-200">Pilih Status Pesanan</span>
+                    <span className="text-[10px] text-gray-400 font-medium">
+                      {selectedStatuses.length}/{availableStatuses.length} Aktif
+                    </span>
+                  </div>
+
+                  {/* Quick action buttons */}
+                  <div className="px-3 py-1.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-1.5 bg-gray-50/50 dark:bg-gray-900/30">
+                    <button
+                      type="button"
+                      onClick={handleSelectAllStatuses}
+                      className="text-[10px] font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400 px-1.5 py-0.5 rounded hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors"
+                    >
+                      Semua
+                    </button>
+                    <span className="text-gray-300 dark:text-gray-600 text-[10px]">|</span>
+                    <button
+                      type="button"
+                      onClick={handleSelectIncomeOnlyStatuses}
+                      className="text-[10px] font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400 px-1.5 py-0.5 rounded hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors"
+                    >
+                      Pemasukan
+                    </button>
+                    <span className="text-gray-300 dark:text-gray-600 text-[10px]">|</span>
+                    <button
+                      type="button"
+                      onClick={handleClearAllStatuses}
+                      className="text-[10px] font-medium text-red-500 hover:text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                    >
+                      Kosongkan
+                    </button>
+                  </div>
+
+                  {/* Status items with checkboxes */}
+                  <div className="max-h-60 overflow-y-auto px-1.5 py-1 divide-y divide-gray-50 dark:divide-gray-700/50">
+                    {availableStatuses.length === 0 ? (
+                      <div className="p-3 text-center text-xs text-gray-400">Tidak ada status pada dokumen</div>
+                    ) : (
+                      availableStatuses.map((status) => {
+                        const isChecked = selectedStatuses.includes(status);
+                        const count = statusCounts[status] || 0;
+                        const displayName = status || '(Tanpa Status)';
+                        const isNonInc = isNonIncomeStatus(status);
+
+                        return (
+                          <label
+                            key={status}
+                            className="flex items-center justify-between px-2 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded cursor-pointer transition-colors text-xs select-none"
+                          >
+                            <div className="flex items-center gap-2 min-w-0 pr-2">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => handleToggleStatus(status)}
+                                className="w-3.5 h-3.5 text-teal-600 rounded border-gray-300 dark:border-gray-600 focus:ring-teal-500 cursor-pointer accent-teal-600"
+                              />
+                              <span className={`truncate text-[11px] ${isChecked ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
+                                {displayName}
+                              </span>
+                            </div>
+                            <span className={`text-[10px] px-1.5 py-0.5 shrink-0 rounded font-medium ${
+                              isNonInc
+                                ? 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                                : 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
+                            }`}>
+                              {count}
+                            </span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Footer info */}
+                  <div className="px-3 pt-2 mt-1 border-t border-gray-100 dark:border-gray-700 text-[10px] text-gray-400 dark:text-gray-500 flex justify-between">
+                    <span>Menampilkan:</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                      {statusFilteredOrders.length} dari {orders.length} pesanan
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {orders.length > 0 && (
+            <button
+              type="button"
+              onClick={handleOpenSyncModal}
+              className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1.5 rounded-md text-xs font-medium transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-sm text-teal-600 dark:text-teal-400">sync</span>
+              <span>Sinkron Stok</span>
+            </button>
+          )}
           <label className="relative cursor-pointer bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors shadow-sm flex items-center gap-2">
             <span className="material-symbols-outlined text-sm">upload_file</span>
             <span>Unggah Excel</span>
             <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleFileUpload} />
           </label>
+          <Tooltip content="Dapatkan file Excel melalui: Shopee Seller Center > Pesanan Saya > Semua > Export > Pilih tanggal > Export > Riwayat Download > Download">
+            <button
+              type="button"
+              aria-label="Petunjuk  mendapatkan file Excel"
+              title="Petunjuk mendapatkan file Excel"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-gray-300 text-gray-500 transition-colors hover:border-teal-500 hover:text-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 dark:border-gray-600 dark:text-gray-400 dark:hover:border-teal-400 dark:hover:text-teal-400"
+            >
+              <span className="material-symbols-outlined text-base">help</span>
+            </button>
+          </Tooltip>
           {orders.length > 0 && (
             <button onClick={() => setIsResetModalOpen(true)} className="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-md text-xs font-medium transition-colors">
               Reset Data
@@ -502,7 +986,7 @@ const ProfitCalculatorPage: React.FC = () => {
             <span className="material-symbols-outlined text-2xl">analytics</span>
           </div>
           <h3 className="text-base font-medium text-gray-900 dark:text-white mb-1">Belum Ada Data</h3>
-          <p className="text-gray-500 dark:text-gray-400 text-xs max-w-full">Silakan unggah file Excel pesanan Shopee Anda untuk mulai menghitung.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-xs max-w-full">Silakan unggah file Excel pesanan Shopee atau TikTok Anda untuk mulai menghitung.</p>
         </div>
       ) : (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -511,7 +995,7 @@ const ProfitCalculatorPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden flex flex-col justify-center">
               <div className="absolute top-0 right-0 p-3 opacity-5"><span className="material-symbols-outlined text-4xl">payments</span></div>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium mb-1 relative z-10">Total Omset ({orders.length} Pesanan)</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium mb-1 relative z-10">Total Omset ({statusFilteredOrders.length} Pesanan)</p>
               <h3 className="text-base font-medium text-gray-900 dark:text-white relative z-10">{formatCurrency(totalOmset)}</h3>
             </div>
             <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden flex flex-col justify-center">
@@ -662,7 +1146,7 @@ const ProfitCalculatorPage: React.FC = () => {
                   <div>
                     <h2 className="font-medium text-gray-900 dark:text-white flex items-center gap-1.5 text-xs">
                       <span className="material-symbols-outlined text-teal-600 text-sm">receipt_long</span>
-                      Daftar Pesanan ({filteredOrders.length}{filteredOrders.length !== orders.length ? ` / ${orders.length}` : ''})
+                      Daftar Pesanan ({filteredOrders.length}{filteredOrders.length !== statusFilteredOrders.length ? ` / ${statusFilteredOrders.length}` : ''})
                     </h2>
                   </div>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 text-[10px]">
@@ -702,45 +1186,64 @@ const ProfitCalculatorPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                      {filteredOrders.map((order) => {
-                        const isExpanded = expandedOrders[order.noPesanan];
-                        const penghasilan = order.totalSubtotalBarang;
-                        const adminFee = (penghasilan * adminFeePercent) / 100;
-                        const serviceFee = (penghasilan * serviceFeePercent) / 100;
-                        const totalPlatformOrder = adminFee + serviceFee + orderFeeAmount;
-                        
-                        const orderOmset = penghasilan - totalPlatformOrder;
-                        
-                        let orderModal = 0;
-                        order.items.forEach(it => orderModal += getModal(order.noPesanan, it.itemKey, it.skuInduk) * it.jumlah);
-                        
-                        const orderUntungKotor = orderOmset - orderModal;
-                        const orderUntungBersih = orderUntungKotor; // No ads/affiliate here, those are global
-                        
-                        return (
-                          <React.Fragment key={order.noPesanan}>
-                            <tr 
-                              className="bg-gray-50 dark:bg-gray-800/80 cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors group"
-                              onClick={() => toggleOrder(order.noPesanan)}
-                            >
-                              <td className="px-3 py-2 text-center text-gray-400 group-hover:text-teal-600">
-                                <span className="material-symbols-outlined text-sm transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)'}}>chevron_right</span>
-                              </td>
-                              <td className="px-3 py-2">
-                                <div className="font-medium text-gray-900 dark:text-white">{order.noPesanan}</div>
-                                <div className="text-[10px] text-gray-500 mt-0.5">
-                                  <span className="text-red-500">biaya layanan: {formatCurrency(totalPlatformOrder)}</span>
-                                </div>
-                              </td>
-                              <td className="px-3 py-2 text-center font-medium text-gray-600 dark:text-gray-400">{order.items.reduce((acc, it) => acc + it.jumlah, 0)}</td>
-                              <td className="px-3 py-2 text-right">
-                                <div className="font-medium text-gray-900 dark:text-white">{formatCurrency(orderOmset)}</div>
-                                <div className="text-[10px] text-gray-500">Utg Kotor: {formatCurrency(orderUntungKotor)}</div>
-                              </td>
-                              <td className="px-3 py-2 text-right">
-                                <div className="font-medium text-teal-600 dark:text-teal-400">Utg Bersih: {formatCurrency(orderUntungBersih)}</div>
-                              </td>
-                            </tr>
+                      {filteredOrders.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="text-center py-10 text-gray-400 dark:text-gray-500">
+                            <span className="material-symbols-outlined text-3xl mb-1 block">search_off</span>
+                            Tidak ada data pesanan yang cocok dengan filter atau pencarian.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredOrders.map((order) => {
+                          const isExpanded = expandedOrders[order.noPesanan];
+                          const penghasilan = order.totalSubtotalBarang;
+                          const adminFee = (penghasilan * adminFeePercent) / 100;
+                          const serviceFee = (penghasilan * serviceFeePercent) / 100;
+                          const totalPlatformOrder = adminFee + serviceFee + orderFeeAmount;
+                          
+                          const orderOmset = penghasilan - totalPlatformOrder;
+                          
+                          let orderModal = 0;
+                          order.items.forEach(it => orderModal += getModal(order.noPesanan, it.itemKey, it.skuInduk) * it.jumlah);
+                          
+                          const orderUntungKotor = orderOmset - orderModal;
+                          const orderUntungBersih = orderUntungKotor; // No ads/affiliate here, those are global
+                          
+                          return (
+                            <React.Fragment key={order.noPesanan}>
+                              <tr 
+                                className="bg-gray-50 dark:bg-gray-800/80 cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors group"
+                                onClick={() => toggleOrder(order.noPesanan)}
+                              >
+                                <td className="px-3 py-2 text-center text-gray-400 group-hover:text-teal-600">
+                                  <span className="material-symbols-outlined text-sm transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)'}}>chevron_right</span>
+                                </td>
+                                <td className="px-3 py-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-medium text-gray-900 dark:text-white">{order.noPesanan}</span>
+                                    {order.statusPesanan && (
+                                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium leading-none ${
+                                        isNonIncomeStatus(order.statusPesanan)
+                                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                          : 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
+                                      }`}>
+                                        {order.statusPesanan}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-[10px] text-gray-500 mt-0.5">
+                                    <span className="text-red-500">biaya layanan: {formatCurrency(totalPlatformOrder)}</span>
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2 text-center font-medium text-gray-600 dark:text-gray-400">{order.items.reduce((acc, it) => acc + it.jumlah, 0)}</td>
+                                <td className="px-3 py-2 text-right">
+                                  <div className="font-medium text-gray-900 dark:text-white">{formatCurrency(orderOmset)}</div>
+                                  <div className="text-[10px] text-gray-500">Utg Kotor: {formatCurrency(orderUntungKotor)}</div>
+                                </td>
+                                <td className="px-3 py-2 text-right">
+                                  <div className="font-medium text-teal-600 dark:text-teal-400">Utg Bersih: {formatCurrency(orderUntungBersih)}</div>
+                                </td>
+                              </tr>
                             
                             {isExpanded && order.items.map((item, idx) => {
                               const currentModal = getModal(order.noPesanan, item.itemKey, item.skuInduk);
@@ -780,8 +1283,9 @@ const ProfitCalculatorPage: React.FC = () => {
                             })}
                           </React.Fragment>
                         );
-                      })}
-                    </tbody>
+                      })
+                    )}
+                  </tbody>
                   </table>
                 </div>
               </div>
@@ -813,6 +1317,7 @@ const ProfitCalculatorPage: React.FC = () => {
               </button>
               <button 
                 onClick={() => {
+                  hasUserChangedFilter.current = false;
                   clearOrders();
                   setIsResetModalOpen(false);
                 }}
@@ -865,6 +1370,24 @@ const ProfitCalculatorPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Stock Sync Modal */}
+      <StockSyncModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+        items={syncItems}
+        isLoading={syncLoading}
+        appMode={appMode}
+        stockSource={syncStockSource}
+        onToggleStockSource={handleToggleStockSource}
+        title="Sinkronisasi Stok (Profit Calculator)"
+        isSinkron={is_sinkron}
+        onConfirmSync={handleConfirmSync}
+        isSyncingAction={isSyncingAction}
+      />
+
+      {/* Corner Alert */}
+      <CornerAlert {...cornerAlert} onClose={hideAlert} />
     </div>
   );
 };

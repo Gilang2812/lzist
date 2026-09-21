@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import { formatRupiah } from '../utils/formatCurrency';
+import Skeleton from '../components/ui/Skeleton';
+import { ROUTES } from '../routes';
 
 const ProfitListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -52,7 +54,7 @@ const ProfitListPage: React.FC = () => {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Riwayat perhitungan profit Anda.</p>
         </div>
         <button
-          onClick={() => navigate('/profit-calculator/new')}
+          onClick={() => navigate(ROUTES.PROFIT.CALCULATOR_NEW)}
           className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2"
         >
           <span className="material-symbols-outlined text-sm">add</span>
@@ -61,8 +63,10 @@ const ProfitListPage: React.FC = () => {
       </div>
 
       {!profitHistories ? (
-        <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-56 w-full" />
+          ))}
         </div>
       ) : profitHistories.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col items-center justify-center">
@@ -72,7 +76,7 @@ const ProfitListPage: React.FC = () => {
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Belum Ada Riwayat</h3>
           <p className="text-gray-500 dark:text-gray-400 text-sm max-w-ms mb-6">Mulai perhitungan profit baru untuk melacak keuntungan penjualan Anda.</p>
           <button
-            onClick={() => navigate('/profit-calculator/new')}
+            onClick={() => navigate(ROUTES.PROFIT.CALCULATOR_NEW)}
             className="bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/50 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
             Mulai Hitung Profit
@@ -108,7 +112,7 @@ const ProfitListPage: React.FC = () => {
             return (
               <div 
                 key={history.id}
-                onClick={() => navigate(`/profit-calculator/${history.id}`)}
+                onClick={() => navigate(ROUTES.PROFIT.calculator(history.id))}
                 className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 p-4 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">

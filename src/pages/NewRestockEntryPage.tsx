@@ -1,13 +1,20 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as XLSX from 'xlsx';
-import { fetchCatalogAsCategories } from '../utils/dbHelpers';
+import { fetchCatalogAsCategories, fetchOfflineCatalogAsCategories, fetchOnlineCatalogAsCategories } from '../utils/dbHelpers';
 import type { Category, ImportRecord, Variant, UnmatchedRow } from '../types';
 import RestockListCard from '../components/restock/RestockListCard';
 import AddItemsForm from '../components/restock/AddItemsForm';
+import StockSyncModal, { type StockSyncItem } from '../components/ui/StockSyncModal';
+import { applyStockSync } from '../utils/stockSyncHelper';
 import { db } from '../db/database';
 import type { RestockList } from '../types';
 import { useUndoableState } from '../hooks/useUndoableState';
 import { formatRupiah } from '../utils/formatCurrency';
+import { useToast } from '../hooks/useToast';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import Tooltip from '../components/ui/Tooltip';
+import { useAuthStore } from '../stores/useAuthStore';
+import { useAppModeStore } from '../stores/useAppModeStore';
 
 interface ImportSummary {
   isOpen: boolean;
@@ -28,6 +35,8 @@ interface RestockState {
 
 const NewRestockEntryPage: React.FC = () => {
   const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  const { user } = useAuthStore();
+  const { showToast } = useToast();
 
   const {
     state: { categories: checklist, importedFiles, importHistory },
@@ -124,7 +133,7 @@ const NewRestockEntryPage: React.FC = () => {
   const [isCopied, setIsCopied] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
   const [pasteError, setPasteError] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [, setSaveSuccess] = useState(false);
   // remove saveConflictModal state
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean,
@@ -134,10 +143,133 @@ const NewRestockEntryPage: React.FC = () => {
   }>({ isOpen: false, idToClear: null });
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
+  // Global loading state for long-running user actions.
+  const [loadingState, setLoadingState] = useState<{
+    isLoading: boolean;
+    title: string;
+    message?: string;
+  }>({ isLoading: false, title: '' });
+
+  const startLoading = useCallback((title: string, message?: string) => {
+    setLoadingState({ isLoading: true, title, message });
+  }, []);
+
+  const stopLoading = useCallback(() => {
+    setLoadingState({ isLoading: false, title: '' });
+  }, []);
+
+  const { mode: appMode } = useAppModeStore();
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncStockSource, setSyncStockSource] = useState<'online' | 'offline'>(appMode);
+  const [syncItems, setSyncItems] = useState<StockSyncItem[]>([]);
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [isSinkron, setIsSinkron] = useState(false);
+  const [isSyncingAction, setIsSyncingAction] = useState(false);
+
+  useEffect(() => {
+    setSyncStockSource(appMode);
+  }, [appMode]);
+
+  const loadStockSyncData = useCallback(async (source: 'online' | 'offline', currentChecklist: Category[]) => {
+    setSyncLoading(true);
+    try {
+      const catalogData = source === 'online' 
+        ? await fetchOnlineCatalogAsCategories() 
+        : await fetchOfflineCatalogAsCategories();
+
+      const items: StockSyncItem[] = [];
+
+      currentChecklist.forEach(cat => {
+        const matchedCat = catalogData.find(c => c.id === cat.id || c.name.toLowerCase() === cat.name.toLowerCase());
+        
+        cat.variants.forEach(v => {
+          let catalogStock = 0;
+          if (matchedCat) {
+            const matchedVar = matchedCat.variants.find(
+              mv => mv.id === v.id || mv.name.toLowerCase() === v.name.toLowerCase()
+            );
+            if (matchedVar) {
+              catalogStock = matchedVar.stock || 0;
+            }
+          }
+          const quantity = v.targetQuantity || 0;
+          items.push({
+            productName: cat.name,
+            variantName: v.name,
+            stock: catalogStock,
+            quantity,
+            result: catalogStock - quantity,
+            categoryId: cat.id,
+            variantId: v.id
+          });
+        });
+      });
+
+      setSyncItems(items);
+    } catch (err) {
+      console.error('Failed to load stock sync data:', err);
+      showToast('Gagal memuat data stok.', 'error');
+    } finally {
+      setSyncLoading(false);
+    }
+  }, [showToast]);
+
+  const handleOpenSyncModal = () => {
+    setIsSyncModalOpen(true);
+    loadStockSyncData(syncStockSource, checklist);
+  };
+
+  const handleToggleStockSource = (source: 'online' | 'offline') => {
+    setSyncStockSource(source);
+    loadStockSyncData(source, checklist);
+  };
+
+  const handleConfirmSync = async (isRestore: boolean) => {
+    setIsSyncingAction(true);
+    try {
+      const res = await applyStockSync(syncItems, syncStockSource, isRestore ? 'restore' : 'deduct');
+      if (res.success) {
+        setIsSinkron(!isRestore);
+        showToast(
+          isRestore
+            ? 'Stok berhasil dikembalikan ke data master katalog.'
+            : 'Stok data master katalog berhasil diperbarui (dikurangi).',
+          'success'
+        );
+        await loadStockSyncData(syncStockSource, checklist);
+      } else {
+        showToast(res.error || 'Gagal memperbarui stok master.', 'error');
+      }
+    } catch (err: any) {
+      console.error('Error during stock sync:', err);
+      showToast('Terjadi kesalahan saat memproses stok.', 'error');
+    } finally {
+      setIsSyncingAction(false);
+    }
+  };
+
   const [importSummary, setImportSummary] = useState<ImportSummary>({ isOpen: false, matched: [], unmatched: [] });
   const [importDetailsModal, setImportDetailsModal] = useState<{ isOpen: boolean, record: ImportRecord | null }>({ isOpen: false, record: null });
   const [currentListId, setCurrentListId] = useState<string | null>(null);
-  const [txtImportModal, setTxtImportModal] = useState<{isOpen: boolean, data: any | null}>({ isOpen: false, data: null });
+
+  // Tracks the last data snapshot that was successfully synced to Supabase.
+  // A new local change makes the page draft again until it is synced.
+  const syncedSupabaseSnapshotRef = useRef<string | null>(null);
+  const [txtImportModal, setTxtImportModal] = useState<{ isOpen: boolean, data: any | null }>({ isOpen: false, data: null });
+
+  const currentDataSnapshot = React.useMemo(
+    () => JSON.stringify({
+      categories: checklist,
+      importedFiles: importedFiles || [],
+      importHistory: importHistory || []
+    }),
+    [checklist, importedFiles, importHistory]
+  );
+
+  const isDraft =
+    checklist.length > 0 &&
+    syncedSupabaseSnapshotRef.current !== currentDataSnapshot;
+
 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -156,6 +288,7 @@ const NewRestockEntryPage: React.FC = () => {
       setAutoSaveStatus('saving');
       const newList: RestockList = {
         id,
+        userId: user?.id || existing?.userId,
         title: existing?.title || `Restock List ${today}`,
         categories: data,
         importedFiles,
@@ -171,7 +304,7 @@ const NewRestockEntryPage: React.FC = () => {
       console.error('Autosave failed:', err);
       setAutoSaveStatus('idle');
     }
-  }, [importedFiles, importHistory, currentListId]);
+  }, [importedFiles, importHistory, currentListId, user, today]);
 
   useEffect(() => {
     // Skip autosave on initial mount (empty list)
@@ -357,7 +490,7 @@ const NewRestockEntryPage: React.FC = () => {
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
-      alert('Gagal menyalin data ke clipboard.');
+      showToast('Gagal menyalin data ke clipboard.', 'error');
     }
   };
 
@@ -416,14 +549,14 @@ const NewRestockEntryPage: React.FC = () => {
         const parsed = JSON.parse(text);
         setTxtImportModal({ isOpen: true, data: parsed });
       } catch (err) {
-        alert("Gagal membaca atau mem-parsing file TXT. Pastikan format file sesuai.");
+        showToast("Gagal membaca atau mem-parsing file TXT. Pastikan format file sesuai.", 'error');
       }
       if (txtFileInputRef.current) {
         txtFileInputRef.current.value = '';
       }
     };
     reader.onerror = () => {
-      alert("Gagal membaca file TXT.");
+      showToast("Gagal membaca file TXT.", 'error');
     };
     reader.readAsText(file);
   };
@@ -433,7 +566,7 @@ const NewRestockEntryPage: React.FC = () => {
       processReplaceData(txtImportModal.data);
       setTxtImportModal({ isOpen: false, data: null });
     } catch (err: any) {
-      alert(err.message || "Data TXT tidak valid.");
+      showToast(err.message || "Data TXT tidak valid.", 'error');
       setTxtImportModal({ isOpen: false, data: null });
     }
   };
@@ -443,7 +576,7 @@ const NewRestockEntryPage: React.FC = () => {
       processAppendData(txtImportModal.data);
       setTxtImportModal({ isOpen: false, data: null });
     } catch (err: any) {
-      alert(err.message || "Data TXT tidak valid.");
+      showToast(err.message || "Data TXT tidak valid.", 'error');
       setTxtImportModal({ isOpen: false, data: null });
     }
   };
@@ -506,6 +639,11 @@ const NewRestockEntryPage: React.FC = () => {
   const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+
+    startLoading(
+      'Memproses file Excel',
+      `Membaca ${files.length} file dan mencocokkan data dengan katalog...`
+    );
 
     try {
       const catalogData = await fetchCatalogAsCategories();
@@ -728,7 +866,9 @@ const NewRestockEntryPage: React.FC = () => {
       }
     } catch (err) {
       console.error("Failed to parse Excel file", err);
-      alert("Gagal membaca file Excel. Pastikan format file sesuai.");
+      showToast("Gagal membaca file Excel. Pastikan format file sesuai.", 'error');
+    } finally {
+      stopLoading();
     }
   };
 
@@ -737,7 +877,8 @@ const NewRestockEntryPage: React.FC = () => {
     setTimeout(() => setSaveSuccess(false), 2000);
   };
 
-  const handleSave = async () => {
+
+  const handleSyncToSupabase = async () => {
     if (checklist.length === 0) return;
 
     const id = currentListId || `restock-${Date.now()}`;
@@ -747,6 +888,7 @@ const NewRestockEntryPage: React.FC = () => {
 
     const newList: RestockList = {
       id,
+      userId: user?.id || existing?.userId,
       title: existing ? existing.title : `Restock List`,
       categories: checklist,
       importedFiles,
@@ -755,8 +897,30 @@ const NewRestockEntryPage: React.FC = () => {
       createdAt: existing?.createdAt || new Date(),
       updatedAt: new Date()
     };
-    await db.restockLists.put(newList);
-    triggerSaveSuccess();
+
+    startLoading(
+      'Menyimpan ke Supabase',
+      'Sedang menyinkronkan data restock ke database...'
+    );
+
+    try {
+      const { syncRestockToSupabase } = await import('../utils/syncRestock');
+      const res = await syncRestockToSupabase(newList, user?.id);
+
+      if (res.success) {
+        // Mark the exact local state that was synced as the current Supabase state.
+        syncedSupabaseSnapshotRef.current = currentDataSnapshot;
+        triggerSaveSuccess();
+        showToast('Data berhasil disimpan ke Supabase.', 'success');
+      } else {
+        showToast('Gagal menyimpan: ' + res.error, 'error');
+      }
+    } catch (err) {
+      console.error('Failed to sync restock to Supabase:', err);
+      showToast('Gagal menyimpan data ke Supabase.', 'error');
+    } finally {
+      stopLoading();
+    }
   };
 
   const handleDeleteImport = (importId: string) => {
@@ -805,11 +969,20 @@ const NewRestockEntryPage: React.FC = () => {
     });
   };
 
+  console.log(sortedChecklist)
   return (
     <>
       <main className="max-w-lx4 mx-auto px-3 sm:px-3 py-1 sm:py-4 w-full flex flex-col gap-2 sm:gap-3 overflow-x-hidden bg-slate-100 rounded-lg">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-sm pb-xs border-b border-surface-variant/30">
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-sm pb-xs border-b border-surface-variant/30">
+          {isDraft && (
+            <span
+              className="absolute top-0 right-0 px-2 py-0.5 rounded-full bg-error text-on-error text-[9px] sm:text-[10px] font-bold uppercase tracking-wide shadow-sm"
+              title="Data belum disimpan ke Supabase atau terdapat perubahan lokal setelah sinkronisasi terakhir"
+            >
+              draft
+            </span>
+          )}
           <div>
             <h1 className="text-base sm:text-base text-on-surface font-semibold">Entry Restock {`${today}`}</h1>
             <p className="text-[11px] sm:text-xs text-on-surface-variant mt-xs">
@@ -825,7 +998,7 @@ const NewRestockEntryPage: React.FC = () => {
               Tambah Barang
             </button>
             {checklist.length > 0 && (
-              <div className="flex items-center gap-xs bg-surface-container-high px-2.5 py-[2px] rounded-full border-surface-variant/40">
+              <div className="flex items-center gap-xs bg-surface-container-high px-2.5 py-0.5 rounded-full border-surface-variant/40">
                 <span className="material-symbols-outlined text-[14px] sm:text-[16px] text-primary">inventory_2</span>
                 <span className="text-[10px] sm:text-[11px] text-on-surface font-semibold">
                   {checklist.reduce((acc, cat) => acc + cat.variants.length, 0)} Item
@@ -924,6 +1097,7 @@ const NewRestockEntryPage: React.FC = () => {
                 {isCopied ? 'Copied' : 'Copy'}
               </span>
             </button>
+
             <button
               onClick={() => setIsPasting(!isPasting)}
               className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer ${isPasting
@@ -944,26 +1118,54 @@ const NewRestockEntryPage: React.FC = () => {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border-transparent hover:border-surface-variant cursor-pointer"
+              disabled={loadingState.isLoading}
+              className={`flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border-transparent hover:border-surface-variant cursor-pointer ${loadingState.isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
             >
               <span className="material-symbols-outlined text-[16px] sm:text-[18px]">upload_file</span>
               <span className="text-[11px] sm:text-xs font-semibold">Import Excel</span>
             </button>
+            <Tooltip content="Pengiriman Massal > Buat Dokumen > Pilih Jasa Kirim > Centang Produk > tab Buat Dokumen Pengiriman > Daftar Pesanan (Excel)">
+              <button
+                type="button"
+                aria-label="Petunjuk mendapatkan file Excel"
+                title="Petunjuk mendapatkan file Excel"
+                className="flex h-7 w-7 items-center justify-center rounded-full text-primary transition-colors hover:bg-surface-container hover:text-primary/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">help</span>
+              </button>
+            </Tooltip>
             <button
-              onClick={handleSave}
-              disabled={checklist.length === 0}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-colors ${checklist.length === 0
-                ? 'text-on-surface-variant/40 cursor-not-allowed border-transparent'
-                : saveSuccess
-                  ? 'bg-primary-container text-on-primary-container border-primary-container cursor-default'
-                  : 'bg-primary text-on-primary hover:bg-primary/90 border-transparent  cursor-pointer'
-                }`}
+              onClick={handleOpenSyncModal}
+              disabled={loadingState.isLoading || checklist.length === 0}
+              className={`flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border-transparent hover:border-surface-variant cursor-pointer ${
+                loadingState.isLoading || checklist.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              title="Sinkronisasi & Periksa Stok Barang"
             >
               <span className="material-symbols-outlined text-[16px] sm:text-[18px]">
-                {saveSuccess ? 'check_circle' : 'save'}
+                sync
               </span>
               <span className="text-[11px] sm:text-xs font-semibold">
-                {saveSuccess ? 'Tersimpan' : 'Simpan'}
+                Sinkron Stok
+              </span>
+            </button>
+            <button
+              onClick={handleSyncToSupabase}
+              disabled={loadingState.isLoading || checklist.length === 0}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-colors border-transparent cursor-pointer ${loadingState.isLoading || checklist.length === 0
+                  ? 'text-on-surface-variant/40 cursor-not-allowed'
+                  : isDraft
+                    ? 'bg-primary text-on-primary hover:bg-primary/90'
+                    : 'text-primary hover:bg-surface-container hover:border-surface-variant'
+                }`}
+              title={isDraft ? 'Ada perubahan yang belum disimpan ke Supabase' : 'Data sudah tersimpan di Supabase'}
+            >
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">
+                cloud_upload
+              </span>
+              <span className="text-[11px] sm:text-xs font-semibold">
+                Save
               </span>
             </button>
           </div>
@@ -990,7 +1192,7 @@ const NewRestockEntryPage: React.FC = () => {
                     setPasteContent(text);
                   } catch (err) {
                     console.error("Failed to read clipboard contents: ", err);
-                    alert("Gagal membaca clipboard. Pastikan browser memberikan izin.");
+                    showToast("Gagal membaca clipboard. Pastikan browser memberikan izin.", 'error');
                   }
                 }}
                 className="absolute top-2 right-2 p-1.5 bg-surface-container hover:bg-surface-variant text-on-surface rounded-md border-outline/50  flex items-center justify-center transition-colors cursor-pointer"
@@ -1017,13 +1219,13 @@ const NewRestockEntryPage: React.FC = () => {
                 onClick={handleAppend}
                 className="px-md py-xs rounded-full bg-secondary-container text-on-secondary-container hover:bg-secondary-container/80 transition-colors font-label-md cursor-pointer"
               >
-                Append 
+                Append
               </button>
               <button
                 onClick={handleReplace}
                 className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md  cursor-pointer"
               >
-                Replace 
+                Replace
               </button>
             </div>
           </div>
@@ -1175,7 +1377,7 @@ const NewRestockEntryPage: React.FC = () => {
                   />
 
                   <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex-grow min-w-0">
+                    <div className="grow min-w-0">
                       <div className={`text-xs font-medium text-on-surface truncate ${item.checked ? 'line-through opacity-60' : ''}`}>
                         {item.productName || 'Tanpa Nama'}
                       </div>
@@ -1538,7 +1740,7 @@ const NewRestockEntryPage: React.FC = () => {
           </div>
         </div>
       )}
-      
+
       {/* TXT Import Validation Modal */}
       {txtImportModal.isOpen && txtImportModal.data && (
         <div
@@ -1579,20 +1781,42 @@ const NewRestockEntryPage: React.FC = () => {
                 onClick={handleTxtReplace}
                 className="px-md py-xs rounded-full bg-error text-on-error hover:bg-error/90 transition-colors font-label-md cursor-pointer shadow-sm"
               >
-                Replace 
+                Replace
               </button>
               <button
                 onClick={handleTxtAppend}
                 className="px-md py-xs rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors font-label-md cursor-pointer shadow-sm"
               >
-                Append 
+                Append
               </button>
             </div>
           </div>
         </div>
       )}
+      {/* Stock Sync Modal */}
+      <StockSyncModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+        items={syncItems}
+        isLoading={syncLoading}
+        appMode={appMode}
+        stockSource={syncStockSource}
+        onToggleStockSource={handleToggleStockSource}
+        title="Sinkronisasi Stok (Restock)"
+        isSinkron={isSinkron}
+        onConfirmSync={handleConfirmSync}
+        isSyncingAction={isSyncingAction}
+      />
+
+      {/* Global action loading overlay */}
+      <LoadingSpinner
+        isOpen={loadingState.isLoading}
+        title={loadingState.title}
+        message={loadingState.message}
+      />
+
       {/* Floating Autosave indicator */}
-      <div className={`fixed top-[72px] right-4 sm:right-6 z-100 flex items-center gap-1.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full shadow-md transition-all duration-300 transform ${autoSaveStatus !== 'idle'
+      <div className={`fixed top-18 right-4 sm:right-6 z-100 flex items-center gap-1.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full shadow-md transition-all duration-300 transform ${autoSaveStatus !== 'idle'
         ? 'opacity-100 translate-y-0 scale-100'
         : 'opacity-0 -translate-y-4 scale-95 pointer-events-none'
         } ${autoSaveStatus === 'saving'

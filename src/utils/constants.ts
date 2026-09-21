@@ -1,25 +1,26 @@
+import { ROUTES } from '../routes';
+
+export { ROUTES };
 export const APP_NAME = 'Lzist';
 export const APP_DESCRIPTION = 'Inventory & Restock Management';
 
-export const ROUTES = {
-  DASHBOARD: '/dashboard',
-  RESTOCK_LIST: '/restock',
-  RESTOCK_DETAIL: '/restock/:id',
-  KATALOG: '/katalog',
-  BARANG_DETAIL: '/katalog/:id',
-  SUPPLIER_LIST: '/supplier',
-  SUPPLIER_DETAIL: '/supplier/:id',
-  PROFIT_HISTORY: '/profit-history',
-  PROFIT_CALCULATOR_ID: '/profit-calculator/:id',
-} as const;
-
-export const NAV_ITEMS = [
+export const OFFLINE_NAV_ITEMS = [
   { label: 'Dashboard', icon: 'dashboard', path: ROUTES.DASHBOARD },
-  { label: 'Restock', icon: 'inventory_2', path: ROUTES.RESTOCK_LIST },
-  { label: 'Katalog', icon: 'menu_book', path: ROUTES.KATALOG },
-  { label: 'Supplier', icon: 'local_shipping', path: ROUTES.SUPPLIER_LIST },
-  { label: 'Profit History', icon: 'history', path: ROUTES.PROFIT_HISTORY },
+  { label: 'Restock', icon: 'inventory_2', path: ROUTES.RESTOCK.INDEX },
+  { label: 'Katalog', icon: 'book_2', path: ROUTES.KATALOG.INDEX },
+  { label: 'Supplier', icon: 'local_shipping', path: ROUTES.SUPPLIER.INDEX },
+  { label: 'Profit History', icon: 'history', path: ROUTES.PROFIT.HISTORY },
 ] as const;
+
+export const ONLINE_NAV_ITEMS = [
+  { label: 'Dashboard', icon: 'dashboard', path: ROUTES.DASHBOARD },
+  { label: 'Restock', icon: 'inventory_2', path: ROUTES.RESTOCK.INDEX },
+  { label: 'Katalog', icon: 'book_2', path: ROUTES.KATALOG.INDEX },
+  { label: 'Supplier', icon: 'local_shipping', path: ROUTES.SUPPLIER.INDEX },
+  { label: 'Profit History', icon: 'history', path: ROUTES.PROFIT.HISTORY },
+] as const;
+
+export const NAV_ITEMS = OFFLINE_NAV_ITEMS;
 
 export const BREAKPOINTS = {
   SM: 640,

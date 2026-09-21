@@ -5,6 +5,9 @@ import { db } from '../db/database';
 import EmptyState from '../components/ui/EmptyState';
 import Modal from '../components/ui/Modal';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
+import Skeleton from '../components/ui/Skeleton';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { ROUTES } from '../routes';
 import type { Supplier } from '../types';
 
 interface SupplierFormData {
@@ -24,6 +27,8 @@ const SupplierListPage: React.FC = () => {
   const [editItem, setEditItem] = useState<Supplier | null>(null);
   const [deleteItem, setDeleteItem] = useState<Supplier | null>(null);
   const [formData, setFormData] = useState<SupplierFormData>(emptyForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [spinnerTitle, setSpinnerTitle] = useState('');
 
   const suppliers = useLiveQuery(async () => {
     const all = await db.suppliers.orderBy('name').toArray();
@@ -63,6 +68,8 @@ const SupplierListPage: React.FC = () => {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
+    setIsSubmitting(true);
+    setSpinnerTitle('Menyimpan supplier...');
     try {
       await db.suppliers.add({
         // eslint-disable-next-line react-hooks/purity
@@ -78,12 +85,16 @@ const SupplierListPage: React.FC = () => {
       setFormData(emptyForm);
     } catch (err) {
       console.error('Failed to add supplier', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editItem || !formData.name.trim()) return;
+    setIsSubmitting(true);
+    setSpinnerTitle('Menyimpan perubahan...');
     try {
       await db.suppliers.update(editItem.id, {
         name: formData.name,
@@ -96,6 +107,8 @@ const SupplierListPage: React.FC = () => {
       setFormData(emptyForm);
     } catch (err) {
       console.error('Failed to update supplier', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -195,9 +208,7 @@ const SupplierListPage: React.FC = () => {
       </div>
 
       {!suppliers ? (
-        <div className="flex justify-center py-xl">
-          <p className="text-on-surface-variant">Memuat data...</p>
-        </div>
+        <Skeleton className="h-20 w-full" count={4} />
       ) : suppliers.length === 0 ? (
         <>
           <EmptyState
@@ -220,7 +231,7 @@ const SupplierListPage: React.FC = () => {
           {suppliers.map((sup) => (
             <div
               key={sup.id}
-              onClick={() => navigate(`/supplier/${sup.id}`)}
+              onClick={() => navigate(ROUTES.SUPPLIER.detail(sup.id))}
               className="bg-surface-container-lowest rounded-xl border border-surface-variant p-md cursor-pointer hover:shadow-md hover:border-primary-fixed-dim transition-all flex items-center gap-md"
             >
               {/* Icon */}
@@ -294,6 +305,8 @@ const SupplierListPage: React.FC = () => {
         onCancel={() => setDeleteItem(null)}
         variant="danger"
       />
+
+      <LoadingSpinner isOpen={isSubmitting} title={spinnerTitle} />
     </main>
   );
 };

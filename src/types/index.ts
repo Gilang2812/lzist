@@ -40,12 +40,14 @@ export interface ImportRecord {
 
 export interface RestockList {
   id: string;
+  userId?: string;
   title: string;
   description?: string;
   categories: Category[];
   status: 'draft' | 'finalized' | 'completed';
   importedFiles?: string[];
   importHistory?: ImportRecord[];
+  is_sinkron?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -113,10 +115,12 @@ export interface OrderItem {
   jumlah: number;
   subtotalBarang: number;
   itemKey: string;
+  statusPesanan?: string;
 }
 
 export interface OrderGroup {
   noPesanan: string;
+  statusPesanan?: string;
   items: OrderItem[];
   totalSubtotalBarang: number;
 }
@@ -135,6 +139,7 @@ export interface ProfitHistory {
   adsFeeAmount: number;
   adsTaxPercent: number;
   affiliateFeeAmount: number;
+  is_sinkron?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
