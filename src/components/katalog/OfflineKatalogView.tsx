@@ -278,7 +278,7 @@ const OfflineKatalogView: React.FC = () => {
               type="button"
               aria-label="Petunjuk mendapatkan file Excel"
               title="Petunjuk mendapatkan file Excel"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 cursor-pointer shrink-0"
+              className="flex size-4 items-center justify-center rounded-full text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 cursor-pointer shrink-0"
             >
               <span className="material-symbols-outlined text-[18px]">help</span>
             </button>

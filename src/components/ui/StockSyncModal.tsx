@@ -86,15 +86,12 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
         onClick={onClose}
       >
         <div
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2lx max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-200"
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lx2 max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-200"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-teal-600 dark:text-teal-400 text-xl">
-                sync
-              </span>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                 {title}
               </h3>
@@ -103,7 +100,6 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
               </span>
               {isSinkron && (
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300 flex items-center gap-1">
-                  <span className="material-symbols-outlined text-xs">check_circle</span>
                   Tersinkron
                 </span>
               )}
@@ -140,8 +136,8 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
                     type="button"
                     onClick={() => onToggleStockSource('online')}
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors cursor-pointer ${stockSource === 'online'
-                        ? 'bg-teal-600 text-white shadow-sm'
-                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                      ? 'bg-teal-600 text-white shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                       }`}
                   >
                     <span className="material-symbols-outlined text-xs">cloud</span>
@@ -151,8 +147,8 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
                     type="button"
                     onClick={() => onToggleStockSource('offline')}
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors cursor-pointer ${stockSource === 'offline'
-                        ? 'bg-gray-600 text-white shadow-sm'
-                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                      ? 'bg-gray-600 text-white shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                       }`}
                   >
                     <span className="material-symbols-outlined text-xs">smartphone</span>
@@ -163,8 +159,7 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
 
               {/* Offline-only badge */}
               {appMode === 'offline' && (
-                <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-[10px] font-medium text-gray-500 dark:text-gray-400 shrink-0">
-                  <span className="material-symbols-outlined text-xs">smartphone</span>
+                <div className="flex h-full border border-slate-200 items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-[10px] font-medium text-gray-500 dark:text-gray-400 shrink-0">
                   Stok Offline
                 </div>
               )}
@@ -172,18 +167,15 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
               {/* Restore Toggle */}
               <button
                 type="button"
-                disabled={!isSyncingAction}
+                disabled={!isSinkron}
                 onClick={() => setIsRestoreMode(!isRestoreMode)}
                 className={`flex disabled:bg-slate-200 disabled:text-slate-300 disabled:border disabled:border-slate-300 items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium transition-all cursor-pointer border ${isRestoreMode
-                    ? 'bg-amber-50 dark:bg-amber-900/30 border-amber-400 text-amber-700 dark:text-amber-300 ring-1 ring-amber-400'
-                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ? 'bg-amber-50 dark:bg-amber-900/30 border-amber-400 text-amber-700 dark:text-amber-300 ring-1 ring-amber-400'
+                  : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 title={isRestoreMode ? 'Nonaktifkan Mode Restore' : 'Aktifkan Mode Restore (Kembalikan Stok)'}
               >
-                <span className="material-symbols-outlined text-xs">
-                  {isRestoreMode ? 'history' : 'replay'}
-                </span>
-                <span>{isRestoreMode ? 'Mode Restore Aktif' : 'Opsi Restore'}</span>
+                <text>{isRestoreMode ? 'Mode Restore Aktif' : 'Mode Restore'}</text>
               </button>
             </div>
           </div>
@@ -192,15 +184,13 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
           {isRestoreMode ? (
             <div className="px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 flex items-center justify-between text-xs text-amber-800 dark:text-amber-200">
               <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-sm text-amber-600 dark:text-amber-400">info</span>
                 <span><strong>Mode Restore:</strong> Kolom Hasil menampilkan <strong>Stok + Jumlah</strong> (stok akan dikembalikan).</span>
               </div>
             </div>
           ) : isSinkron ? (
             <div className="px-4 py-2 bg-teal-50 dark:bg-teal-900/20 border-b border-teal-200 dark:border-teal-800 flex items-center justify-between text-xs text-teal-800 dark:text-teal-200">
               <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-sm text-teal-600 dark:text-teal-400">check_circle</span>
-                <span>Data stok sudah pernah disinkronkan. Gunakan <strong>Opsi Restore</strong> jika ingin mengembalikan stok ke data master.</span>
+                <span>Data stok sudah pernah disinkronkan. Gunakan <strong>Mode Restore</strong> jika ingin mengembalikan stok barang.</span>
               </div>
             </div>
           ) : null}
@@ -235,12 +225,17 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
                     <th className="px-3 py-2 font-medium border-b border-gray-200 dark:border-gray-700">
                       Variasi
                     </th>
-                    <th className="px-3 py-2 font-medium border-b border-gray-200 dark:border-gray-700 text-center w-20">
-                      Stok
-                    </th>
-                    <th className="px-3 py-2 font-medium border-b border-gray-200 dark:border-gray-700 text-center w-20">
-                      Jumlah
-                    </th>
+                    {!(isSinkron && !isRestoreMode) &&
+                      <>
+                        <th className="px-3 py-2 font-medium border-b border-gray-200 dark:border-gray-700 text-center w-20">
+                          Stok
+                        </th>
+                        <th className="px-3 py-2 font-medium border-b border-gray-200 dark:border-gray-700 text-center w-20">
+                          Jumlah
+                        </th>
+                      </>
+
+                    }
                     <th className="px-3 py-2 font-medium border-b border-gray-200 dark:border-gray-700 text-center w-24">
                       {isRestoreMode ? 'Hasil (+)' : 'Hasil (-)'}
                     </th>
@@ -261,23 +256,27 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
                       <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-medium">
                         {item.stock}
                       </td>
-                      <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-medium">
-                        {item.quantity}
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <span
-                          className={`inline-flex items-center justify-center min-w-[40px] px-2 py-0.5 rounded-full text-[10px] font-bold ${isRestoreMode
+                      {!(isSinkron && !isRestoreMode) && <>
+
+                        <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-medium">
+                          {item.quantity}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <span
+                            className={`inline-flex items-center justify-center min-w-[40px] px-2 py-0.5 rounded-full text-[10px] font-bold ${isRestoreMode
                               ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                               : item.result < 0
                                 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                                 : item.result === 0
                                   ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
                                   : 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
-                            }`}
-                        >
-                          {item.result}
-                        </span>
-                      </td>
+                              }`}
+                          >
+                            {item.result}
+                          </span>
+                        </td>
+                      </>
+                      }
                     </tr>
                   ))}
                 </tbody>
@@ -293,15 +292,11 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
               </span>
               {!isRestoreMode && totalShortage > 0 && (
                 <span className="flex items-center gap-1 text-red-600 dark:text-red-400 font-medium">
-                  <span className="material-symbols-outlined text-xs">warning</span>
                   {totalShortage} stok kurang
                 </span>
               )}
               <div className="flex items-center gap-1 text-gray-400 dark:text-gray-500">
-                <span className="material-symbols-outlined text-xs">
-                  {stockSource === 'online' && appMode === 'online' ? 'cloud' : 'smartphone'}
-                </span>
-                <span>{stockSource === 'online' && appMode === 'online' ? 'Supabase' : 'Lokal (Dexie)'}</span>
+                <span>{stockSource === 'online' && appMode === 'online' ? 'Server (Cloud)' : 'Penyimpanan Lokal'}</span>
               </div>
             </div>
 
@@ -336,17 +331,12 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
                     onClick={() => setShowConfirmModal(true)}
                     disabled={isSyncingAction || items.length === 0 || isSinkron}
                     className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors ${isSinkron
-                        ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                        : 'bg-teal-600 hover:bg-teal-700 text-white cursor-pointer'
+                      ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                      : 'bg-teal-600 hover:bg-teal-700 text-white cursor-pointer'
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    title={isSinkron ? 'Sudah disinkronkan. Aktifkan Opsi Restore jika ingin mengembalikan.' : 'Terapkan pengurangan stok'}
+                    title={isSinkron ? 'Sudah disinkronkan. Aktifkan Mode Restore jika ingin mengembalikan.' : 'Terapkan pengurangan stok'}
                   >
-                    {isSyncingAction ? (
-                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <span className="material-symbols-outlined text-sm">sync</span>
-                    )}
-                    <span>{isSinkron ? 'Sudah Disinkronkan' : 'Terapkan Sinkronisasi'}</span>
+                    <span>{isSinkron ? 'synced' : 'sync'}</span>
                   </button>
                 )}
               </div>
@@ -369,8 +359,8 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
               <div className="flex items-center gap-3 mb-3">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center ${isRestoreMode
-                      ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300'
-                      : 'bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-300'
+                    ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300'
+                    : 'bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-300'
                     }`}
                 >
                   <span className="material-symbols-outlined text-2xl">
@@ -382,7 +372,7 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
                     {isRestoreMode ? 'Konfirmasi Restore Stok' : 'Konfirmasi Update Stok'}
                   </h4>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                    Sumber: <span className="font-semibold text-gray-700 dark:text-gray-300">{stockSource === 'online' && appMode === 'online' ? 'Supabase' : 'Lokal (Dexie)'}</span>
+                    Sumber: <span className="font-semibold text-gray-700 dark:text-gray-300">{stockSource === 'online' && appMode === 'online' ? 'Server (Cloud)' : 'Penyimpanan Lokal'}</span>
                   </p>
                 </div>
               </div>
@@ -390,11 +380,11 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
               <div className="text-xs text-gray-600 dark:text-gray-300 space-y-2 bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
                 {isRestoreMode ? (
                   <p>
-                    Apakah Anda yakin ingin <strong>mengembalikan (menambah) stok</strong> sebanyak {items.length} item ke data master katalog?
+                    Apakah Anda yakin ingin <strong>mengembalikan (menambah) stok</strong> sebanyak {items.length} item ke stok katalog?
                   </p>
                 ) : (
                   <p>
-                    Apakah Anda yakin ingin <strong>memperbarui (mengurangi) stok</strong> sebanyak {items.length} item pada data master katalog?
+                    Apakah Anda yakin ingin <strong>memperbarui (mengurangi) stok</strong> sebanyak {items.length} item pada stok katalog?
                     <br />
                     <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 block">
                       * Jika hasil pengurangan bernilai minus, nilai minus tersebut tetap akan disimpan.
@@ -416,8 +406,8 @@ const StockSyncModal: React.FC<StockSyncModalProps> = ({
                 type="button"
                 onClick={handleExecuteSync}
                 className={`px-4 py-1.5 rounded-lg text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer ${isRestoreMode
-                    ? 'bg-amber-600 hover:bg-amber-700'
-                    : 'bg-teal-600 hover:bg-teal-700'
+                  ? 'bg-amber-600 hover:bg-amber-700'
+                  : 'bg-teal-600 hover:bg-teal-700'
                   }`}
               >
                 {isRestoreMode ? 'Ya, Restore Stok' : 'Ya, Update Stok'}

@@ -126,7 +126,7 @@ const Header: React.FC<HeaderProps> = ({ title = 'Lzist' }) => {
                   ? 'bg-white dark:bg-gray-700 text-teal-700 dark:text-teal-300 shadow-xs'
                   : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
               }`}
-              title="Mode Offline (Origin): Database Dexie Lokal"
+              title="Mode Offline: Penyimpanan Lokal"
             >
               <span className="material-symbols-outlined text-xs sm:text-sm">cloud_off</span>
               <span className="hidden sm:inline">Offline</span>
@@ -138,14 +138,14 @@ const Header: React.FC<HeaderProps> = ({ title = 'Lzist' }) => {
                   ? 'bg-teal-600 text-white shadow-xs'
                   : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
               }`}
-              title="Mode Online (Pengembangan): Cloud Supabase & Sync"
+              title="Mode Online: Penyimpanan Server & Sinkronisasi"
             >
               <span className="material-symbols-outlined text-xs sm:text-sm">cloud_done</span>
               <span className="hidden sm:inline">Online</span>
             </button>
           </div>
 
-          {/* Update Data Button (Origin Dexie Data Sync) */}
+          {/* Update Data Button (Data Sync) */}
           {mode === 'offline' && isOutOfSync && (
             <button
               onClick={() => setIsConfirmOpen(true)}
@@ -431,7 +431,7 @@ const Header: React.FC<HeaderProps> = ({ title = 'Lzist' }) => {
         title={modeToSwitch === 'online' ? 'Pindah ke Mode Online?' : 'Pindah ke Mode Offline?'}
         message={
           modeToSwitch === 'online'
-            ? 'Aplikasi akan beralih ke Mode Online (Cloud Supabase). Halaman akan di-refresh dan Anda perlu login untuk melanjutkan.'
+            ? 'Aplikasi akan beralih ke Mode Online (Server). Halaman akan di-refresh dan Anda perlu login untuk melanjutkan.'
             : 'Aplikasi akan beralih ke Mode Offline (Data Lokal). Halaman akan di-refresh dan semua sesi login akan dinonaktifkan sementara.'
         }
         confirmLabel={modeToSwitch === 'online' ? 'Ya, Pindah Online' : 'Ya, Pindah Offline'}

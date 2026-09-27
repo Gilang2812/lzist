@@ -173,15 +173,15 @@ const NewRestockEntryPage: React.FC = () => {
   const loadStockSyncData = useCallback(async (source: 'online' | 'offline', currentChecklist: Category[]) => {
     setSyncLoading(true);
     try {
-      const catalogData = source === 'online' 
-        ? await fetchOnlineCatalogAsCategories() 
+      const catalogData = source === 'online'
+        ? await fetchOnlineCatalogAsCategories()
         : await fetchOfflineCatalogAsCategories();
 
       const items: StockSyncItem[] = [];
 
       currentChecklist.forEach(cat => {
         const matchedCat = catalogData.find(c => c.id === cat.id || c.name.toLowerCase() === cat.name.toLowerCase());
-        
+
         cat.variants.forEach(v => {
           let catalogStock = 0;
           if (matchedCat) {
@@ -289,7 +289,7 @@ const NewRestockEntryPage: React.FC = () => {
       const newList: RestockList = {
         id,
         userId: user?.id || existing?.userId,
-        title: existing?.title || `Restock List ${today}`,
+        title: existing?.title || `List ${today}`,
         categories: data,
         importedFiles,
         importHistory,
@@ -899,7 +899,7 @@ const NewRestockEntryPage: React.FC = () => {
     };
 
     startLoading(
-      'Menyimpan ke Supabase',
+      'Menyimpan ke Server',
       'Sedang menyinkronkan data restock ke database...'
     );
 
@@ -911,13 +911,13 @@ const NewRestockEntryPage: React.FC = () => {
         // Mark the exact local state that was synced as the current Supabase state.
         syncedSupabaseSnapshotRef.current = currentDataSnapshot;
         triggerSaveSuccess();
-        showToast('Data berhasil disimpan ke Supabase.', 'success');
+        showToast('Data berhasil disimpan ke server.', 'success');
       } else {
         showToast('Gagal menyimpan: ' + res.error, 'error');
       }
     } catch (err) {
       console.error('Failed to sync restock to Supabase:', err);
-      showToast('Gagal menyimpan data ke Supabase.', 'error');
+      showToast('Gagal menyimpan data ke server.', 'error');
     } finally {
       stopLoading();
     }
@@ -978,13 +978,13 @@ const NewRestockEntryPage: React.FC = () => {
           {isDraft && (
             <span
               className="absolute top-0 right-0 px-2 py-0.5 rounded-full bg-error text-on-error text-[9px] sm:text-[10px] font-bold uppercase tracking-wide shadow-sm"
-              title="Data belum disimpan ke Supabase atau terdapat perubahan lokal setelah sinkronisasi terakhir"
+              title="Data belum disimpan ke server atau terdapat perubahan lokal setelah sinkronisasi terakhir"
             >
               draft
             </span>
           )}
           <div>
-            <h1 className="text-base sm:text-base text-on-surface font-semibold">Entry Restock {`${today}`}</h1>
+            <h1 className="text-base sm:text-base text-on-surface font-semibold">List {`${today}`}</h1>
             <p className="text-[11px] sm:text-xs text-on-surface-variant mt-xs">
               List entry baru untuk restock barang.
             </p>
@@ -1125,12 +1125,12 @@ const NewRestockEntryPage: React.FC = () => {
               <span className="material-symbols-outlined text-[16px] sm:text-[18px]">upload_file</span>
               <span className="text-[11px] sm:text-xs font-semibold">Import Excel</span>
             </button>
-            <Tooltip content="Pengiriman Massal > Buat Dokumen > Pilih Jasa Kirim > Centang Produk > tab Buat Dokumen Pengiriman > Daftar Pesanan (Excel)">
+            <Tooltip content="Shopee Seller Center > Pengiriman Massal > Buat Dokumen > Pilih Jasa Kirim > Centang Produk > (tab) Buat Dokumen Pengiriman > Daftar Pesanan (Excel)">
               <button
                 type="button"
                 aria-label="Petunjuk mendapatkan file Excel"
                 title="Petunjuk mendapatkan file Excel"
-                className="flex h-7 w-7 items-center justify-center rounded-full text-primary transition-colors hover:bg-surface-container hover:text-primary/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 cursor-pointer"
+                className="flex size-4 items-center justify-center rounded-full text-primary transition-colors hover:bg-surface-container hover:text-primary/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">help</span>
               </button>
@@ -1138,9 +1138,8 @@ const NewRestockEntryPage: React.FC = () => {
             <button
               onClick={handleOpenSyncModal}
               disabled={loadingState.isLoading || checklist.length === 0}
-              className={`flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border-transparent hover:border-surface-variant cursor-pointer ${
-                loadingState.isLoading || checklist.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className={`flex items-center gap-1 text-primary hover:bg-surface-container px-2 py-1 rounded-md transition-colors border-transparent hover:border-surface-variant cursor-pointer ${loadingState.isLoading || checklist.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               title="Sinkronisasi & Periksa Stok Barang"
             >
               <span className="material-symbols-outlined text-[16px] sm:text-[18px]">
@@ -1154,12 +1153,12 @@ const NewRestockEntryPage: React.FC = () => {
               onClick={handleSyncToSupabase}
               disabled={loadingState.isLoading || checklist.length === 0}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-colors border-transparent cursor-pointer ${loadingState.isLoading || checklist.length === 0
-                  ? 'text-on-surface-variant/40 cursor-not-allowed'
-                  : isDraft
-                    ? 'bg-primary text-on-primary hover:bg-primary/90'
-                    : 'text-primary hover:bg-surface-container hover:border-surface-variant'
+                ? 'text-on-surface-variant/40 cursor-not-allowed'
+                : isDraft
+                  ? 'bg-primary text-on-primary hover:bg-primary/90'
+                  : 'text-primary hover:bg-surface-container hover:border-surface-variant'
                 }`}
-              title={isDraft ? 'Ada perubahan yang belum disimpan ke Supabase' : 'Data sudah tersimpan di Supabase'}
+              title={isDraft ? 'Ada perubahan yang belum disimpan ke server' : 'Data sudah tersimpan di server'}
             >
               <span className="material-symbols-outlined text-[16px] sm:text-[18px]">
                 cloud_upload
@@ -1287,9 +1286,6 @@ const NewRestockEntryPage: React.FC = () => {
         {(checklist.length > 0 || unregisteredItems.length > 0) && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-surface-container-lowest border-surface-variant p-2 sm:p-3 rounded-xl ">
             <div className="bg-surface-container-low p-2 rounded-lg flex items-center gap-2">
-              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-outline-variant/30 flex items-center justify-center text-on-surface-variant shrink-0">
-                <span className="material-symbols-outlined text-[16px] sm:text-[20px]">payments</span>
-              </div>
               <div>
                 <p className="font-label-sm text-[8px] sm:text-[9px] text-on-surface-variant uppercase tracking-wider">Estimasi Seluruh Barang</p>
                 <p className="text-[10px] sm:text-xs text-on-surface font-semibold mt-0.5">{formatRupiah(totalAllPrice + totalUnregisteredPrice)}</p>
@@ -1297,9 +1293,6 @@ const NewRestockEntryPage: React.FC = () => {
             </div>
 
             <div className="bg-success-container/10 border-success/10 p-2 rounded-lg flex items-center gap-2">
-              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-success/10 flex items-center justify-center text-success shrink-0">
-                <span className="material-symbols-outlined text-[16px] sm:text-[20px]">check_circle</span>
-              </div>
               <div>
                 <p className="font-label-sm text-[8px] sm:text-[9px] text-success uppercase tracking-wider">Barang Sudah Diceklis</p>
                 <p className="text-[10px] sm:text-xs text-success font-semibold mt-0.5">{formatRupiah(totalCheckedPrice + totalCheckedUnregisteredPrice)}</p>
@@ -1307,9 +1300,6 @@ const NewRestockEntryPage: React.FC = () => {
             </div>
 
             <div className="bg-primary-container/20 border-primary/10 p-2 rounded-lg flex items-center gap-2">
-              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-primary/15 flex items-center justify-center text-primary shrink-0">
-                <span className="material-symbols-outlined text-[16px] sm:text-[20px]">pending</span>
-              </div>
               <div>
                 <p className="font-label-sm text-[8px] sm:text-[9px] text-primary uppercase tracking-wider">Barang Belum Diceklis</p>
                 <p className="text-[10px] sm:text-xs text-primary font-semibold mt-0.5">{formatRupiah(totalUncheckedPrice + totalUncheckedUnregisteredPrice)}</p>

@@ -117,7 +117,7 @@ const OnlineKatalogView: React.FC = () => {
 
   const confirmImport = async () => {
     if (!importPreviewData || !user) return;
-    setSpinnerTitle('Mengimpor data Excel ke Supabase...');
+    setSpinnerTitle('Mengimpor data Excel ke server...');
     setIsConfirmingImport(true);
     try {
       for (const [parentKey, rows] of importPreviewData.entries()) {
@@ -210,12 +210,12 @@ const OnlineKatalogView: React.FC = () => {
         }
       }
 
-      setNotification({ title: 'Sukses', message: 'Impor Excel ke Supabase berhasil!', type: 'success' });
+      setNotification({ title: 'Sukses', message: 'Impor Excel ke server berhasil!', type: 'success' });
       setImportPreviewData(null);
       fetchProducts();
     } catch (error) {
       console.error('Error importing excel to Supabase:', error);
-      setNotification({ title: 'Error', message: 'Terjadi kesalahan saat mengimpor data ke Supabase.', type: 'error' });
+      setNotification({ title: 'Error', message: 'Terjadi kesalahan saat mengimpor data ke server.', type: 'error' });
     } finally {
       setIsConfirmingImport(false);
       setSpinnerTitle('');
@@ -227,7 +227,7 @@ const OnlineKatalogView: React.FC = () => {
     if (!formName.trim() || !user) return;
 
     setIsSubmitting(true);
-    setSpinnerTitle('Menambahkan produk ke Supabase...');
+    setSpinnerTitle('Menambahkan produk ke server...');
     try {
       const productCode = 'PRD-' + Date.now();
 
@@ -248,7 +248,7 @@ const OnlineKatalogView: React.FC = () => {
       fetchProducts();
     } catch (error) {
       console.error('Failed to add product:', error);
-      showToast('Gagal menambahkan produk ke Supabase', 'error');
+      showToast('Gagal menambahkan produk ke server', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -257,7 +257,7 @@ const OnlineKatalogView: React.FC = () => {
   const handleDelete = async () => {
     if (!deleteItem) return;
     setIsSubmitting(true);
-    setSpinnerTitle('Menghapus produk dari Supabase...');
+    setSpinnerTitle('Menghapus produk dari server...');
     try {
       const { error } = await supabase
         .from('product')
@@ -280,14 +280,14 @@ const OnlineKatalogView: React.FC = () => {
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
-      <main className="max-w-4lx mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-md items-start sm:items-center justify-between">
           <div>
             <div className="flex items-center gap-2 mb-xs">
               <h1 className="font-h1 text-h1 text-on-surface">Katalog Barang</h1>
 
             </div>
-            <p className="font-body-md text-body-md text-on-surface-variant">Kelola inventaris dan varian produk secara langsung di Supabase.</p>
+            <p className="font-body-md text-body-md text-on-surface-variant">Kelola inventaris dan varian produk secara langsung di server.</p>
           </div>
           <div className="flex items-center gap-sm w-full sm:w-auto">
             <div className="relative flex-1 sm:flex-none sm:w-64">
@@ -320,7 +320,7 @@ const OnlineKatalogView: React.FC = () => {
                 type="button"
                 aria-label="Petunjuk mendapatkan file Excel"
                 title="Petunjuk mendapatkan file Excel"
-                className="flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 cursor-pointer shrink-0"
+                className="flex size-4 items-center justify-center rounded-full text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 cursor-pointer shrink-0"
               >
                 <span className="material-symbols-outlined text-[18px]">help</span>
               </button>
@@ -341,7 +341,7 @@ const OnlineKatalogView: React.FC = () => {
           <EmptyState
             icon="menu_book"
             title={searchQuery ? "Produk tidak ditemukan" : "Katalog masih kosong"}
-            description={searchQuery ? "Coba gunakan kata kunci pencarian yang lain." : "Tambahkan produk pertama kamu ke database Supabase."}
+            description={searchQuery ? "Coba gunakan kata kunci pencarian yang lain." : "Tambahkan produk pertama kamu ke database server."}
           />
         ) : (
           <div className="flex flex-col gap-sm">
@@ -432,7 +432,7 @@ const OnlineKatalogView: React.FC = () => {
                 Batal
               </button>
               <button type="submit" className="px-md py-sm bg-primary text-on-primary font-label-md rounded-lg hover:bg-surface-tint cursor-pointer">
-                Simpan ke Supabase
+                Simpan ke Server
               </button>
             </div>
           </form>
@@ -442,7 +442,7 @@ const OnlineKatalogView: React.FC = () => {
         <ConfirmDialog
           isOpen={!!deleteItem}
           title="Hapus Produk"
-          message={`Apakah Anda yakin ingin menghapus produk "${deleteItem?.nama}" dari Supabase? Tindakan ini tidak dapat dibatalkan.`}
+          message={`Apakah Anda yakin ingin menghapus produk "${deleteItem?.nama}" dari server? Tindakan ini tidak dapat dibatalkan.`}
           confirmLabel="Hapus"
           cancelLabel="Batal"
           onConfirm={handleDelete}
@@ -454,7 +454,7 @@ const OnlineKatalogView: React.FC = () => {
         <Modal isOpen={!!importPreviewData} onClose={() => !isConfirmingImport && setImportPreviewData(null)} title="Konfirmasi Impor Data">
           <div className="p-md flex flex-col gap-md max-h-[70vh] overflow-hidden">
             <p className="text-body-md text-on-surface-variant">
-              Ditemukan {importPreviewData?.size || 0} produk unik. Berikut adalah daftar produk beserta variasinya yang akan diimpor atau diperbarui ke Supabase:
+              Ditemukan {importPreviewData?.size || 0} produk unik. Berikut adalah daftar produk beserta variasinya yang akan diimpor atau diperbarui ke server:
             </p>
             
             <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-sm">

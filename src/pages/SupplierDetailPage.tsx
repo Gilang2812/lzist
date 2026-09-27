@@ -156,7 +156,7 @@ const SupplierDetailPage: React.FC = () => {
     ) : null;
 
   return (
-    <main className="max-w-4lx mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+    <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
       {/* Back */}
       <button onClick={() => navigate(-1)} className="flex items-center gap-xs text-primary font-label-md text-label-md hover:underline w-fit cursor-pointer">
         <span className="material-symbols-outlined text-[18px]">arrow_back</span>

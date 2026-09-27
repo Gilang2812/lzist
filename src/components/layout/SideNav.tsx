@@ -225,7 +225,7 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen = false, onClose, isCollapsed 
               </div>
               {!isCollapsed && (
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">Mode Lokal (Dexie)</p>
+                  <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">Mode Lokal</p>
                   <p className="text-[10px] text-gray-500 truncate">Semua data tersimpan offline</p>
                 </div>
               )}
@@ -285,7 +285,7 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen = false, onClose, isCollapsed 
         title={modeToSwitch === 'online' ? 'Pindah ke Mode Online?' : 'Pindah ke Mode Offline?'}
         message={
           modeToSwitch === 'online'
-            ? 'Aplikasi akan beralih ke Mode Online (Cloud Supabase). Halaman akan di-refresh dan Anda perlu login untuk melanjutkan.'
+            ? 'Aplikasi akan beralih ke Mode Online (Server). Halaman akan di-refresh dan Anda perlu login untuk melanjutkan.'
             : 'Aplikasi akan beralih ke Mode Offline (Data Lokal). Halaman akan di-refresh dan semua sesi login akan dinonaktifkan sementara.'
         }
         confirmLabel={modeToSwitch === 'online' ? 'Ya, Pindah Online' : 'Ya, Pindah Offline'}

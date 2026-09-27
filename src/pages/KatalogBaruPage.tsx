@@ -54,7 +54,7 @@ const KatalogBaruPage: React.FC = () => {
         .eq('user_id', user.id);
 
       if (error) throw error;
-      
+
       const enriched = (allProducts || []).map((p: any) => {
         const pColors = p.product_color || [];
         const totalStock = pColors.reduce((sum: number, pc: any) => sum + (pc.stok || 0), 0);
@@ -64,7 +64,7 @@ const KatalogBaruPage: React.FC = () => {
           totalStock
         };
       }).sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
-      
+
       setProducts(enriched);
     } catch (err) {
       console.error('Failed to fetch products', err);
@@ -76,7 +76,7 @@ const KatalogBaruPage: React.FC = () => {
     fetchProducts();
   }, [fetchProducts]);
 
-  const filteredProducts = products?.filter(item => 
+  const filteredProducts = products?.filter(item =>
     item.nama?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
@@ -116,7 +116,7 @@ const KatalogBaruPage: React.FC = () => {
 
   const confirmImport = async () => {
     if (!importPreviewData || !user) return;
-    setSpinnerTitle('Mengimpor data Excel ke Supabase...');
+    setSpinnerTitle('Mengimpor data Excel ke server...');
     setIsConfirmingImport(true);
     try {
       for (const [parentKey, rows] of importPreviewData.entries()) {
@@ -209,12 +209,12 @@ const KatalogBaruPage: React.FC = () => {
         }
       }
 
-      setNotification({ title: 'Sukses', message: 'Impor Excel ke Supabase berhasil!', type: 'success' });
+      setNotification({ title: 'Sukses', message: 'Impor Excel ke server berhasil!', type: 'success' });
       setImportPreviewData(null);
       fetchProducts();
     } catch (error) {
       console.error('Error importing excel to Supabase:', error);
-      setNotification({ title: 'Error', message: 'Terjadi kesalahan saat mengimpor data ke Supabase.', type: 'error' });
+      setNotification({ title: 'Error', message: 'Terjadi kesalahan saat mengimpor data ke server.', type: 'error' });
     } finally {
       setIsConfirmingImport(false);
       setSpinnerTitle('');
@@ -229,7 +229,7 @@ const KatalogBaruPage: React.FC = () => {
     setSpinnerTitle('Menambahkan produk...');
     try {
       const productCode = 'PRD-' + Date.now();
-      
+
       const payload = {
         product_code: productCode,
         user_id: user.id,
@@ -239,7 +239,7 @@ const KatalogBaruPage: React.FC = () => {
 
       const { error } = await supabase.from('product').insert([payload]);
       if (error) throw error;
-      
+
       setIsAddModalOpen(false);
       setFormName('');
       setFormPrice('');
@@ -262,9 +262,9 @@ const KatalogBaruPage: React.FC = () => {
         .from('product')
         .delete()
         .eq('product_code', deleteItem.product_code);
-        
+
       if (error) throw error;
-      
+
       setDeleteItem(null);
       fetchProducts();
     } catch (error) {
@@ -278,229 +278,228 @@ const KatalogBaruPage: React.FC = () => {
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
-      <main className="max-w-4lx mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-md items-start sm:items-center justify-between">
-        <div>
-          <h1 className="font-h1 text-h1 text-on-surface mb-xs">Katalog Barang (Supabase Live)</h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">Menggunakan koneksi real-time ke Supabase.</p>
-        </div>
-        <div className="flex items-center gap-sm w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-none sm:w-64">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
-            <input
-              type="text"
-              placeholder="Cari barang..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-surface-container pl-10 pr-4 py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
-            />
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-md items-start sm:items-center justify-between">
+          <div>
+            <h1 className="font-h1 text-h1 text-on-surface mb-xs">Katalog Barang (Mode Server)</h1>
+            <p className="font-body-md text-body-md text-on-surface-variant">Menggunakan koneksi real-time ke server.</p>
           </div>
-          <input
-            type="file"
-            accept=".xlsx, .xls"
-            ref={fileInputRef}
-            onChange={handleImportExcel}
-            className="hidden"
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isImporting}
-            className={`border border-surface-variant text-on-surface px-md sm:px-lg py-sm rounded-lg font-label-md text-label-md hover:bg-surface-variant transition-colors flex items-center gap-xs cursor-pointer shrink-0 ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <span className="material-symbols-outlined text-[18px]">{isImporting ? 'sync' : 'upload_file'}</span>
-            {isImporting ? 'Mengimpor...' : 'Import Excel'}
-          </button>
-          <Tooltip content="Big Seller > Menu Produk Live Shopee > Tombol Import & Export > Export yang dipilih/ Export perhalaman">
-            <button
-              type="button"
-              aria-label="Petunjuk mendapatkan file Excel"
-              title="Petunjuk mendapatkan file Excel"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 cursor-pointer shrink-0"
-            >
-              <span className="material-symbols-outlined text-[18px]">help</span>
-            </button>
-          </Tooltip>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="bg-primary text-on-primary px-md sm:px-lg py-sm rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors flex items-center gap-xs cursor-pointer shrink-0"
-          >
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            Tambah
-          </button>
-        </div>
-      </div>
-
-      {!products ? (
-        <Skeleton className="h-20 w-full" count={4} />
-      ) : filteredProducts.length === 0 ? (
-        <EmptyState
-          icon="menu_book"
-          title="Katalog kosong"
-          description="Tambahkan barang pertama."
-        />
-      ) : (
-        <div className="flex flex-col gap-sm">
-          {filteredProducts.map((item) => (
-            <div
-              key={item.product_code}
-              className="bg-surface-container-lowest rounded-xl border border-surface-variant p-md flex gap-md items-center"
-            >
-              <div className="flex-1 min-w-0">
-                <h3 className="font-label-lg text-on-surface truncate">{item.nama}</h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs bg-surface-variant/40 px-2 py-1 rounded">
-                    {item.variantCount} Varian Warna
-                  </span>
-                  <span className="text-xs text-on-surface-variant">
-                    Stok: <strong>{item.totalStock}</strong>
-                  </span>
-                  <span className="text-xs text-on-surface-variant">
-                    Kode: {item.product_code}
-                  </span>
-                  <span className="text-xs text-on-surface-variant">
-                    Harga: Rp {item.price?.toLocaleString('id-ID')}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => navigate(ROUTES.KATALOG_BARU.edit(item.product_code))}
-                  className="p-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-primary-container"
-                  title="Edit Produk"
-                >
-                  <span className="material-symbols-outlined text-[18px]">edit</span>
-                </button>
-                <button
-                  onClick={() => setDeleteItem(item)}
-                  className="p-1.5 rounded-md text-on-surface-variant hover:text-error hover:bg-error-container"
-                  title="Hapus Produk"
-                >
-                  <span className="material-symbols-outlined text-[18px]">delete</span>
-                </button>
-              </div>
+          <div className="flex items-center gap-sm w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none sm:w-64">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+              <input
+                type="text"
+                placeholder="Cari barang..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-surface-container pl-10 pr-4 py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
-          ))}
+            <input
+              type="file"
+              accept=".xlsx, .xls"
+              ref={fileInputRef}
+              onChange={handleImportExcel}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isImporting}
+              className={`border border-surface-variant text-on-surface px-md sm:px-lg py-sm rounded-lg font-label-md text-label-md hover:bg-surface-variant transition-colors flex items-center gap-xs cursor-pointer shrink-0 ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <span className="material-symbols-outlined text-[18px]">{isImporting ? 'sync' : 'upload_file'}</span>
+              {isImporting ? 'Mengimpor...' : 'Import Excel'}
+            </button>
+            <Tooltip content="Big Seller > Menu Produk Live Shopee > Tombol Import & Export > Export yang dipilih/ Export perhalaman">
+              <button
+                type="button"
+                aria-label="Petunjuk mendapatkan file Excel"
+                title="Petunjuk mendapatkan file Excel"
+                className="flex size-4 items-center justify-center rounded-full text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 cursor-pointer shrink-0"
+              >
+                <span className="material-symbols-outlined text-[18px]">help</span>
+              </button>
+            </Tooltip>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-primary text-on-primary px-md sm:px-lg py-sm rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors flex items-center gap-xs cursor-pointer shrink-0"
+            >
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              Tambah
+            </button>
+          </div>
         </div>
-      )}
 
-      {/* Modal Tambah */}
-      <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Tambah Produks">
-        <form onSubmit={handleAddSubmit} className="p-md flex flex-col gap-md">
-          <div className="flex flex-col gap-xs">
-            <label className="font-label-md text-on-surface">Nama Produk <span className="text-error">*</span></label>
-            <input
-              type="text"
-              required
-              value={formName}
-              onChange={e => setFormName(e.target.value)}
-              className="bg-surface-container px-md py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <div className="flex flex-col gap-xs">
-            <label className="font-label-md text-on-surface">Harga Dasar</label>
-            <input
-              type="number"
-              value={formPrice}
-              onChange={e => setFormPrice(Number(e.target.value))}
-              className="bg-surface-container px-md py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <div className="flex justify-end gap-sm mt-sm">
-            <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-md py-sm font-label-md hover:bg-surface-container rounded-lg">Batal</button>
-            <button type="submit" className="px-md py-sm bg-primary text-on-primary font-label-md rounded-lg">Simpan ke Supabase</button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Modal Hapus */}
-      <ConfirmDialog
-        isOpen={!!deleteItem}
-        title="Hapus Produk"
-        message={`Hapus produk "${deleteItem?.nama}"?`}
-        confirmLabel="Hapus"
-        cancelLabel="Batal"
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteItem(null)}
-        variant="danger"
-      />
-
-      {/* Import Preview Modal */}
-      <Modal isOpen={!!importPreviewData} onClose={() => !isConfirmingImport && setImportPreviewData(null)} title="Konfirmasi Impor Data">
-        <div className="p-md flex flex-col gap-md max-h-[70vh] overflow-hidden">
-          <p className="text-body-md text-on-surface-variant">
-            Ditemukan {importPreviewData?.size || 0} produk unik. Berikut adalah daftar produk beserta variasinya yang akan diimpor atau diperbarui ke Supabase:
-          </p>
-          
-          <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-sm">
-            {importPreviewData && Array.from(importPreviewData.entries()).map(([parentKey, rows], idx) => {
-              const productName = rows[0]['Nama Produk'] || parentKey;
-              return (
-                <div key={idx} className="bg-surface-container rounded-lg p-sm border border-surface-variant">
-                  <p className="font-label-md text-on-surface mb-xs">{productName}</p>
-                  <ul className="text-body-sm text-on-surface-variant list-disc pl-5">
-                    {rows.map((row, i) => {
-                       const variasi = row['Variasi'] || row['Variasi ID'] || 'Default';
-                       const stock = row['Stok'] || 0;
-                       return <li key={i}>{variasi} (Stok: {stock})</li>;
-                    })}
-                  </ul>
+        {!products ? (
+          <Skeleton className="h-20 w-full" count={4} />
+        ) : filteredProducts.length === 0 ? (
+          <EmptyState
+            icon="menu_book"
+            title="Katalog kosong"
+            description="Tambahkan barang pertama."
+          />
+        ) : (
+          <div className="flex flex-col gap-sm">
+            {filteredProducts.map((item) => (
+              <div
+                key={item.product_code}
+                className="bg-surface-container-lowest rounded-xl border border-surface-variant p-md flex gap-md items-center"
+              >
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-label-lg text-on-surface truncate">{item.nama}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs bg-surface-variant/40 px-2 py-1 rounded">
+                      {item.variantCount} Varian Warna
+                    </span>
+                    <span className="text-xs text-on-surface-variant">
+                      Stok: <strong>{item.totalStock}</strong>
+                    </span>
+                    <span className="text-xs text-on-surface-variant">
+                      Kode: {item.product_code}
+                    </span>
+                    <span className="text-xs text-on-surface-variant">
+                      Harga: Rp {item.price?.toLocaleString('id-ID')}
+                    </span>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
 
-          <div className="flex justify-end gap-sm pt-sm border-t border-surface-variant">
-            <button
-              type="button"
-              onClick={() => setImportPreviewData(null)}
-              disabled={isConfirmingImport}
-              className="px-md py-sm font-label-md text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer disabled:opacity-50"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              onClick={confirmImport}
-              disabled={isConfirmingImport}
-              className={`px-md py-sm bg-primary text-on-primary font-label-md rounded-lg hover:bg-surface-tint cursor-pointer flex items-center gap-2 ${isConfirmingImport ? 'opacity-70' : ''}`}
-            >
-              {isConfirmingImport && <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>}
-              Mulai Impor
-            </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => navigate(ROUTES.KATALOG_BARU.edit(item.product_code))}
+                    className="p-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-primary-container"
+                    title="Edit Produk"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                  </button>
+                  <button
+                    onClick={() => setDeleteItem(item)}
+                    className="p-1.5 rounded-md text-on-surface-variant hover:text-error hover:bg-error-container"
+                    title="Hapus Produk"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      </Modal>
+        )}
 
-      {/* Notification Modal */}
-      <Modal isOpen={!!notification} onClose={() => setNotification(null)} title={notification?.title || 'Notifikasi'}>
-        <div className="p-md flex flex-col gap-md">
-          <div className={`flex items-center gap-sm p-sm rounded-lg ${
-            notification?.type === 'success' ? 'bg-primary-container text-on-primary-container' :
-            notification?.type === 'error' ? 'bg-error-container text-on-error-container' :
-            'bg-surface-container-high text-on-surface'
-          }`}>
-            <span className="material-symbols-outlined text-[24px]">
-              {notification?.type === 'success' ? 'check_circle' : notification?.type === 'error' ? 'error' : 'info'}
-            </span>
-            <p className="text-body-md">
-              {notification?.message}
+        {/* Modal Tambah */}
+        <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Tambah Produks">
+          <form onSubmit={handleAddSubmit} className="p-md flex flex-col gap-md">
+            <div className="flex flex-col gap-xs">
+              <label className="font-label-md text-on-surface">Nama Produk <span className="text-error">*</span></label>
+              <input
+                type="text"
+                required
+                value={formName}
+                onChange={e => setFormName(e.target.value)}
+                className="bg-surface-container px-md py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div className="flex flex-col gap-xs">
+              <label className="font-label-md text-on-surface">Harga Dasar</label>
+              <input
+                type="number"
+                value={formPrice}
+                onChange={e => setFormPrice(Number(e.target.value))}
+                className="bg-surface-container px-md py-sm rounded-lg text-on-surface outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div className="flex justify-end gap-sm mt-sm">
+              <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-md py-sm font-label-md hover:bg-surface-container rounded-lg">Batal</button>
+              <button type="submit" className="px-md py-sm bg-primary text-on-primary font-label-md rounded-lg">Simpan ke Server</button>
+            </div>
+          </form>
+        </Modal>
+
+        {/* Modal Hapus */}
+        <ConfirmDialog
+          isOpen={!!deleteItem}
+          title="Hapus Produk"
+          message={`Hapus produk "${deleteItem?.nama}"?`}
+          confirmLabel="Hapus"
+          cancelLabel="Batal"
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteItem(null)}
+          variant="danger"
+        />
+
+        {/* Import Preview Modal */}
+        <Modal isOpen={!!importPreviewData} onClose={() => !isConfirmingImport && setImportPreviewData(null)} title="Konfirmasi Impor Data">
+          <div className="p-md flex flex-col gap-md max-h-[70vh] overflow-hidden">
+            <p className="text-body-md text-on-surface-variant">
+              Ditemukan {importPreviewData?.size || 0} produk unik. Berikut adalah daftar produk beserta variasinya yang akan diimpor atau diperbarui ke server:
             </p>
-          </div>
-          <div className="flex justify-end pt-2">
-            <button
-              type="button"
-              onClick={() => setNotification(null)}
-              className="px-md py-sm bg-primary text-on-primary font-label-md rounded-lg hover:bg-surface-tint cursor-pointer"
-            >
-              Tutup
-            </button>
-          </div>
-        </div>
-      </Modal>
 
-      <LoadingSpinner isOpen={isSubmitting || isConfirmingImport} title={spinnerTitle} />
-    </main>
+            <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-sm">
+              {importPreviewData && Array.from(importPreviewData.entries()).map(([parentKey, rows], idx) => {
+                const productName = rows[0]['Nama Produk'] || parentKey;
+                return (
+                  <div key={idx} className="bg-surface-container rounded-lg p-sm border border-surface-variant">
+                    <p className="font-label-md text-on-surface mb-xs">{productName}</p>
+                    <ul className="text-body-sm text-on-surface-variant list-disc pl-5">
+                      {rows.map((row, i) => {
+                        const variasi = row['Variasi'] || row['Variasi ID'] || 'Default';
+                        const stock = row['Stok'] || 0;
+                        return <li key={i}>{variasi} (Stok: {stock})</li>;
+                      })}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-end gap-sm pt-sm border-t border-surface-variant">
+              <button
+                type="button"
+                onClick={() => setImportPreviewData(null)}
+                disabled={isConfirmingImport}
+                className="px-md py-sm font-label-md text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmImport}
+                disabled={isConfirmingImport}
+                className={`px-md py-sm bg-primary text-on-primary font-label-md rounded-lg hover:bg-surface-tint cursor-pointer flex items-center gap-2 ${isConfirmingImport ? 'opacity-70' : ''}`}
+              >
+                {isConfirmingImport && <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>}
+                Mulai Impor
+              </button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Notification Modal */}
+        <Modal isOpen={!!notification} onClose={() => setNotification(null)} title={notification?.title || 'Notifikasi'}>
+          <div className="p-md flex flex-col gap-md">
+            <div className={`flex items-center gap-sm p-sm rounded-lg ${notification?.type === 'success' ? 'bg-primary-container text-on-primary-container' :
+                notification?.type === 'error' ? 'bg-error-container text-on-error-container' :
+                  'bg-surface-container-high text-on-surface'
+              }`}>
+              <span className="material-symbols-outlined text-[24px]">
+                {notification?.type === 'success' ? 'check_circle' : notification?.type === 'error' ? 'error' : 'info'}
+              </span>
+              <p className="text-body-md">
+                {notification?.message}
+              </p>
+            </div>
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setNotification(null)}
+                className="px-md py-sm bg-primary text-on-primary font-label-md rounded-lg hover:bg-surface-tint cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </Modal>
+
+        <LoadingSpinner isOpen={isSubmitting || isConfirmingImport} title={spinnerTitle} />
+      </main>
     </>
   );
 };

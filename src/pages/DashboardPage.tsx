@@ -149,7 +149,7 @@ const DashboardPage: React.FC = () => {
             {mode === 'online' ? (
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30">
                 <span className="material-symbols-outlined text-[14px]">cloud_done</span>
-                Online Supabase
+                Online (Server)
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant border border-surface-variant">
@@ -160,7 +160,7 @@ const DashboardPage: React.FC = () => {
           </div>
           <p className="font-body-md text-body-md text-on-surface-variant">
             {mode === 'online'
-              ? 'Ringkasan inventaris real-time dari database Supabase.'
+              ? 'Ringkasan inventaris real-time dari database server.'
               : 'Ringkasan inventaris tersimpan di perangkat lokal.'}
           </p>
         </div>

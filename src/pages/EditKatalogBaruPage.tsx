@@ -98,7 +98,7 @@ const EditKatalogBaruPage: React.FC = () => {
   // ─── Loading Skeleton View ─────────────────────────────────────────
   if (isLoading) {
     return (
-      <main className="max-w-4lx mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
         <div className="flex items-center gap-sm">
           <Skeleton className="h-10 w-10 rounded-full" />
           <div className="flex flex-col gap-2">
@@ -122,7 +122,7 @@ const EditKatalogBaruPage: React.FC = () => {
   // ─── Not Found View ───────────────────────────────────────────────
   if (notFound) {
     return (
-      <main className="max-w-4lx mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
         <button
           onClick={() => navigate(ROUTES.KATALOG.INDEX)}
           className="flex items-center gap-xs text-primary font-label-md text-label-md hover:underline w-fit cursor-pointer"
@@ -142,7 +142,7 @@ const EditKatalogBaruPage: React.FC = () => {
   // ─── Unauthorized View ────────────────────────────────────────────
   if (isUnauthorized) {
     return (
-      <main className="max-w-4lx mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
         <button
           onClick={() => navigate(ROUTES.KATALOG.INDEX)}
           className="flex items-center gap-xs text-primary font-label-md text-label-md hover:underline w-fit cursor-pointer"
@@ -163,7 +163,7 @@ const EditKatalogBaruPage: React.FC = () => {
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
-      <main className="max-w-4lx mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
+      <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
         {/* Header */}
         <div className="flex items-center gap-sm">
           <button
@@ -174,7 +174,7 @@ const EditKatalogBaruPage: React.FC = () => {
           </button>
           <div>
             <h1 className="font-h1 text-h1 text-on-surface">Edit Produk</h1>
-            <p className="font-body-md text-body-md text-on-surface-variant">Ubah informasi barang (Supabase Online)</p>
+            <p className="font-body-md text-body-md text-on-surface-variant">Ubah informasi barang (Mode Server)</p>
           </div>
         </div>
 

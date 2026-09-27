@@ -1,9 +1,11 @@
 # Tailwind Class Naming Rule
 
 ## Reversed Suffixes for Width Utility Classes
+
 In this project, always use reversed suffixes for `max-w` and `min-w` Tailwind CSS utility classes.
 
 When you need to use `max-w-*` or `min-w-*` classes, reverse the size abbreviations as follows:
+
 - `sm` -> `ms` (e.g., `max-w-ms`, `min-w-ms`)
 - `md` -> `dm` (e.g., `max-w-dm`, `min-w-dm`)
 - `lg` -> `gl` (e.g., `max-w-gl`, `min-w-gl`)
@@ -16,6 +18,7 @@ When you need to use `max-w-*` or `min-w-*` classes, reverse the size abbreviati
 - `7xl` -> `7lx` (e.g., `max-w-7lx`, `min-w-7lx`)
 
 **Do NOT use the standard Tailwind sizes like `max-w-xl` or `max-w-sm`. Always use the reversed abbreviations.**
+
 # Frontend Code Organization & Tailwind Rules
 
 ## 1. Separation of UI and Logic
@@ -28,25 +31,25 @@ The goal is to keep code cohesive and maintainable, not to remove all logic from
 
 Keep logic inside a component when it is:
 
-* specifically responsible for that component's UI behavior
-* simple and cohesive with the component
-* not reused elsewhere
-* not a business/domain rule
-* not application-level state
+- specifically responsible for that component's UI behavior
+- simple and cohesive with the component
+- not reused elsewhere
+- not a business/domain rule
+- not application-level state
 
 Examples:
 
-* Modal → `isOpen`, `openModal()`, `closeModal()`
-* Dropdown → `isOpen`, `toggleDropdown()`
-* Accordion → `expanded`, `toggleAccordion()`
-* Tabs → `activeTab`, `handleTabChange()`
-* Tooltip → visibility state
-* Popover → open/close state
-* Sidebar → collapsed/expanded state
-* Carousel → current slide, next/previous handlers
-* Pagination → current page and page navigation
-* Toast → temporary visibility state
-* Form field → local input/focus state
+- Modal → `isOpen`, `openModal()`, `closeModal()`
+- Dropdown → `isOpen`, `toggleDropdown()`
+- Accordion → `expanded`, `toggleAccordion()`
+- Tabs → `activeTab`, `handleTabChange()`
+- Tooltip → visibility state
+- Popover → open/close state
+- Sidebar → collapsed/expanded state
+- Carousel → current slide, next/previous handlers
+- Pagination → current page and page navigation
+- Toast → temporary visibility state
+- Form field → local input/focus state
 
 These are **component-specific UI concerns** and may remain inside the TSX component.
 
@@ -56,24 +59,24 @@ Do not create unnecessary hooks such as `useModal.ts` just to move a few lines o
 
 Extract logic when it:
 
-* is reused by multiple components
-* becomes sufficiently complex
-* represents reusable behavior
-* manages application-level state
-* performs data fetching
-* communicates with APIs
-* contains business/domain rules
-* performs complex validation
-* performs data transformation
-* contains reusable calculations
+- is reused by multiple components
+- becomes sufficiently complex
+- represents reusable behavior
+- manages application-level state
+- performs data fetching
+- communicates with APIs
+- contains business/domain rules
+- performs complex validation
+- performs data transformation
+- contains reusable calculations
 
 Use the appropriate abstraction:
 
-* **Custom hook** → reusable React/stateful behavior
-* **Service/data-access module** → API communication and data access
-* **Utility function** → pure reusable calculations or transformations
-* **Domain/business module** → business rules and domain logic
-* **State store** → shared/application-level state
+- **Custom hook** → reusable React/stateful behavior
+- **Service/data-access module** → API communication and data access
+- **Utility function** → pure reusable calculations or transformations
+- **Domain/business module** → business rules and domain logic
+- **State store** → shared/application-level state
 
 ### Business Logic
 
@@ -81,14 +84,14 @@ Business/domain rules should not be tightly coupled to JSX.
 
 Examples:
 
-* calculating prices
-* determining product eligibility
-* stock/restock rules
-* permission rules
-* order calculations
-* complex validation
-* data transformation
-* domain-specific calculations
+- calculating prices
+- determining product eligibility
+- stock/restock rules
+- permission rules
+- order calculations
+- complex validation
+- data transformation
+- domain-specific calculations
 
 ### Decision Rule
 
@@ -98,12 +101,12 @@ Before extracting logic from a TSX component, ask:
 
 Use this rule:
 
-* **Component-specific UI behavior** → keep inside the component
-* **Reusable React behavior** → custom hook
-* **Business/domain logic** → separate business/domain module or appropriate hook
-* **API/data access** → service/data-access layer
-* **Pure reusable calculation/transformation** → utility function
-* **Shared application state** → state management layer
+- **Component-specific UI behavior** → keep inside the component
+- **Reusable React behavior** → custom hook
+- **Business/domain logic** → separate business/domain module or appropriate hook
+- **API/data access** → service/data-access layer
+- **Pure reusable calculation/transformation** → utility function
+- **Shared application state** → state management layer
 
 ### Important
 
@@ -127,55 +130,45 @@ In this project, always use reversed suffixes for `max-w` and `min-w` Tailwind C
 
 When using `max-w-*` or `min-w-*`, reverse the size abbreviations as follows:
 
-* `sm` → `ms`
+- `sm` → `ms`
+  - `max-w-ms`
+  - `min-w-ms`
 
-  * `max-w-ms`
-  * `min-w-ms`
+- `md` → `dm`
+  - `max-w-dm`
+  - `min-w-dm`
 
-* `md` → `dm`
+- `lg` → `gl`
+  - `max-w-gl`
+  - `min-w-gl`
 
-  * `max-w-dm`
-  * `min-w-dm`
+- `xl` → `lx`
+  - `max-w-lx`
+  - `min-w-lx`
 
-* `lg` → `gl`
+- `2xl` → `2lx`
+  - `max-w-2lx`
+  - `min-w-2lx`
 
-  * `max-w-gl`
-  * `min-w-gl`
+- `3xl` → `3lx`
+  - `max-w-3lx`
+  - `min-w-3lx`
 
-* `xl` → `lx`
+- `4xl` → `4lx`
+  - `max-w-4lx`
+  - `min-w-4lx`
 
-  * `max-w-lx`
-  * `min-w-lx`
+- `5xl` → `5lx`
+  - `max-w-5lx`
+  - `min-w-5lx`
 
-* `2xl` → `2lx`
+- `6xl` → `6lx`
+  - `max-w-6lx`
+  - `min-w-6lx`
 
-  * `max-w-2lx`
-  * `min-w-2lx`
-
-* `3xl` → `3lx`
-
-  * `max-w-3lx`
-  * `min-w-3lx`
-
-* `4xl` → `4lx`
-
-  * `max-w-4lx`
-  * `min-w-4lx`
-
-* `5xl` → `5lx`
-
-  * `max-w-5lx`
-  * `min-w-5lx`
-
-* `6xl` → `6lx`
-
-  * `max-w-6lx`
-  * `min-w-6lx`
-
-* `7xl` → `7lx`
-
-  * `max-w-7lx`
-  * `min-w-7lx`
+- `7xl` → `7lx`
+  - `max-w-7lx`
+  - `min-w-7lx`
 
 ### Strict Rule
 

@@ -268,7 +268,7 @@ const ProfitCalculatorPage: React.FC = () => {
       console.error('Autosave failed:', err);
       setAutoSaveStatus('idle');
     }
-  }, [orders, title, startDate, endDate]);
+  }, [orders, title, startDate, endDate, is_sinkron]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -290,7 +290,7 @@ const ProfitCalculatorPage: React.FC = () => {
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [orders, masterModal, overrides, adminFeePercent, serviceFeePercent, orderFeeAmount, adsFeeAmount, adsTaxPercent, affiliateFeeAmount, title, startDate, endDate, isLoading, performAutoSave]);
+  }, [orders, masterModal, overrides, adminFeePercent, serviceFeePercent, orderFeeAmount, adsFeeAmount, adsTaxPercent, affiliateFeeAmount, is_sinkron, title, startDate, endDate, isLoading, performAutoSave]);
 
 
   const handleNumberInput = (e: React.ChangeEvent<HTMLInputElement>, setter: (val: number) => void) => {
@@ -688,6 +688,9 @@ const ProfitCalculatorPage: React.FC = () => {
       if (res.success) {
         const newIsSinkron = !isRestore;
         setIsSinkron(newIsSinkron);
+        setTimeout(() => {
+          performAutoSave();
+        }, 50);
         showAlert({
           title: isRestore ? 'Stok Berhasil Direstore' : 'Stok Berhasil Disinkronkan',
           message: isRestore
@@ -967,7 +970,7 @@ const ProfitCalculatorPage: React.FC = () => {
               type="button"
               aria-label="Petunjuk  mendapatkan file Excel"
               title="Petunjuk mendapatkan file Excel"
-              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-gray-300 text-gray-500 transition-colors hover:border-teal-500 hover:text-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 dark:border-gray-600 dark:text-gray-400 dark:hover:border-teal-400 dark:hover:text-teal-400"
+              className="flex size-4 cursor-pointer items-center justify-center rounded-full border border-gray-300 text-gray-500 transition-colors hover:border-teal-500 hover:text-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 dark:border-gray-600 dark:text-gray-400 dark:hover:border-teal-400 dark:hover:text-teal-400"
             >
               <span className="material-symbols-outlined text-base">help</span>
             </button>

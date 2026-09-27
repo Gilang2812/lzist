@@ -70,7 +70,7 @@ export const applyStockSync = async (
 
       const { data: products, error } = await query;
       if (error || !products) {
-        throw new Error(error?.message || 'Gagal mengambil data katalog dari Supabase');
+        throw new Error(error?.message || 'Gagal mengambil data katalog dari server');
       }
 
       for (const item of items) {

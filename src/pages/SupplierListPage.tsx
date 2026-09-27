@@ -195,8 +195,7 @@ const SupplierListPage: React.FC = () => {
     <main className="max-w-lx4 mx-auto px-4 sm:px-6 py-6 sm:py-xl w-full flex flex-col gap-6 sm:gap-xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-h1 text-h1 text-on-surface mb-xs">Supplier</h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">Kelola daftar supplier dan hubungkan dengan barang.</p>
+          <h1 className="font-h1 text-h1 text-on-surface mb-xs">Supplier</h1> 
         </div>
         <button
           onClick={() => { setFormData(emptyForm); setIsAddModalOpen(true); }}

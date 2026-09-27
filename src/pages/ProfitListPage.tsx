@@ -5,6 +5,8 @@ import { db } from '../db/database';
 import { formatRupiah } from '../utils/formatCurrency';
 import Skeleton from '../components/ui/Skeleton';
 import { ROUTES } from '../routes';
+import { isNonIncomeStatus } from './ProfitCalculatorPage';
+import type { ProfitHistory } from '../types';
 
 const ProfitListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -84,30 +86,51 @@ const ProfitListPage: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {profitHistories.map((history) => {
-            const totalOrders = history.orders.length;
+          {profitHistories.map((history: ProfitHistory) => {
+            const validOrders = (history.orders || []).filter(order => !isNonIncomeStatus(order.statusPesanan));
+            const activeOrders = (validOrders.length > 0 || (history.orders || []).length === 0)
+              ? validOrders
+              : (history.orders || []);
+
+            const totalOrders = activeOrders.length;
             
-            // Calculate a quick overview
             let tPenghasilan = 0;
+            let tPlatformFee = 0;
             let tModal = 0;
-            history.orders.forEach(order => {
-              tPenghasilan += order.totalSubtotalBarang;
+
+            const adminFeePercent = history.adminFeePercent ?? 0;
+            const serviceFeePercent = history.serviceFeePercent ?? 0;
+            const orderFeeAmount = history.orderFeeAmount ?? 0;
+
+            activeOrders.forEach(order => {
+              const penghasilan = order.totalSubtotalBarang || 0;
+              tPenghasilan += penghasilan;
+
+              const adminFee = (penghasilan * adminFeePercent) / 100;
+              const serviceFee = (penghasilan * serviceFeePercent) / 100;
+              const totalOrderFee = adminFee + serviceFee + orderFeeAmount;
+
+              tPlatformFee += totalOrderFee;
+
               order.items.forEach(item => {
-                const modal = history.overrides[`${order.noPesanan}_${item.itemKey}`] ?? history.masterModal[item.namaProduk] ?? 0;
+                const overrideKey = `${order.noPesanan}_${item.itemKey}`;
+                const modal = (history.overrides && history.overrides[overrideKey] !== undefined)
+                  ? history.overrides[overrideKey]
+                  : (history.masterModal && history.masterModal[item.skuInduk] !== undefined)
+                    ? history.masterModal[item.skuInduk]
+                    : 0;
                 tModal += modal * item.jumlah;
               });
             });
 
-            const totalPlatformFee = history.orders.length > 0 
-                ? history.orders.reduce((acc, order) => {
-                  const p = order.totalSubtotalBarang;
-                  return acc + (p * history.adminFeePercent / 100) + (p * history.serviceFeePercent / 100) + history.orderFeeAmount;
-                }, 0)
-                : 0;
-            
-            const omset = tPenghasilan - totalPlatformFee;
-            const finalAdsFee = history.adsFeeAmount + (history.adsFeeAmount * history.adsTaxPercent / 100);
-            const untungBersih = (tPenghasilan - tModal) - totalPlatformFee - (finalAdsFee + history.affiliateFeeAmount);
+            const omset = tPenghasilan - tPlatformFee;
+            const adsFeeAmount = history.adsFeeAmount ?? 0;
+            const adsTaxPercent = history.adsTaxPercent ?? 0;
+            const affiliateFeeAmount = history.affiliateFeeAmount ?? 0;
+
+            const finalAdsFee = adsFeeAmount + (adsFeeAmount * adsTaxPercent / 100);
+            const untungKotor = omset - (finalAdsFee + affiliateFeeAmount);
+            const untungBersih = untungKotor - tModal;
 
             return (
               <div 
